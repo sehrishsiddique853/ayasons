@@ -1,0 +1,54 @@
+.activewear-page {
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #050609 0%,
+      #07080b 100%
+    );
+
+  color: var(--text-primary);
+}
+
+.activewear-content {
+  width: 100%;
+  max-width: 1360px;
+
+  margin: 0 auto;
+
+  padding:
+    clamp(62px, 7vw, 90px)
+    clamp(18px, 4vw, 48px);
+
+  display: grid;
+
+  gap:
+    clamp(26px, 3vw, 36px);
+}
+
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .activewear-content {
+    padding:
+      58px
+      28px;
+  }
+}
+
+
+/* MOBILE */
+
+@media (max-width: 620px) {
+  .activewear-content {
+    padding:
+      48px
+      18px;
+
+    gap: 22px;
+  }
+}

@@ -1,0 +1,53 @@
+:root {
+  --bg-primary: #080808;
+  --bg-secondary: #111111;
+  --brand-yellow: #f0d44f;
+  --text-primary: #ffffff;
+  --text-secondary: #a8a8a8;
+  --border: #252525;
+  --font-display: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg {
+  display: block;
+}
+
+#root {
+  min-height: 100svh;
+}

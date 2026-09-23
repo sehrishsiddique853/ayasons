@@ -1,0 +1,179 @@
+.product-category-hero {
+  position: relative;
+  min-height: 470px;
+
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  padding:
+    118px
+    clamp(18px, 4vw, 48px)
+    68px;
+
+  background:
+    var(--category-hero-image)
+    center / cover
+    no-repeat;
+}
+
+.product-category-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  z-index: 1;
+
+  background-image:
+    repeating-linear-gradient(
+      105deg,
+      rgba(255, 255, 255, 0.04) 0 1px,
+      transparent 1px 36px
+    );
+
+  pointer-events: none;
+}
+
+.product-category-hero-overlay {
+  position: absolute;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(5, 6, 9, 0.98) 0%,
+      rgba(5, 6, 9, 0.9) 40%,
+      rgba(5, 6, 9, 0.66) 70%,
+      rgba(5, 6, 9, 0.48) 100%
+    );
+}
+
+.product-category-hero-content {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 1360px;
+
+  margin: 0 auto;
+}
+
+.product-category-eyebrow {
+  margin: 0 0 17px;
+
+  color: var(--brand-yellow);
+
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.product-category-hero h1 {
+  max-width: 11ch;
+
+  margin: 0;
+
+  color: #fff;
+
+  font-family: var(--font-display);
+  font-size: clamp(50px, 6.4vw, 86px);
+  font-weight: 900;
+
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.product-category-accent {
+  display: block;
+
+  width: 70px;
+  height: 3px;
+
+  margin: 25px 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #fff37b,
+      #f0d44f,
+      #dfb31f
+    );
+}
+
+.product-category-description {
+  max-width: 690px;
+
+  margin: 0;
+
+  color: rgba(255, 255, 255, 0.6);
+
+  font-size: 16px;
+  line-height: 1.68;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .product-category-hero {
+    min-height: 430px;
+
+    padding:
+      105px
+      28px
+      58px;
+  }
+
+  .product-category-hero h1 {
+    font-size: clamp(46px, 8vw, 68px);
+  }
+
+  .product-category-description {
+    max-width: 600px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 620px) {
+  .product-category-hero {
+    min-height: 400px;
+
+    padding:
+      98px
+      18px
+      48px;
+
+    background-position: 60% center;
+  }
+
+  .product-category-hero-overlay {
+    background:
+      linear-gradient(
+        90deg,
+        rgba(5, 6, 9, 0.98),
+        rgba(5, 6, 9, 0.76)
+      );
+  }
+
+  .product-category-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.24em;
+  }
+
+  .product-category-hero h1 {
+    font-size: clamp(40px, 12vw, 56px);
+  }
+
+  .product-category-accent {
+    margin: 20px 0;
+  }
+
+  .product-category-description {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}

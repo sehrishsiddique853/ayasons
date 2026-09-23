@@ -1,0 +1,977 @@
+.quote-page {
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      180deg,
+      #050505,
+      #090909
+    );
+
+  color: var(--text-primary);
+}
+
+
+/* ========================================
+   TOP
+======================================== */
+
+.quote-hero {
+  position: relative;
+
+  overflow: hidden;
+
+  padding:
+    clamp(120px, 11vw, 155px)
+    clamp(18px, 4vw, 48px)
+    clamp(54px, 6vw, 76px);
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  background:
+    radial-gradient(
+      circle at 82% 20%,
+      rgba(240, 212, 79, 0.1),
+      transparent 25%
+    ),
+    #060606;
+}
+
+.quote-hero::before {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+
+  background-image: repeating-linear-gradient(
+    105deg,
+    rgba(255, 255, 255, 0.025) 0 1px,
+    transparent 1px 40px
+  );
+
+  pointer-events: none;
+}
+
+.quote-hero-inner {
+  position: relative;
+  z-index: 1;
+
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+.quote-kicker {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  margin: 0 0 17px;
+
+  color: var(--brand-yellow);
+
+  font-family: var(--font-display);
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.28em;
+
+  text-transform: uppercase;
+}
+
+.quote-kicker::before {
+  content: '';
+
+  width: 7px;
+  height: 7px;
+
+  background:
+    var(--brand-yellow);
+
+  transform:
+    rotate(45deg);
+}
+
+.quote-hero h1 {
+  margin: 0;
+
+  color: #fff;
+
+  font-family:
+    var(--font-display);
+
+  font-size:
+    clamp(48px, 6vw, 84px);
+
+  font-weight: 900;
+
+  line-height: 0.9;
+
+  text-transform: uppercase;
+}
+
+.quote-hero h1 span {
+  background: linear-gradient(
+    90deg,
+    #f0d44f,
+    #fff37b,
+    #dfb31f,
+    #f7e36a
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+}
+
+.quote-hero-inner > p:last-child {
+  max-width: 650px;
+
+  margin: 22px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.56);
+
+  font-size: 15px;
+
+  line-height: 1.7;
+}
+
+
+/* ========================================
+   MAIN LAYOUT
+======================================== */
+
+.quote-section {
+  position: relative;
+
+  padding:
+    clamp(62px, 7vw, 96px)
+    clamp(18px, 4vw, 48px);
+}
+
+.quote-layout {
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1.08fr)
+    minmax(360px, 0.92fr);
+
+  gap:
+    clamp(40px, 6vw, 84px);
+
+  width: 100%;
+
+  max-width: 1360px;
+
+  margin: 0 auto;
+}
+
+
+/* ========================================
+   FORM HEADER
+======================================== */
+
+.quote-section-heading {
+  max-width: 650px;
+
+  margin-bottom: 30px;
+}
+
+.quote-section-heading > span {
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+}
+
+.quote-section-heading h2 {
+  margin:
+    10px 0 0;
+
+  color: #fff;
+
+  font-family:
+    var(--font-display);
+
+  font-size:
+    clamp(38px, 4vw, 58px);
+
+  font-weight: 900;
+
+  line-height: 0.95;
+
+  text-transform: uppercase;
+}
+
+.quote-section-heading h2 strong {
+  color:
+    var(--brand-yellow);
+
+  font-weight: inherit;
+}
+
+.quote-section-heading p {
+  max-width: 570px;
+
+  margin:
+    17px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.5);
+
+  font-size: 14px;
+
+  line-height: 1.65;
+}
+
+
+/* ========================================
+   FORM
+======================================== */
+
+.quote-form {
+  display: grid;
+
+  gap: 18px;
+}
+
+.quote-form-row {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.quote-field {
+  display: grid;
+
+  gap: 9px;
+}
+
+.quote-field label {
+  color:
+    rgba(255, 255, 255, 0.78);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+}
+
+.quote-field input,
+.quote-field select,
+.quote-field textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.11);
+
+  border-radius: 0;
+
+  outline: none;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color: #fff;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.quote-field input,
+.quote-field select {
+  height: 54px;
+
+  padding:
+    0 17px;
+}
+
+.quote-field textarea {
+  min-height: 150px;
+
+  resize: vertical;
+
+  padding: 16px 17px;
+
+  line-height: 1.55;
+}
+
+.quote-field input::placeholder,
+.quote-field textarea::placeholder {
+  color:
+    rgba(255, 255, 255, 0.3);
+}
+
+.quote-field input:focus,
+.quote-field select:focus,
+.quote-field textarea:focus {
+  border-color:
+    rgba(240, 212, 79, 0.7);
+
+  background:
+    rgba(240, 212, 79, 0.035);
+
+  box-shadow:
+    0 0 0 3px
+    rgba(240, 212, 79, 0.055);
+}
+
+.quote-field select {
+  color:
+    rgba(255, 255, 255, 0.78);
+}
+
+.quote-field option {
+  background: #111;
+
+  color: #fff;
+}
+
+.quote-honeypot {
+  position: absolute !important;
+
+  left: -9999px !important;
+
+  width: 1px !important;
+  height: 1px !important;
+
+  opacity: 0 !important;
+}
+
+
+/* ========================================
+   SUBMIT
+======================================== */
+
+.quote-submit {
+  width: fit-content;
+
+  min-width: 220px;
+
+  min-height: 50px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  margin-top: 4px;
+
+  padding:
+    0 25px;
+
+  border: 0;
+
+  background:
+    var(--brand-yellow);
+
+  color:
+    #060606;
+
+  cursor: pointer;
+
+  font-family:
+    var(--font-display);
+
+  font-size: 12px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.09em;
+
+  text-transform: uppercase;
+
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 72%,
+    91% 100%,
+    0 100%
+  );
+
+  transition:
+    transform 180ms ease,
+    background 180ms ease;
+}
+
+.quote-submit:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  background: #f0d44f;
+}
+
+.quote-submit:disabled {
+  cursor: wait;
+
+  opacity: 0.6;
+}
+
+.quote-submit span {
+  font-size: 17px;
+}
+
+.quote-message {
+  margin: 0;
+
+  padding:
+    12px 14px;
+
+  border:
+    1px solid;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+.quote-success {
+  border-color:
+    rgba(240, 212, 79, 0.3);
+
+  background:
+    rgba(240, 212, 79, 0.05);
+
+  color: var(--brand-yellow);
+}
+
+.quote-error {
+  border-color:
+    rgba(255, 90, 90, 0.35);
+
+  background:
+    rgba(255, 90, 90, 0.05);
+
+  color:
+    #ff8a8a;
+}
+
+
+/* ========================================
+   RIGHT COLUMN
+======================================== */
+
+.quote-contact-column {
+  position: relative;
+
+  padding-left:
+    clamp(24px, 4vw, 54px);
+
+  border-left:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+}
+
+.quote-contact-intro {
+  margin-bottom: 28px;
+}
+
+.quote-contact-intro > p:first-child {
+  margin: 0;
+
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.22em;
+
+  text-transform: uppercase;
+}
+
+.quote-contact-intro h2 {
+  margin:
+    9px 0 0;
+
+  color: #fff;
+
+  font-family:
+    var(--font-display);
+
+  font-size:
+    clamp(34px, 3.5vw, 50px);
+
+  font-weight: 900;
+
+  line-height: 0.96;
+
+  text-transform: uppercase;
+}
+
+.quote-contact-intro h2 span {
+  color:
+    var(--brand-yellow);
+}
+
+.quote-contact-intro > p:last-child {
+  max-width: 520px;
+
+  margin:
+    16px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.48);
+
+  font-size: 13px;
+
+  line-height: 1.65;
+}
+
+
+/* ========================================
+   WHATSAPP FEATURE CARD
+======================================== */
+
+.quote-whatsapp-card {
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr auto;
+
+  align-items: center;
+
+  gap: 17px;
+
+  min-height: 110px;
+
+  padding:
+    18px 20px;
+
+  border:
+    1px solid
+    rgba(240, 212, 79, 0.28);
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(240, 212, 79, 0.08),
+      rgba(255, 255, 255, 0.025)
+    );
+
+  color: inherit;
+
+  text-decoration: none;
+
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.quote-whatsapp-card:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(240, 212, 79, 0.65);
+}
+
+.quote-whatsapp-icon {
+  width: 56px;
+  height: 56px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--brand-yellow);
+
+  color:
+    #060606;
+
+  font-family:
+    var(--font-display);
+
+  font-size: 20px;
+
+  font-weight: 900;
+}
+
+.quote-whatsapp-card div:nth-child(2) > span {
+  display: block;
+
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.16em;
+
+  text-transform: uppercase;
+}
+
+.quote-whatsapp-card strong {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #fff;
+
+  font-family:
+    var(--font-display);
+
+  font-size: 20px;
+
+  text-transform: uppercase;
+}
+
+.quote-whatsapp-card p {
+  margin:
+    5px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.46);
+
+  font-size: 12px;
+}
+
+
+/* ========================================
+   CONTACT CARDS
+======================================== */
+
+.quote-contact-list {
+  display: grid;
+
+  gap: 11px;
+
+  margin-top: 16px;
+}
+
+.quote-contact-card {
+  display: grid;
+
+  grid-template-columns:
+    auto 1fr auto;
+
+  align-items: center;
+
+  gap: 15px;
+
+  min-height: 84px;
+
+  padding:
+    14px 17px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.1);
+
+  background:
+    rgba(255, 255, 255, 0.025);
+
+  color: inherit;
+
+  text-decoration: none;
+
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.quote-contact-card:hover {
+  transform:
+    translateX(3px);
+
+  border-color:
+    rgba(240, 212, 79, 0.34);
+
+  background:
+    rgba(240, 212, 79, 0.035);
+}
+
+.quote-contact-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(240, 212, 79, 0.24);
+
+  background:
+    rgba(240, 212, 79, 0.05);
+
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 13px;
+
+  font-weight: 900;
+}
+
+.quote-contact-details span {
+  display: block;
+
+  color:
+    rgba(255, 255, 255, 0.45);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+.quote-contact-details strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    rgba(255, 255, 255, 0.84);
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+.quote-contact-arrow {
+  color:
+    var(--brand-yellow);
+
+  font-size: 18px;
+}
+
+
+/* ========================================
+   NOTE
+======================================== */
+
+.quote-response-note {
+  margin-top: 18px;
+
+  padding:
+    21px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+
+  background:
+    rgba(255, 255, 255, 0.018);
+}
+
+.quote-response-note > span {
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 9px;
+
+  font-weight: 900;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+.quote-response-note h3 {
+  margin:
+    7px 0 0;
+
+  color: #fff;
+
+  font-family:
+    var(--font-display);
+
+  font-size: 22px;
+
+  font-weight: 900;
+
+  text-transform: uppercase;
+}
+
+.quote-response-note p {
+  margin:
+    11px 0 0;
+
+  color:
+    rgba(255, 255, 255, 0.46);
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+
+/* ========================================
+   TABLET
+======================================== */
+
+@media (max-width: 960px) {
+  .quote-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-contact-column {
+    padding-left: 0;
+
+    padding-top: 42px;
+
+    border-left: 0;
+
+    border-top:
+      1px solid
+      rgba(255, 255, 255, 0.08);
+  }
+}
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 620px) {
+  .quote-hero {
+    padding:
+      100px
+      18px
+      50px;
+  }
+
+  .quote-section {
+    padding:
+      54px
+      18px;
+  }
+
+  .quote-hero h1 {
+    font-size:
+      clamp(44px, 13vw, 62px);
+  }
+
+  .quote-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-submit {
+    width: 100%;
+  }
+
+  .quote-whatsapp-card {
+    grid-template-columns:
+      auto 1fr;
+  }
+
+  .quote-whatsapp-card
+  .quote-contact-arrow {
+    display: none;
+  }
+
+  .quote-contact-card {
+    grid-template-columns:
+      auto 1fr auto;
+  }
+}
+
+.quote-whatsapp-icon {
+  width: 56px;
+  height: 56px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(240, 212, 79, 0.08);
+
+  border:
+    1px solid
+    rgba(240, 212, 79, 0.28);
+}
+
+.quote-whatsapp-icon img {
+  width: 30px;
+  height: 30px;
+
+  object-fit: contain;
+  display: block;
+}
+
+
+.quote-contact-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    rgba(240, 212, 79, 0.24);
+
+  background:
+    rgba(240, 212, 79, 0.05);
+}
+
+.quote-contact-icon img {
+  width: 24px;
+  height: 24px;
+
+  display: block;
+
+  object-fit: contain;
+}

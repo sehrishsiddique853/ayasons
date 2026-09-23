@@ -1,0 +1,553 @@
+.factory-direct-section {
+  position: relative;
+  overflow: hidden;
+
+  padding:
+    clamp(62px, 6vw, 86px)
+    clamp(18px, 4vw, 48px);
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  background:
+    radial-gradient(
+      circle at 90% 8%,
+      rgba(240, 212, 79, 0.07),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      #070707 0%,
+      #0a0a0a 100%
+    );
+
+  color: var(--text-primary);
+}
+
+.factory-direct-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px
+    );
+
+  background-size: 46px 46px;
+
+  opacity: 0.28;
+}
+
+.factory-direct-inner {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  max-width: 1360px;
+
+  margin: 0 auto;
+}
+
+/* ========================= */
+/* HEADER                    */
+/* ========================= */
+
+.factory-direct-header {
+  max-width: 850px;
+}
+
+.factory-direct-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0 0 16px;
+
+  padding: 7px 12px;
+
+  border: 1px solid rgba(240, 212, 79, 0.3);
+  border-radius: 999px;
+
+  background: rgba(240, 212, 79, 0.06);
+
+  color: var(--brand-yellow);
+
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.factory-direct-kicker::before {
+  content: '';
+
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: var(--brand-yellow);
+}
+
+.factory-direct-header h2 {
+  display: grid;
+  gap: 2px;
+
+  margin: 0;
+
+  font-family: var(--font-display);
+  font-size: clamp(42px, 4.8vw, 66px);
+  font-weight: 900;
+
+  line-height: 0.9;
+
+  text-transform: uppercase;
+}
+
+.factory-direct-header h2 span:first-child {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.factory-direct-header h2 span:last-child {
+  background: linear-gradient(
+    90deg,
+    #f0d44f,
+    #fff37b,
+    #dfb31f,
+    #f7e36a
+  );
+
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  color: transparent;
+}
+
+.factory-direct-intro {
+  max-width: 660px;
+
+  margin: 20px 0 0;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* ========================= */
+/* COMPARISON                */
+/* ========================= */
+
+.factory-comparison {
+  margin-top: 34px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.018);
+
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.factory-comparison-head,
+.factory-comparison-row {
+  display: grid;
+
+  grid-template-columns:
+    0.75fr
+    1.35fr
+    1fr
+    1fr;
+}
+
+.factory-comparison-head {
+  min-height: 68px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.09);
+
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+.factory-comparison-head > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 14px 18px;
+
+  border-right:
+    1px solid rgba(255, 255, 255, 0.07);
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 900;
+
+  letter-spacing: 0.04em;
+
+  text-transform: uppercase;
+}
+
+.factory-comparison-head > div:last-child {
+  border-right: 0;
+}
+
+.factory-comparison-head span {
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.35);
+
+  font-size: 9px;
+  letter-spacing: 0.08em;
+}
+
+.factory-comparison-head
+.comparison-head-ayosons {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(240, 212, 79, 0.11),
+      rgba(240, 212, 79, 0.035)
+    );
+
+  color: var(--brand-yellow);
+}
+
+.factory-comparison-head
+.comparison-head-ayosons span {
+  color: rgba(240, 212, 79, 0.6);
+}
+
+/* ========================= */
+/* ROWS                      */
+/* ========================= */
+
+.factory-comparison-row {
+  min-height: 72px;
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, 0.065);
+}
+
+.factory-comparison-row:last-child {
+  border-bottom: 0;
+}
+
+.factory-comparison-row > div {
+  display: flex;
+  align-items: center;
+
+  padding: 14px 18px;
+
+  border-right:
+    1px solid rgba(255, 255, 255, 0.06);
+}
+
+.factory-comparison-row > div:last-child {
+  border-right: 0;
+}
+
+.comparison-label {
+  color: rgba(255, 255, 255, 0.84);
+
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+
+  line-height: 1.25;
+
+  text-transform: uppercase;
+}
+
+.comparison-ayosons {
+  gap: 10px;
+
+  background:
+    rgba(240, 212, 79, 0.028);
+}
+
+.comparison-check {
+  flex: 0 0 auto;
+
+  width: 22px;
+  height: 22px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(240, 212, 79, 0.12);
+
+  color: var(--brand-yellow);
+
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.comparison-ayosons p,
+.comparison-muted p {
+  margin: 0;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.comparison-ayosons p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.comparison-muted p {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+/* ========================= */
+/* SUPPORTING CARDS          */
+/* ========================= */
+
+.factory-advantages-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+
+  margin-top: 24px;
+}
+
+.factory-advantage-card {
+  position: relative;
+
+  min-height: 220px;
+
+  padding: 24px;
+
+  overflow: hidden;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.09);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    );
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.factory-advantage-card:nth-child(2) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(240, 212, 79, 0.06),
+      rgba(255, 255, 255, 0.015)
+    );
+}
+
+.factory-advantage-card:nth-child(3) {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(240, 212, 79, 0.025)
+    );
+}
+
+.factory-advantage-card:hover {
+  transform: translateY(-4px);
+
+  border-color:
+    rgba(240, 212, 79, 0.36);
+}
+
+.factory-advantage-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+}
+
+.factory-advantage-number {
+  color:
+    rgba(255, 255, 255, 0.22);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.factory-advantage-eyebrow {
+  display: inline-flex;
+
+  padding:
+    6px 9px;
+
+  border:
+    1px solid rgba(240, 212, 79, 0.25);
+
+  border-radius: 999px;
+
+  background:
+    rgba(240, 212, 79, 0.055);
+
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 8px;
+  font-weight: 900;
+
+  letter-spacing: 0.14em;
+
+  text-transform: uppercase;
+}
+
+.factory-advantage-card h3 {
+  max-width: 17ch;
+
+  margin:
+    25px 0 0;
+
+  color: #fff;
+
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2vw, 30px);
+  font-weight: 900;
+
+  line-height: 0.95;
+
+  text-transform: uppercase;
+}
+
+.factory-advantage-card p {
+  max-width: 39ch;
+
+  margin:
+    14px 0 22px;
+
+  color:
+    rgba(255, 255, 255, 0.5);
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+.factory-advantage-card a {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 9px;
+
+  color:
+    var(--brand-yellow);
+
+  font-family:
+    var(--font-display);
+
+  font-size: 10px;
+  font-weight: 900;
+
+  letter-spacing: 0.08em;
+
+  text-decoration: none;
+  text-transform: uppercase;
+
+  transition:
+    gap 180ms ease;
+}
+
+.factory-advantage-card a:hover {
+  gap: 13px;
+}
+
+/* ========================= */
+/* TABLET                    */
+/* ========================= */
+
+@media (max-width: 1000px) {
+  .factory-comparison {
+    overflow-x: auto;
+  }
+
+  .factory-comparison-head,
+  .factory-comparison-row {
+    min-width: 900px;
+  }
+
+  .factory-advantages-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .factory-advantage-card:last-child {
+    grid-column:
+      1 / -1;
+  }
+}
+
+/* ========================= */
+/* MOBILE                    */
+/* ========================= */
+
+@media (max-width: 680px) {
+  .factory-direct-section {
+    padding:
+      56px
+      18px;
+  }
+
+  .factory-direct-header h2 {
+    font-size:
+      clamp(
+        38px,
+        11vw,
+        52px
+      );
+  }
+
+  .factory-comparison {
+    margin-top: 26px;
+  }
+
+  .factory-advantages-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .factory-advantage-card:last-child {
+    grid-column: auto;
+  }
+
+  .factory-advantage-card {
+    min-height: 200px;
+  }
+}
