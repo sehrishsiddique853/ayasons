@@ -1,95 +1,224 @@
-import { useEffect, useState } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useState,
+} from 'react'
 
 import heroAthlete from '../../assets/images/hero1.png'
 
-import sportsImage from '../../assets/images/category-sports-teamwear.png'
-import streetwearImage from '../../assets/images/category-lifestyle-accessories.png'
-import activewearImage from '../../assets/images/category-performance-wear.png'
-import varsityImage from '../../assets/images/versity_jackets.png'
-import headwearImage from '../../assets/images/headwear.png'
-import workwearImage from '../../assets/images/workwear.png'
-import accessoriesImage from '../../assets/images/accessories.png'
+import api from '../../services/api'
 
-const categories = [
-  {
-    name: 'Sports Wear',
-    label: 'Team & Performance',
-    image: sportsImage,
-  },
-  {
-    name: 'Streetwear',
-    label: 'Lifestyle Apparel',
-    image: streetwearImage,
-  },
-  {
-    name: 'Activewear',
-    label: 'Gym & Fitness',
-    image: activewearImage,
-  },
-  {
-    name: 'Varsity Jackets',
-    label: 'Premium Outerwear',
-    image: varsityImage,
-  },
-  {
-    name: 'Headwear',
-    label: 'Custom Headwear',
-    image: headwearImage,
-  },
-  {
-    name: 'Workwear',
-    label: 'Professional Apparel',
-    image: workwearImage,
-  },
-  {
-    name: 'Accessories',
-    label: 'Bags & Accessories',
-    image: accessoriesImage,
-  },
-]
 
 function Hero() {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [
+    categories,
+    setCategories,
+  ] = useState([])
 
-  const activeCategory = categories[activeIndex]
+  const [
+    activeIndex,
+    setActiveIndex,
+  ] = useState(0)
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Load Active Categories
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    const controller =
+      new AbortController()
+
+
+    const loadCategories =
+      async () => {
+        try {
+          const response =
+            await api.get(
+              '/categories',
+              {
+                signal:
+                  controller.signal,
+              }
+            )
+
+
+          setCategories(
+            response.data.categories ||
+              []
+          )
+
+        } catch (error) {
+
+          if (
+            error.code ===
+            'ERR_CANCELED'
+          ) {
+            return
+          }
+
+
+          console.error(
+            'Failed to load hero categories:',
+            error
+          )
+        }
+      }
+
+
+    loadCategories()
+
+
+    return () => {
+      controller.abort()
+    }
+
+  }, [])
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Keep Active Index Valid
+  |--------------------------------------------------------------------------
+  */
+
+  useEffect(() => {
+    if (
+      categories.length > 0 &&
+      activeIndex >=
+        categories.length
+    ) {
+      setActiveIndex(0)
+    }
+  }, [
+    categories,
+    activeIndex,
+  ])
+
+
+  const activeCategory =
+    categories[activeIndex]
+
+
+  const activeImage =
+    activeCategory
+      ?.heroImage?.url ||
+    activeCategory
+      ?.collectionImage?.url ||
+    ''
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Previous / Next
+  |--------------------------------------------------------------------------
+  */
 
   const goNext = () => {
-    setActiveIndex(
-      (current) => (current + 1) % categories.length
-    )
-  }
+    if (!categories.length) {
+      return
+    }
 
-  const goPrevious = () => {
+
     setActiveIndex(
       (current) =>
-        (current - 1 + categories.length) %
+        (current + 1) %
         categories.length
     )
   }
 
+
+  const goPrevious = () => {
+    if (!categories.length) {
+      return
+    }
+
+
+    setActiveIndex(
+      (current) =>
+        (
+          current -
+          1 +
+          categories.length
+        ) %
+        categories.length
+    )
+  }
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Auto Rotation
+  |--------------------------------------------------------------------------
+  */
+
   useEffect(() => {
-    const reduceMotion = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches
+    if (
+      categories.length <= 1
+    ) {
+      return undefined
+    }
+
+
+    const reduceMotion =
+      window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches
+
 
     if (reduceMotion) {
       return undefined
     }
 
-    const interval = window.setInterval(() => {
-      setActiveIndex(
-        (current) => (current + 1) % categories.length
-      )
-    }, 4200)
 
-    return () => window.clearInterval(interval)
-  }, [])
+    const interval =
+      window.setInterval(
+        () => {
+          setActiveIndex(
+            (current) =>
+              (current + 1) %
+              categories.length
+          )
+        },
+        4200
+      )
+
+
+    return () => {
+      window.clearInterval(
+        interval
+      )
+    }
+
+  }, [categories.length])
+
+
+  /*
+  |--------------------------------------------------------------------------
+  | Small Category Strip
+  |--------------------------------------------------------------------------
+  |
+  | Keep the first four categories so the existing hero layout
+  | does not become too crowded.
+  |
+  */
+
+  const stripCategories =
+    categories.slice(0, 4)
+
 
   return (
-    <section className="hero-section" id="home">
+    <section
+      className="hero-section"
+      id="home"
+    >
 
-      {/* ORIGINAL HERO BACKGROUND */}
+      {/* HERO BACKGROUND */}
+
       <div className="hero-overlay" />
+
 
       <img
         className="hero-image"
@@ -98,32 +227,60 @@ function Hero() {
         aria-hidden="true"
       />
 
+
       {/* LEFT SIDE */}
-      <div className="hero-content ">
+
+      <div className="hero-content">
 
         <p className="hero-meta">
-          <span>Est. 2005</span>
-          <span>Sialkot, Pakistan</span>
-          <span>Ships Worldwide</span>
+
+          <span>
+            Est. 2005
+          </span>
+
+          <span>
+            Sialkot, Pakistan
+          </span>
+
+          <span>
+            Ships Worldwide
+          </span>
+
         </p>
 
+
         <h1>
-          <span>Custom</span>
-          <span>Sportswear and Streetwear</span>
-          <span>Manufacturer</span>
+
+          <span>
+            Custom
+          </span>
+
+          <span>
+            Sportswear and Streetwear
+          </span>
+
+          <span>
+            Manufacturer
+          </span>
+
         </h1>
+
 
         <p className="eyebrow">
           in Sialkot, Pakistan
         </p>
 
+
         <p className="hero-copy">
           Your manufacturing partner for sportswear,
-          streetwear, activewear, workwear and private-label
-          apparel — built for brands, teams and businesses.
+          streetwear, activewear, workwear and
+          private-label apparel — built for brands,
+          teams and businesses.
         </p>
 
+
         <div className="hero-buttons">
+
           <a
             className="primary-button"
             href="#products"
@@ -131,104 +288,226 @@ function Hero() {
             Explore Products
           </a>
 
+
           <a
             className="secondary-button"
-             href="#contact"
+            href="#contact"
           >
             Request a Quote
           </a>
+
         </div>
 
-        <p className="category-strip">
-          Sportswear <span>•</span>
-          Activewear <span>•</span>
-          Streetwear <span>•</span>
-          Workwear
-        </p>
+
+        {/* DYNAMIC CATEGORY STRIP */}
+
+        {stripCategories.length >
+          0 && (
+          <p className="category-strip">
+
+            {stripCategories.map(
+              (
+                category,
+                index
+              ) => (
+                <Fragment
+                  key={
+                    category._id ||
+                    category.slug
+                  }
+                >
+
+                  {category.name}
+
+                  {index <
+                    stripCategories.length -
+                      1 && (
+                    <span>
+                      {' '}•{' '}
+                    </span>
+                  )}
+
+                </Fragment>
+              )
+            )}
+
+          </p>
+        )}
 
       </div>
 
-      {/* ONLY THE HIGHLIGHTED RIGHT AREA */}
-      <div className="hero-category-showcase " >
 
-        <div className="hero-showcase-heading">
-          <span>Explore Categories</span>
+      {/* DYNAMIC CATEGORY SHOWCASE */}
 
-          <span >
-            {String(activeIndex + 1).padStart(2, '0')}
-            {' / '}
-            {String(categories.length).padStart(2, '0')}
-          </span>
-        </div>
+      {activeCategory && (
+        <div className="hero-category-showcase">
 
-        <article
-          className="hero-showcase-card"
-          key={activeCategory.name}
-        >
-          <img
-            src={activeCategory.image}
-            alt={activeCategory.name}
-          />
+          <div className="hero-showcase-heading">
 
-          <div className="hero-showcase-card-overlay" />
-
-          <div className="hero-showcase-card-content">
             <span>
-              {activeCategory.label}
+              Explore Categories
             </span>
 
-            <h2>
-              {activeCategory.name}
-            </h2>
 
-            
+            <span>
+
+              {String(
+                activeIndex + 1
+              ).padStart(
+                2,
+                '0'
+              )}
+
+              {' / '}
+
+              {String(
+                categories.length
+              ).padStart(
+                2,
+                '0'
+              )}
+
+            </span>
+
           </div>
 
-          <div className="hero-carousel-controls">
 
-            <button
-              type="button"
-              onClick={goPrevious}
-              aria-label="Previous category"
-            >
-              ←
-            </button>
+          <article
+            className="hero-showcase-card"
 
-            <div className="hero-carousel-dots">
-              {categories.map((category, index) => (
-                <button
-                  type="button"
-                  key={category.name}
-                  className={
-                    index === activeIndex
-                      ? 'active'
-                      : ''
-                  }
-                  onClick={() => setActiveIndex(index)}
-                  aria-label={`Show ${category.name}`}
-                />
-              ))}
+            key={
+              activeCategory._id ||
+              activeCategory.slug
+            }
+          >
+
+            {activeImage && (
+              <img
+                src={activeImage}
+
+                alt={
+                  activeCategory.name
+                }
+              />
+            )}
+
+
+            <div className="hero-showcase-card-overlay" />
+
+
+            <div className="hero-showcase-card-content">
+
+              <span>
+                {activeCategory
+                  .showcaseLabel ||
+                  activeCategory
+                    .eyebrow ||
+                  activeCategory.name}
+              </span>
+
+
+              <h2>
+                {activeCategory.name}
+              </h2>
+
             </div>
 
-            <button
-              type="button"
-              onClick={goNext}
-              aria-label="Next category"
-            >
-              →
-            </button>
 
-          </div>
-        </article>
+            {/* CAROUSEL CONTROLS */}
 
-        <div className="hero-showcase-progress">
-          <span key={activeCategory.name} />
+            {categories.length >
+              1 && (
+              <div className="hero-carousel-controls">
+
+                <button
+                  type="button"
+
+                  onClick={
+                    goPrevious
+                  }
+
+                  aria-label="Previous category"
+                >
+                  ←
+                </button>
+
+
+                <div className="hero-carousel-dots">
+
+                  {categories.map(
+                    (
+                      category,
+                      index
+                    ) => (
+                      <button
+                        type="button"
+
+                        key={
+                          category._id ||
+                          category.slug
+                        }
+
+                        className={
+                          index ===
+                          activeIndex
+                            ? 'active'
+                            : ''
+                        }
+
+                        onClick={() =>
+                          setActiveIndex(
+                            index
+                          )
+                        }
+
+                        aria-label={
+                          `Show ${category.name}`
+                        }
+                      />
+                    )
+                  )}
+
+                </div>
+
+
+                <button
+                  type="button"
+
+                  onClick={
+                    goNext
+                  }
+
+                  aria-label="Next category"
+                >
+                  →
+                </button>
+
+              </div>
+            )}
+
+          </article>
+
+
+          {categories.length >
+            1 && (
+            <div className="hero-showcase-progress">
+
+              <span
+                key={
+                  activeCategory._id ||
+                  activeCategory.slug
+                }
+              />
+
+            </div>
+          )}
+
         </div>
-
-      </div>
+      )}
 
     </section>
   )
 }
+
 
 export default Hero

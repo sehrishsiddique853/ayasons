@@ -5,12 +5,16 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed": "node src/seed/seed.js",
+    "test:dynamic-category": "node src/seed/testDynamicCategory.js create",
+"test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",

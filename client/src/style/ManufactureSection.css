@@ -252,3 +252,39 @@ top: 18px;
   background:
     #f0d44f;
 }
+
+.manufacture-status {
+  margin: 0;
+
+  padding: 36px 0;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+
+.manufacture-status-error {
+  color: #f0d44f;
+}
+
+.manufacture-card p {
+  max-width: 23ch;
+
+  margin: 0 0 26px;
+
+  color: rgba(255, 255, 255, 0.64);
+
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
