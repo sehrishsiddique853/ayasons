@@ -4,19 +4,17 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-  "dev": "nodemon src/server.js",
-  "start": "node src/server.js",
-
-  "seed": "node src/seed/mysqlSeed.js",
-
-  "mysql:init": "node src/scripts/initMysql.js",
-  "mysql:seed": "node src/seed/mysqlSeed.js",
-"mysql:migrate-product-images": "node src/scripts/migrateProductImagesToMysql.js",
-  "mysql:add-image-blobs": "node src/scripts/addImageBlobs.js",
-"mysql:migrate-category-images": "node src/scripts/migrateCategoryImagesToMysql.js",
-  "test:dynamic-category": "node src/seed/testDynamicCategory.js create",
-  "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove"
-},
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/seed/mysqlSeed.js",
+    "mysql:init": "node src/scripts/initMysql.js",
+    "mysql:seed": "node src/seed/mysqlSeed.js",
+    "mysql:migrate-product-images": "node src/scripts/migrateProductImagesToMysql.js",
+    "mysql:add-image-blobs": "node src/scripts/addImageBlobs.js",
+    "mysql:migrate-category-images": "node src/scripts/migrateCategoryImagesToMysql.js",
+    "test:dynamic-category": "node src/seed/testDynamicCategory.js create",
+    "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -27,6 +25,7 @@
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
     "morgan": "^1.12.1",
+    "multer": "^2.4.0",
     "mysql2": "^3.24.4"
   },
   "devDependencies": {
