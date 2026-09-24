@@ -61,6 +61,12 @@ CREATE TABLE IF NOT EXISTS products (
 
     featured BOOLEAN NOT NULL DEFAULT FALSE,
 
+    featured_order TINYINT UNSIGNED NULL,
+
+UNIQUE KEY uq_products_featured_order (
+    featured_order
+),
+
     active BOOLEAN NOT NULL DEFAULT TRUE,
 
     display_order INT UNSIGNED NOT NULL DEFAULT 0,

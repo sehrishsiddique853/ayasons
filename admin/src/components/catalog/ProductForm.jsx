@@ -20,6 +20,7 @@ const emptyForm = {
   order: 0,
   active: true,
   featured: false,
+  featuredOrder: '',
   image: null,
 }
 
@@ -90,6 +91,9 @@ function ProductForm({
             order: product.order || 0,
             active: Boolean(product.active),
             featured: Boolean(product.featured),
+            featuredOrder: product.featuredOrder
+              ? String(product.featuredOrder)
+              : '',
             imageUrl: product.image?.url,
           })
         } else {
@@ -169,6 +173,7 @@ function ProductForm({
       data.append('order', String(form.order || 0))
       data.append('active', String(form.active))
       data.append('featured', String(form.featured))
+      data.append('featuredOrder', form.featuredOrder)
 
       if (form.image) {
         data.append('image', form.image)
@@ -364,8 +369,29 @@ function ProductForm({
               checked={form.featured}
               onChange={(event) => updateField('featured', event.target.checked)}
             />
-            <span>Mark as featured / best seller</span>
+            <span>Show in Hot Selling products</span>
           </label>
+
+          {form.featured && (
+            <label>
+              <span>Hot Selling slot</span>
+              <select
+                value={form.featuredOrder}
+                onChange={(event) => updateField('featuredOrder', event.target.value)}
+                required
+              >
+                <option value="">Choose slot</option>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((slot) => (
+                  <option key={slot} value={slot}>
+                    Slot {slot}
+                  </option>
+                ))}
+              </select>
+              <small>
+                There are exactly 8 Hot Selling slots. Choosing an occupied slot replaces the old product.
+              </small>
+            </label>
+          )}
         </div>
 
         <div className="catalog-form-actions">

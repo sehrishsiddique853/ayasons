@@ -13,7 +13,8 @@
     "mysql:add-image-blobs": "node src/scripts/addImageBlobs.js",
     "mysql:migrate-category-images": "node src/scripts/migrateCategoryImagesToMysql.js",
     "test:dynamic-category": "node src/seed/testDynamicCategory.js create",
-    "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove"
+    "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove",
+    "mysql:add-featured-order": "node src/scripts/addFeaturedOrder.js"
   },
   "keywords": [],
   "author": "",

@@ -66,6 +66,10 @@ const formatProduct = (row, req) => ({
   description: row.description || '',
   features: parseJson(row.features_json, []),
   featured: Boolean(row.featured),
+  featuredOrder:
+    row.featured_order === null
+      ? null
+      : Number(row.featured_order),
   active: Boolean(row.active),
   order: row.display_order,
   image: {
@@ -85,6 +89,7 @@ const selectProductSql = `
     p.description,
     p.features_json,
     p.featured,
+    p.featured_order,
     p.active,
     p.display_order,
     p.created_at,
@@ -105,6 +110,117 @@ const getProductById = async (id, req) => {
   )
 
   return rows[0] ? formatProduct(rows[0], req) : null
+}
+
+const updateHotSellingSlot = async (
+  connection,
+  productId,
+  featured,
+  featuredOrder
+) => {
+  const shouldFeature = parseBoolean(featured)
+
+  if (!shouldFeature) {
+    const [currentRows] = await connection.execute(
+      `
+      SELECT featured
+      FROM products
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [productId]
+    )
+
+    if (Boolean(currentRows[0]?.featured)) {
+      const [countRows] = await connection.execute(`
+        SELECT COUNT(*) AS total
+        FROM products
+        WHERE featured = 1
+      `)
+
+      if (Number(countRows[0].total) <= 8) {
+        const error = new Error(
+          'Hot Selling must have exactly 8 products. Replace this product with another product instead of removing it.'
+        )
+        error.statusCode = 400
+        throw error
+      }
+    }
+
+    await connection.execute(
+      `
+      UPDATE products
+      SET
+        featured = 0,
+        featured_order = NULL
+      WHERE id = ?
+      `,
+      [productId]
+    )
+
+    return
+  }
+
+  const slot = Number(featuredOrder)
+
+  if (
+    !Number.isInteger(slot) ||
+    slot < 1 ||
+    slot > 8
+  ) {
+    const error = new Error('Choose a Hot Selling slot from 1 to 8.')
+    error.statusCode = 400
+    throw error
+  }
+
+  const [visibilityRows] = await connection.execute(
+    `
+    SELECT
+      p.active,
+      c.active AS category_active
+    FROM products p
+    INNER JOIN categories c
+      ON c.id = p.category_id
+    WHERE p.id = ?
+    LIMIT 1
+    `,
+    [productId]
+  )
+
+  if (
+    !Boolean(visibilityRows[0]?.active) ||
+    !Boolean(visibilityRows[0]?.category_active)
+  ) {
+    const error = new Error(
+      'Only products visible on the website can be selected for Hot Selling.'
+    )
+    error.statusCode = 400
+    throw error
+  }
+
+  await connection.execute(
+    `
+    UPDATE products
+    SET
+      featured = 0,
+      featured_order = NULL
+    WHERE
+      featured_order = ?
+      AND id <> ?
+    `,
+    [slot, productId]
+  )
+
+  await connection.execute(
+    `
+    UPDATE products
+    SET
+      featured = 1,
+      featured_order = ?
+    WHERE id = ?
+    `,
+    [slot, productId]
+  )
 }
 
 export const getAdminProducts = async (req, res, next) => {
@@ -210,6 +326,8 @@ export const getAdminProductImage = async (req, res, next) => {
 }
 
 export const createAdminProduct = async (req, res, next) => {
+  let connection
+
   try {
     const {
       categoryId,
@@ -219,6 +337,7 @@ export const createAdminProduct = async (req, res, next) => {
       description,
       features = '[]',
       featured = 'false',
+      featuredOrder = '',
       active = 'true',
       order = 0,
     } = req.body
@@ -245,7 +364,10 @@ export const createAdminProduct = async (req, res, next) => {
     const parsedFeatures = parseArray(features, 'Features')
     const displayOrder = Number.isFinite(Number(order)) ? Number(order) : 0
 
-    const [result] = await pool.execute(
+    connection = await pool.getConnection()
+    await connection.beginTransaction()
+
+    const [result] = await connection.execute(
       `
       INSERT INTO products (
         category_id,
@@ -259,10 +381,11 @@ export const createAdminProduct = async (req, res, next) => {
         image_name,
         features_json,
         featured,
+        featured_order,
         active,
         display_order
       )
-      VALUES (?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, '', ?, ?, ?, ?, ?, NULL, ?, ?)
       `,
       [
         parsedCategoryId,
@@ -280,6 +403,15 @@ export const createAdminProduct = async (req, res, next) => {
       ]
     )
 
+    await updateHotSellingSlot(
+      connection,
+      result.insertId,
+      featured,
+      featuredOrder
+    )
+
+    await connection.commit()
+
     const product = await getProductById(result.insertId, req)
 
     res.status(201).json({
@@ -288,6 +420,10 @@ export const createAdminProduct = async (req, res, next) => {
       product,
     })
   } catch (error) {
+    if (connection) {
+      await connection.rollback().catch(() => {})
+    }
+
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409)
       return next(new Error('A product with this slug already exists in this category.'))
@@ -298,11 +434,21 @@ export const createAdminProduct = async (req, res, next) => {
       return next(new Error('Selected category does not exist.'))
     }
 
+    if (error.statusCode) {
+      res.status(error.statusCode)
+    }
+
     next(error)
+  } finally {
+    if (connection) {
+      connection.release()
+    }
   }
 }
 
 export const updateAdminProduct = async (req, res, next) => {
+  let connection
+
   try {
     const id = Number(req.params.id)
     const {
@@ -313,6 +459,7 @@ export const updateAdminProduct = async (req, res, next) => {
       description,
       features = '[]',
       featured = 'false',
+      featuredOrder = '',
       active = 'true',
       order = 0,
     } = req.body
@@ -367,7 +514,10 @@ export const updateAdminProduct = async (req, res, next) => {
 
     params.push(id)
 
-    const [result] = await pool.execute(
+    connection = await pool.getConnection()
+    await connection.beginTransaction()
+
+    const [result] = await connection.execute(
       `
       UPDATE products
       SET ${fields.join(', ')}
@@ -381,6 +531,15 @@ export const updateAdminProduct = async (req, res, next) => {
       throw new Error('Product not found.')
     }
 
+    await updateHotSellingSlot(
+      connection,
+      id,
+      featured,
+      featuredOrder
+    )
+
+    await connection.commit()
+
     const product = await getProductById(id, req)
 
     res.status(200).json({
@@ -389,6 +548,10 @@ export const updateAdminProduct = async (req, res, next) => {
       product,
     })
   } catch (error) {
+    if (connection) {
+      await connection.rollback().catch(() => {})
+    }
+
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409)
       return next(new Error('A product with this slug already exists in this category.'))
@@ -399,11 +562,21 @@ export const updateAdminProduct = async (req, res, next) => {
       return next(new Error('Selected category does not exist.'))
     }
 
+    if (error.statusCode) {
+      res.status(error.statusCode)
+    }
+
     next(error)
+  } finally {
+    if (connection) {
+      connection.release()
+    }
   }
 }
 
 export const deleteAdminProduct = async (req, res, next) => {
+  let connection
+
   try {
     const id = Number(req.params.id)
 
@@ -412,7 +585,40 @@ export const deleteAdminProduct = async (req, res, next) => {
       throw new Error('Invalid product ID.')
     }
 
-    const [result] = await pool.execute(
+    connection = await pool.getConnection()
+    await connection.beginTransaction()
+
+    const [productRows] = await connection.execute(
+      `
+      SELECT featured
+      FROM products
+      WHERE id = ?
+      LIMIT 1
+      `,
+      [id]
+    )
+
+    if (productRows.length === 0) {
+      res.status(404)
+      throw new Error('Product not found.')
+    }
+
+    if (Boolean(productRows[0].featured)) {
+      const [countRows] = await connection.execute(`
+        SELECT COUNT(*) AS total
+        FROM products
+        WHERE featured = 1
+      `)
+
+      if (Number(countRows[0].total) <= 8) {
+        res.status(400)
+        throw new Error(
+          'Hot Selling must have exactly 8 products. Replace this product before deleting it.'
+        )
+      }
+    }
+
+    const [result] = await connection.execute(
       `
       DELETE FROM products
       WHERE id = ?
@@ -425,11 +631,21 @@ export const deleteAdminProduct = async (req, res, next) => {
       throw new Error('Product not found.')
     }
 
+    await connection.commit()
+
     res.status(200).json({
       success: true,
       message: 'Product deleted successfully.',
     })
   } catch (error) {
+    if (connection) {
+      await connection.rollback().catch(() => {})
+    }
+
     next(error)
+  } finally {
+    if (connection) {
+      connection.release()
+    }
   }
 }

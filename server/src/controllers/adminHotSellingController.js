@@ -4,10 +4,12 @@ import pool from '../config/mysql.js'
 const getBaseUrl = (
   req
 ) => {
+
   const configured =
     process.env.SERVER_URL
       ?.trim()
       ?.replace(/\/+$/, '')
+
 
   return (
     configured ||
@@ -16,9 +18,73 @@ const getBaseUrl = (
 }
 
 
+const formatProduct = (
+  row,
+  req
+) => ({
+  id:
+    row.id,
+
+  name:
+    row.name,
+
+  slug:
+    row.slug,
+
+  featuredOrder:
+    row.featured_order === null
+      ? null
+      : Number(
+          row.featured_order
+        ),
+
+  active:
+    Boolean(
+      row.active
+    ),
+
+  category: {
+    id:
+      row.category_id,
+
+    name:
+      row.category_name,
+
+    slug:
+      row.category_slug,
+  },
+
+  image: {
+    url:
+      `${getBaseUrl(req)}/api/admin/products/${row.id}/image`,
+  },
+})
+
+
+const productSelect = `
+  SELECT
+    p.id,
+    p.name,
+    p.slug,
+    p.featured,
+    p.featured_order,
+    p.active,
+
+    c.id AS category_id,
+    c.name AS category_name,
+    c.slug AS category_slug,
+    c.active AS category_active
+
+  FROM products p
+
+  INNER JOIN categories c
+    ON c.id = p.category_id
+`
+
+
 /*
 |--------------------------------------------------------------------------
-| GET /api/admin/hot-selling
+| GET Hot Selling
 |--------------------------------------------------------------------------
 */
 
@@ -28,74 +94,62 @@ export const getAdminHotSelling =
     res,
     next
   ) => {
+
     try {
 
-      const [rows] =
+      const [featuredRows] =
         await pool.execute(`
-          SELECT
-            p.id,
-            p.name,
-            p.slug,
-            p.featured_order,
-            p.active,
+          ${productSelect}
 
-            c.id AS category_id,
-            c.name AS category_name
-
-          FROM products p
-
-          INNER JOIN categories c
-            ON c.id = p.category_id
-
-          WHERE p.featured = 1
+          WHERE
+            p.featured = 1
 
           ORDER BY
-            p.featured_order ASC
+            p.featured_order ASC,
+            p.id ASC
         `)
 
 
-      const products =
-        rows.map(
-          (row) => ({
-            id: row.id,
+      const [availableRows] =
+        await pool.execute(`
+          ${productSelect}
 
-            name: row.name,
+          WHERE
+            p.active = 1
+            AND c.active = 1
 
-            slug: row.slug,
-
-            featuredOrder:
-              row.featured_order,
-
-            active:
-              Boolean(
-                row.active
-              ),
-
-            category: {
-              id:
-                row.category_id,
-
-              name:
-                row.category_name,
-            },
-
-            image: {
-              url:
-                `${getBaseUrl(req)}/api/admin/products/${row.id}/image`,
-            },
-          })
-        )
+          ORDER BY
+            c.display_order ASC,
+            p.display_order ASC,
+            p.name ASC
+        `)
 
 
       res.status(200).json({
         success: true,
 
-        count:
-          products.length,
-
         requiredCount: 8,
 
-        products,
+        count:
+          featuredRows.length,
+
+        products:
+          featuredRows.map(
+            (row) =>
+              formatProduct(
+                row,
+                req
+              )
+          ),
+
+        availableProducts:
+          availableRows.map(
+            (row) =>
+              formatProduct(
+                row,
+                req
+              )
+          ),
       })
 
     } catch (error) {
@@ -106,15 +160,8 @@ export const getAdminHotSelling =
 
 /*
 |--------------------------------------------------------------------------
-| PUT /api/admin/hot-selling
+| PUT Hot Selling
 |--------------------------------------------------------------------------
-|
-| Body:
-|
-| {
-|   "productIds": [4, 11, 20, 6, 8, 25, 30, 42]
-| }
-|
 */
 
 export const updateAdminHotSelling =
@@ -123,6 +170,7 @@ export const updateAdminHotSelling =
     res,
     next
   ) => {
+
     let connection
 
 
@@ -133,23 +181,19 @@ export const updateAdminHotSelling =
       } = req.body
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Must Be Exactly 8
-      |--------------------------------------------------------------------------
-      */
-
       if (
         !Array.isArray(
           productIds
         ) ||
         productIds.length !== 8
       ) {
+
         res.status(400)
 
         throw new Error(
           'Exactly 8 products must be selected.'
         )
+
       }
 
 
@@ -167,29 +211,27 @@ export const updateAdminHotSelling =
             id <= 0
         )
       ) {
+
         res.status(400)
 
         throw new Error(
           'Invalid product selection.'
         )
+
       }
 
-
-      /*
-      |--------------------------------------------------------------------------
-      | No Duplicate Products
-      |--------------------------------------------------------------------------
-      */
 
       if (
         new Set(ids).size !==
         8
       ) {
+
         res.status(400)
 
         throw new Error(
-          'The same product cannot be selected more than once.'
+          'The same product cannot appear in more than one Hot Selling slot.'
         )
+
       }
 
 
@@ -201,32 +243,29 @@ export const updateAdminHotSelling =
         .beginTransaction()
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Verify Products Exist + Active
-      |--------------------------------------------------------------------------
-      */
-
       const placeholders =
         ids
           .map(() => '?')
           .join(', ')
 
 
-      const [
-        productRows,
-      ] =
+      const [products] =
         await connection.execute(
           `
           SELECT
-            id,
-            active
+            p.id,
+            p.active,
+            c.active AS category_active
 
-          FROM products
+          FROM products p
 
-          WHERE id IN (
-            ${placeholders}
-          )
+          INNER JOIN categories c
+            ON c.id = p.category_id
+
+          WHERE
+            p.id IN (
+              ${placeholders}
+            )
 
           FOR UPDATE
           `,
@@ -235,40 +274,44 @@ export const updateAdminHotSelling =
 
 
       if (
-        productRows.length !==
-        8
+        products.length !== 8
       ) {
+
         res.status(400)
 
         throw new Error(
           'One or more selected products do not exist.'
         )
+
       }
 
 
-      const inactiveProduct =
-        productRows.find(
+      const unavailable =
+        products.find(
           (product) =>
             !Boolean(
               product.active
+            ) ||
+            !Boolean(
+              product.category_active
             )
         )
 
 
-      if (
-        inactiveProduct
-      ) {
+      if (unavailable) {
+
         res.status(400)
 
         throw new Error(
-          'Only active products can be added to Hot Selling.'
+          'Only products visible on the website can be selected.'
         )
+
       }
 
 
       /*
       |--------------------------------------------------------------------------
-      | Remove Old Hot Selling Selection
+      | Clear old Hot Selling
       |--------------------------------------------------------------------------
       */
 
@@ -287,7 +330,7 @@ export const updateAdminHotSelling =
 
       /*
       |--------------------------------------------------------------------------
-      | Save Exactly Eight
+      | Save Slots 1 - 8
       |--------------------------------------------------------------------------
       */
 
@@ -322,20 +365,20 @@ export const updateAdminHotSelling =
       res.status(200).json({
         success: true,
 
+        count: 8,
+
         message:
           'Hot Selling products updated successfully.',
-
-        count: 8,
       })
 
     } catch (error) {
 
       if (connection) {
+
         await connection
           .rollback()
-          .catch(
-            () => {}
-          )
+          .catch(() => {})
+
       }
 
 

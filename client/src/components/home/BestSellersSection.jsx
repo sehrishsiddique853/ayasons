@@ -1,96 +1,74 @@
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
+
 import '../../style/BestSellersSection.css'
 
-import sportsImage from '../../assets/images/category-sports-teamwear.png'
-import performanceImage from '../../assets/images/category-performance-wear.png'
-import lifestyleImage from '../../assets/images/category-lifestyle-accessories.png'
-
-const rowOneProducts = [
-  {
-    brand: 'AYOSONS',
-    category: 'Sportswear',
-    title: 'Football Match Jerseys',
-    description:
-      'Custom football match jerseys developed for clubs, teams and sportswear brands.',
-    image: sportsImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Combat Wear',
-    title: 'Boxing Shorts',
-    description:
-      'High-performance boxing shorts with custom colors, logos and branding.',
-    image: performanceImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Fitnesswear',
-    title: 'Leggings',
-    description:
-      'Premium custom leggings for activewear brands, studios and fitness collections.',
-    image: performanceImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Sportswear',
-    title: 'Reversible Jerseys',
-    description:
-      'Custom reversible jerseys made for basketball and training apparel ranges.',
-    image: sportsImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Motowear',
-    title: 'Motocross Jerseys',
-    description:
-      'Durable motocross jerseys produced for teams, riders and sportswear buyers.',
-    image: sportsImage,
-  },
-]
-
-const rowTwoProducts = [
-  {
-    brand: 'AYOSONS',
-    category: 'Fitnesswear',
-    title: 'Sports Bras',
-    description:
-      'Supportive sports bras designed for gym, training and activewear collections.',
-    image: performanceImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Fitnesswear',
-    title: 'Gym T-Shirts',
-    description:
-      'Performance gym t-shirts developed for brands, studios and training use.',
-    image: performanceImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Accessories',
-    title: 'Kit Bags',
-    description:
-      'Custom kit bags and duffle bags built with durable materials and strong finishing.',
-    image: lifestyleImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Combat Wear',
-    title: 'Rash Guards',
-    description:
-      'Custom rash guards for combat wear, MMA and training apparel collections.',
-    image: sportsImage,
-  },
-  {
-    brand: 'AYOSONS',
-    category: 'Dancewear',
-    title: 'Leotards',
-    description:
-      'Custom leotards created for dance, active performancewear and studio use.',
-    image: performanceImage,
-  },
-]
+import api from '../../services/api'
 
 function BestSellersSection() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const controller = new AbortController()
+
+    const loadProducts = async () => {
+      try {
+        setLoading(true)
+        setError('')
+
+        const response = await api.get(
+          '/products?featured=true',
+          {
+            signal: controller.signal,
+          }
+        )
+
+        setProducts(
+          (response.data.products || [])
+            .slice(0, 8)
+        )
+      } catch (error) {
+        if (error.code === 'ERR_CANCELED') {
+          return
+        }
+
+        console.error(
+          'Failed to load Hot Selling products:',
+          error
+        )
+
+        setError(
+          'Hot Selling products could not be loaded right now.'
+        )
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadProducts()
+
+    return () => {
+      controller.abort()
+    }
+  }, [])
+
+  const rows = useMemo(() => {
+    const firstRow = products.slice(0, 4)
+    const secondRow = products.slice(4, 8)
+
+    return [
+      firstRow,
+      secondRow,
+    ]
+  }, [products])
+
   return (
     <section className="best-sellers-section" id="best-sellers">
       <div className="best-sellers-inner">
@@ -103,90 +81,84 @@ function BestSellersSection() {
           </h2>
 
           <p className="best-sellers-intro">
-            Our most requested custom products — developed for brands,
-            teams and businesses looking for reliable manufacturing
-            and repeat-order consistency.
+            Our most requested custom products, selected from the admin panel.
           </p>
         </div>
 
-        <div className="best-sellers-marquee">
-          <div className="best-sellers-row best-sellers-row-left">
-            <div className="best-sellers-track">
-              {[...rowOneProducts, ...rowOneProducts].map((product, index) => (
-                <article
-                  className="best-seller-card"
-                  key={`${product.title}-top-${index}`}
-                >
-                  <div className="best-seller-image-wrap">
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="best-seller-image"
-                    />
-
-                    <div className="best-seller-image-overlay" />
-
-                    <div className="best-seller-card-top">
-                      <span className="best-seller-brand">{product.brand}</span>
-                      <span className="best-seller-category">{product.category}</span>
-                    </div>
-                  </div>
-
-                  <div className="best-seller-content">
-                    <h3>{product.title}</h3>
-                    <p>{product.description}</p>
-
-                    <a href="#contact" className="best-seller-link">
-                      View
-                      <span aria-hidden="true">→</span>
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
+        {loading && (
+          <div className="best-sellers-state">
+            Loading Hot Selling products...
           </div>
+        )}
 
-          <div className="best-sellers-row best-sellers-row-right">
-            <div className="best-sellers-track">
-              {[...rowTwoProducts, ...rowTwoProducts].map((product, index) => (
-                <article
-                  className="best-seller-card"
-                  key={`${product.title}-bottom-${index}`}
-                >
-                  <div className="best-seller-image-wrap">
-                    <img
-                      src={product.image}
-                      alt={product.title}
-                      className="best-seller-image"
-                    />
-
-                    <div className="best-seller-image-overlay" />
-
-                    <div className="best-seller-card-top">
-                      <span className="best-seller-brand">{product.brand}</span>
-                      <span className="best-seller-category">{product.category}</span>
-                    </div>
-                  </div>
-
-                  <div className="best-seller-content">
-                    <h3>{product.title}</h3>
-                    <p>{product.description}</p>
-
-                    <a href="#contact" className="best-seller-link">
-                      View
-                      <span aria-hidden="true">→</span>
-                    </a>
-                  </div>
-                </article>
-              ))}
-            </div>
+        {!loading && error && (
+          <div className="best-sellers-state best-sellers-state-error">
+            {error}
           </div>
-        </div>
+        )}
+
+        {!loading && !error && products.length === 0 && (
+          <div className="best-sellers-state">
+            No Hot Selling products selected yet. Choose 8 products from the admin panel.
+          </div>
+        )}
+
+        {!loading && !error && products.length > 0 && (
+          <div className="best-sellers-marquee">
+            {rows.map((rowProducts, rowIndex) => (
+              rowProducts.length > 0 && (
+                <div
+                  className={
+                    rowIndex === 0
+                      ? 'best-sellers-row best-sellers-row-left'
+                      : 'best-sellers-row best-sellers-row-right'
+                  }
+                  key={`hot-selling-row-${rowIndex}`}
+                >
+                  <div className="best-sellers-track">
+                    {[...rowProducts, ...rowProducts].map((product, index) => (
+                      <article
+                        className="best-seller-card"
+                        key={`${product.id}-${rowIndex}-${index}`}
+                      >
+                        <div className="best-seller-image-wrap">
+                          <img
+                            src={product.image?.url}
+                            alt={product.name}
+                            className="best-seller-image"
+                          />
+
+                          <div className="best-seller-image-overlay" />
+
+                          <div className="best-seller-card-top">
+                            <span className="best-seller-brand">AYOSONS</span>
+                            <span className="best-seller-category">
+                              {product.category?.name || 'Product'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="best-seller-content">
+                          <h3>{product.name}</h3>
+                          <p>{product.description}</p>
+
+                          <a href="#contact" className="best-seller-link">
+                            View
+                            <span aria-hidden="true">→</span>
+                          </a>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        )}
 
         <div className="best-sellers-footer">
           <p>
-            Looking for something else? We also manufacture a wider
-            range of custom apparel, accessories and performance products.
+            Looking for something else? We also manufacture a wider range of custom apparel, accessories and performance products.
           </p>
 
           <a href="#products" className="best-sellers-button">
