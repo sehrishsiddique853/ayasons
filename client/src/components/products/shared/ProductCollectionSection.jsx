@@ -7,6 +7,30 @@ function ProductCollectionSection({
   groups = [],
   reverse = false,
 }) {
+  const normalizedGroups =
+    groups.map((group) => {
+      if (
+        typeof group === 'string'
+      ) {
+        return {
+          title: group,
+          items: [],
+        }
+      }
+
+      return {
+        title:
+          group.title ||
+          group.name ||
+          'Collection',
+
+        items:
+          Array.isArray(group.items)
+            ? group.items
+            : [],
+      }
+    })
+
   return (
     <section
       className={`product-collection ${
@@ -41,29 +65,31 @@ function ProductCollectionSection({
 
         <div className="product-groups">
 
-          {groups.map((group) => (
+          {normalizedGroups.map((group) => (
             <div
               className="product-group"
               key={group.title}
             >
               <h3>{group.title}</h3>
 
-              <div className="product-type-list">
+              {group.items.length > 0 && (
+                <div className="product-type-list">
 
-                {group.items.map((product) => (
-                  <div
-                    className="product-type-item"
-                    key={product}
-                  >
-                    <span />
+                  {group.items.map((product) => (
+                    <div
+                      className="product-type-item"
+                      key={product}
+                    >
+                      <span />
 
-                    <strong>
-                      {product}
-                    </strong>
-                  </div>
-                ))}
+                      <strong>
+                        {product}
+                      </strong>
+                    </div>
+                  ))}
 
-              </div>
+                </div>
+              )}
             </div>
           ))}
 

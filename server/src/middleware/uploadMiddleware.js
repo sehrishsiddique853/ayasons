@@ -105,3 +105,34 @@ export const uploadImage =
 
 
 export default uploadImage
+
+export const uploadCategoryImages =
+  multer({
+    storage,
+
+    fileFilter:
+      imageFileFilter,
+
+    limits: {
+      fileSize:
+        5 * 1024 * 1024,
+
+      files: 2,
+    },
+  })
+
+
+export const uploadProductImage =
+  multer({
+    storage,
+
+    fileFilter:
+      imageFileFilter,
+
+    limits: {
+      fileSize:
+        5 * 1024 * 1024,
+
+      files: 1,
+    },
+  })

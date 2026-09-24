@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit'
 import categoryRoutes from './routes/categoryRoutes.js'
 import productRoutes from './routes/productRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
-
+import adminRoutes from './routes/adminRoutes.js'
 import {
   notFound,
   errorHandler,
@@ -141,7 +141,22 @@ const apiLimiter =
     windowMs:
       15 * 60 * 1000,
 
-    limit: 300,
+    limit:
+      process.env.NODE_ENV ===
+      'production'
+        ? Number(
+            process.env.API_RATE_LIMIT ||
+            1000
+          )
+        : Number(
+            process.env.API_RATE_LIMIT ||
+            10000
+          ),
+
+    skip: (req) =>
+      req.path.startsWith(
+        '/images/'
+      ),
 
     standardHeaders:
       'draft-8',
@@ -216,6 +231,10 @@ app.use(
   imageRoutes
 )
 
+app.use(
+  '/api/admin',
+  adminRoutes
+)
 
 /*
 |--------------------------------------------------------------------------

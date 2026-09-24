@@ -1,0 +1,227 @@
+.catalog-form-page {
+  width: 100%;
+}
+
+
+.catalog-form-card {
+  padding: 22px;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    var(--admin-border);
+
+  border-radius:
+    var(--admin-radius);
+}
+
+
+.catalog-form-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+
+.catalog-form-grid label {
+  display: grid;
+
+  gap: 8px;
+}
+
+
+.catalog-form-grid label span {
+  color:
+    var(--admin-text);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+.catalog-form-grid small {
+  color:
+    var(--admin-muted);
+
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+
+.catalog-form-section {
+  margin-top: 8px;
+  padding-top: 16px;
+
+  border-top:
+    1px solid
+    var(--admin-border);
+
+  color:
+    var(--admin-text);
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+
+.catalog-form-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+
+  border-top: 0;
+}
+
+
+.catalog-form-grid input,
+.catalog-form-grid select,
+.catalog-form-grid textarea {
+  width: 100%;
+
+  border:
+    1px solid
+    var(--admin-border);
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color:
+    var(--admin-text);
+
+  font: inherit;
+  font-size: 13px;
+}
+
+
+.catalog-form-grid input,
+.catalog-form-grid select {
+  min-height: 44px;
+
+  padding: 0 13px;
+}
+
+
+.catalog-form-grid input[type='file'] {
+  padding: 10px 12px;
+}
+
+
+.catalog-form-grid textarea {
+  min-height: 108px;
+
+  padding: 12px 13px;
+
+  resize: vertical;
+}
+
+
+.catalog-form-grid input:focus,
+.catalog-form-grid select:focus,
+.catalog-form-grid textarea:focus {
+  outline: 2px solid rgba(240, 212, 79, 0.32);
+
+  border-color:
+    var(--admin-gold);
+}
+
+
+.catalog-field-wide {
+  grid-column: 1 / -1;
+}
+
+
+.catalog-checkbox {
+  align-content: end;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+
+  min-height: 44px;
+}
+
+
+.catalog-checkbox input {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+}
+
+
+.catalog-image-preview {
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 16 / 10;
+
+  object-fit: cover;
+
+  border:
+    1px solid
+    var(--admin-border);
+
+  border-radius: 10px;
+}
+
+
+.catalog-form-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 22px;
+}
+
+
+.catalog-secondary-button {
+  min-height: 42px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 15px;
+
+  border:
+    1px solid
+    var(--admin-border);
+
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color:
+    var(--admin-text);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  text-decoration: none;
+}
+
+
+.catalog-form-state {
+  min-height: 280px;
+
+  display: grid;
+  place-items: center;
+
+  color:
+    var(--admin-muted);
+}
+
+
+@media (max-width: 780px) {
+  .catalog-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-form-actions {
+    justify-content: stretch;
+  }
+
+  .catalog-form-actions .categories-add-button {
+    width: 100%;
+  }
+}

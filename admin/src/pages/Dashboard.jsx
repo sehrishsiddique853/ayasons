@@ -1,4 +1,9 @@
 import {
+  useEffect,
+  useState,
+} from 'react'
+
+import {
   Layers3,
   Package,
   Flame,
@@ -10,43 +15,129 @@ import {
   Link,
 } from 'react-router-dom'
 
-
-const stats = [
-  {
-    title: 'Categories',
-    value: '7',
-    description:
-      'Product categories',
-    icon: Layers3,
-  },
-
-  {
-    title: 'Products',
-    value: '59',
-    description:
-      'Total products',
-    icon: Package,
-  },
-
-  {
-    title: 'Hot Selling',
-    value: '0',
-    description:
-      'Featured products',
-    icon: Flame,
-  },
-
-  {
-    title: 'Active Products',
-    value: '59',
-    description:
-      'Visible on website',
-    icon: Activity,
-  },
-]
+import api from '../services/api'
 
 
 function Dashboard() {
+
+  const [
+    stats,
+    setStats,
+  ] = useState({
+    totalCategories: 0,
+    totalProducts: 0,
+    featuredProducts: 0,
+    activeProducts: 0,
+  })
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true)
+
+
+  const [
+    error,
+    setError,
+  ] = useState('')
+
+
+  useEffect(() => {
+
+    const loadDashboard =
+      async () => {
+        try {
+
+          setLoading(true)
+          setError('')
+
+
+          const response =
+            await api.get(
+              '/admin/dashboard'
+            )
+
+
+          setStats(
+            response.data.stats
+          )
+
+        } catch (error) {
+
+          console.error(
+            'Dashboard error:',
+            error
+          )
+
+
+          setError(
+            'Unable to load dashboard statistics.'
+          )
+
+        } finally {
+
+          setLoading(false)
+
+        }
+      }
+
+
+    loadDashboard()
+
+  }, [])
+
+
+  const dashboardStats = [
+    {
+      title: 'Categories',
+
+      value:
+        stats.totalCategories,
+
+      description:
+        'Product categories',
+
+      icon: Layers3,
+    },
+
+    {
+      title: 'Products',
+
+      value:
+        stats.totalProducts,
+
+      description:
+        'Total products',
+
+      icon: Package,
+    },
+
+    {
+      title: 'Hot Selling',
+
+      value:
+        stats.featuredProducts,
+
+      description:
+        'Featured products',
+
+      icon: Flame,
+    },
+
+    {
+      title: 'Active Products',
+
+      value:
+        stats.activeProducts,
+
+      description:
+        'Visible on website',
+
+      icon: Activity,
+    },
+  ]
+
 
   return (
     <div className="dashboard-page">
@@ -54,6 +145,7 @@ function Dashboard() {
       <div className="admin-page-header">
 
         <div>
+
           <span className="admin-page-eyebrow">
             OVERVIEW
           </span>
@@ -67,14 +159,22 @@ function Dashboard() {
             categories and featured
             collections.
           </p>
+
         </div>
 
       </div>
 
 
+      {error && (
+        <div className="admin-error-message">
+          {error}
+        </div>
+      )}
+
+
       <section className="dashboard-stats">
 
-        {stats.map(
+        {dashboardStats.map(
           ({
             title,
             value,
@@ -90,10 +190,12 @@ function Dashboard() {
               <div className="dashboard-stat-top">
 
                 <div className="dashboard-stat-icon">
+
                   <Icon
                     size={22}
                     strokeWidth={1.8}
                   />
+
                 </div>
 
                 <span>
@@ -104,7 +206,11 @@ function Dashboard() {
 
 
               <strong>
-                {value}
+
+                {loading
+                  ? '...'
+                  : value}
+
               </strong>
 
 
@@ -125,6 +231,7 @@ function Dashboard() {
         <div className="dashboard-section-header">
 
           <div>
+
             <span className="admin-page-eyebrow">
               MANAGEMENT
             </span>
@@ -132,6 +239,7 @@ function Dashboard() {
             <h2>
               Quick Actions
             </h2>
+
           </div>
 
         </div>
@@ -143,9 +251,11 @@ function Dashboard() {
             to="/categories"
             className="quick-action-card"
           >
+
             <Layers3 size={24} />
 
             <div>
+
               <strong>
                 Manage Categories
               </strong>
@@ -154,9 +264,11 @@ function Dashboard() {
                 Add and edit product
                 categories.
               </span>
+
             </div>
 
             <ArrowRight size={20} />
+
           </Link>
 
 
@@ -164,9 +276,11 @@ function Dashboard() {
             to="/products"
             className="quick-action-card"
           >
+
             <Package size={24} />
 
             <div>
+
               <strong>
                 Manage Products
               </strong>
@@ -175,9 +289,11 @@ function Dashboard() {
                 Add, edit and organize
                 products.
               </span>
+
             </div>
 
             <ArrowRight size={20} />
+
           </Link>
 
 
@@ -185,9 +301,11 @@ function Dashboard() {
             to="/hot-selling"
             className="quick-action-card"
           >
+
             <Flame size={24} />
 
             <div>
+
               <strong>
                 Hot Selling
               </strong>
@@ -196,9 +314,11 @@ function Dashboard() {
                 Select featured products
                 for the website.
               </span>
+
             </div>
 
             <ArrowRight size={20} />
+
           </Link>
 
         </div>

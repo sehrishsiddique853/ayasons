@@ -4,9 +4,29 @@ import {
   useState,
 } from 'react'
 
+import {
+  Link,
+} from 'react-router-dom'
+
 import heroAthlete from '../../assets/images/hero1.png'
 
 import api from '../../services/api'
+
+const createCategoryPath = (category) => {
+  const slug =
+    category?.slug ||
+    category?.name ||
+    ''
+
+  const normalizedSlug =
+    slug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+  return `/products/${normalizedSlug}`
+}
 
 
 function Hero() {
@@ -409,6 +429,20 @@ function Hero() {
               <h2>
                 {activeCategory.name}
               </h2>
+
+
+              <Link
+                className="hero-showcase-link"
+                to={createCategoryPath(
+                  activeCategory
+                )}
+              >
+                Explore
+
+                <span aria-hidden="true">
+                  →
+                </span>
+              </Link>
 
             </div>
 

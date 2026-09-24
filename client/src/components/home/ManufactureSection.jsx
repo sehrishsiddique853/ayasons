@@ -9,6 +9,22 @@ import {
 
 import api from '../../services/api'
 
+const createCategoryPath = (category) => {
+  const slug =
+    category?.slug ||
+    category?.name ||
+    ''
+
+  const normalizedSlug =
+    slug
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+
+  return `/products/${normalizedSlug}`
+}
+
 
 function ManufactureSection() {
   const [
@@ -189,7 +205,9 @@ function ManufactureSection() {
                     className="manufacture-card"
 
                     to={
-                      `/products/${category.slug}`
+                      createCategoryPath(
+                        category
+                      )
                     }
 
                     key={
