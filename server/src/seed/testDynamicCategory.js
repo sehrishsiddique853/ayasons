@@ -1,10 +1,6 @@
 import 'dotenv/config'
 
-import mongoose from 'mongoose'
-
-import connectDB from '../config/db.js'
-import Category from '../models/Category.js'
-import Product from '../models/Product.js'
+import pool from '../config/mysql.js'
 
 
 const ACTION =
@@ -14,7 +10,6 @@ const ACTION =
 const testProducts = [
   {
     name: 'Running Shoes',
-
     slug: 'running-shoes',
 
     description:
@@ -29,7 +24,6 @@ const testProducts = [
 
   {
     name: 'Training Shoes',
-
     slug: 'training-shoes',
 
     description:
@@ -44,7 +38,6 @@ const testProducts = [
 
   {
     name: 'Football Shoes',
-
     slug: 'football-shoes',
 
     description:
@@ -59,216 +52,337 @@ const testProducts = [
 ]
 
 
-const createTestCategory = async () => {
-  /*
-  |--------------------------------------------------------------------------
-  | Reuse An Existing Cloudinary Image
-  |--------------------------------------------------------------------------
-  |
-  | This test is about dynamic routing, not image uploads.
-  | We therefore reuse Activewear's already-uploaded Cloudinary image.
-  |
-  */
+const createTestCategory =
+  async (connection) => {
+    /*
+    |--------------------------------------------------------------------------
+    | Reuse Activewear Local Image
+    |--------------------------------------------------------------------------
+    */
 
-  const sourceCategory =
-    await Category.findOne({
-      slug: 'activewear',
-      active: true,
-    })
+    const [sourceRows] =
+      await connection.execute(
+        `
+        SELECT
+          hero_image,
+          collection_image
+        FROM categories
+        WHERE
+          slug = ?
+          AND active = 1
+        LIMIT 1
+        `,
+        ['activewear']
+      )
 
 
-  if (!sourceCategory) {
-    throw new Error(
-      'Activewear category not found. Run the main seed first.'
-    )
-  }
+    if (
+      sourceRows.length === 0
+    ) {
+      throw new Error(
+        'Activewear category not found. Run npm run seed first.'
+      )
+    }
 
 
-  /*
-  |--------------------------------------------------------------------------
-  | Create / Update Shoes Category
-  |--------------------------------------------------------------------------
-  */
+    const sourceCategory =
+      sourceRows[0]
 
-  const shoesCategory =
-    await Category.findOneAndUpdate(
+
+    const groups = [
       {
-        slug: 'shoes',
-      },
-
-      {
-        name: 'Shoes',
-
-        slug: 'shoes',
-
-        eyebrow: 'Footwear',
-
-        heroTitle:
-          'Performance Footwear Built For Your Brand',
-
-        description:
-          'Custom sports and performance footwear developed for teams, brands and private-label collections.',
-
-        collectionDescription:
-          'Custom footwear manufactured for training, sports and lifestyle collections with flexible branding options.',
-
-        heroImage: {
-          url:
-            sourceCategory.heroImage?.url ||
-            '',
-
-          publicId: '',
-        },
-
-        collectionImage: {
-          url:
-            sourceCategory.collectionImage?.url ||
-            sourceCategory.heroImage?.url ||
-            '',
-
-          publicId: '',
-        },
-
-        groups: [
-          {
-            title:
-              'Shoes Collection',
-
-            items: [
-              'Running Shoes',
-              'Training Shoes',
-              'Football Shoes',
-            ],
-          },
-        ],
-
-        active: true,
-
-        order: 999,
-      },
-
-      {
-        upsert: true,
-
-        returnDocument:
-          'after',
-
-        runValidators:
-          true,
-
-        setDefaultsOnInsert:
-          true,
-      }
-    )
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Create Products
-  |--------------------------------------------------------------------------
-  */
-
-  for (
-    let index = 0;
-    index < testProducts.length;
-    index += 1
-  ) {
-    const product =
-      testProducts[index]
-
-
-    await Product.findOneAndUpdate(
-      {
-        category:
-          shoesCategory._id,
-
-        slug:
-          product.slug,
-      },
-
-      {
-        name:
-          product.name,
-
-        slug:
-          product.slug,
-
-        category:
-          shoesCategory._id,
-
-        group:
+        title:
           'Shoes Collection',
 
-        description:
+        items: [
+          'Running Shoes',
+          'Training Shoes',
+          'Football Shoes',
+        ],
+      },
+    ]
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create / Update Shoes
+    |--------------------------------------------------------------------------
+    */
+
+    await connection.execute(
+      `
+      INSERT INTO categories (
+        name,
+        slug,
+        eyebrow,
+        showcase_label,
+        hero_title,
+        description,
+        collection_description,
+        hero_image,
+        collection_image,
+        groups_json,
+        active,
+        display_order
+      )
+
+      VALUES (
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?,
+        ?
+      )
+
+      ON DUPLICATE KEY UPDATE
+        name = VALUES(name),
+        eyebrow = VALUES(eyebrow),
+        showcase_label =
+          VALUES(showcase_label),
+        hero_title =
+          VALUES(hero_title),
+        description =
+          VALUES(description),
+        collection_description =
+          VALUES(collection_description),
+        hero_image =
+          VALUES(hero_image),
+        collection_image =
+          VALUES(collection_image),
+        groups_json =
+          VALUES(groups_json),
+        active =
+          VALUES(active),
+        display_order =
+          VALUES(display_order)
+      `,
+      [
+        'Shoes',
+        'shoes',
+        'Footwear',
+        'Custom Footwear',
+
+        'Performance Footwear Built For Your Brand',
+
+        'Custom sports and performance footwear developed for teams, brands and private-label collections.',
+
+        'Custom footwear manufactured for training, sports and lifestyle collections with flexible branding options.',
+
+        sourceCategory.hero_image,
+
+        sourceCategory.collection_image,
+
+        JSON.stringify(
+          groups
+        ),
+
+        1,
+
+        999,
+      ]
+    )
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get Shoes ID
+    |--------------------------------------------------------------------------
+    */
+
+    const [categoryRows] =
+      await connection.execute(
+        `
+        SELECT id
+        FROM categories
+        WHERE slug = ?
+        LIMIT 1
+        `,
+        ['shoes']
+      )
+
+
+    const categoryId =
+      categoryRows[0].id
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Products
+    |--------------------------------------------------------------------------
+    */
+
+    for (
+      let index = 0;
+      index <
+      testProducts.length;
+      index += 1
+    ) {
+      const product =
+        testProducts[index]
+
+
+      await connection.execute(
+        `
+        INSERT INTO products (
+          category_id,
+          name,
+          slug,
+          group_name,
+          description,
+          image,
+          features_json,
+          featured,
+          active,
+          display_order
+        )
+
+        VALUES (
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?,
+          ?
+        )
+
+        ON DUPLICATE KEY UPDATE
+          name =
+            VALUES(name),
+
+          group_name =
+            VALUES(group_name),
+
+          description =
+            VALUES(description),
+
+          image =
+            VALUES(image),
+
+          features_json =
+            VALUES(features_json),
+
+          featured =
+            VALUES(featured),
+
+          active =
+            VALUES(active),
+
+          display_order =
+            VALUES(display_order)
+        `,
+        [
+          categoryId,
+
+          product.name,
+
+          product.slug,
+
+          'Shoes Collection',
+
           product.description,
 
-        features:
-          product.features,
+          sourceCategory
+            .collection_image,
 
-        image: {
-          url:
-            shoesCategory
-              .collectionImage
-              ?.url || '',
+          JSON.stringify(
+            product.features
+          ),
 
-          publicId: '',
-        },
+          0,
 
-        featured: false,
+          1,
 
-        active: true,
-
-        order:
           index + 1,
-      },
+        ]
+      )
+    }
 
-      {
-        upsert: true,
 
-        returnDocument:
-          'after',
+    console.log(
+      'Dynamic test category created successfully.'
+    )
 
-        runValidators:
-          true,
+    console.log(
+      'Category: Shoes'
+    )
 
-        setDefaultsOnInsert:
-          true,
-      }
+    console.log(
+      'Slug: shoes'
+    )
+
+    console.log(
+      `Products: ${testProducts.length}`
+    )
+
+    console.log(
+      '\nOpen: http://localhost:5173/products/shoes'
     )
   }
-
-
-  console.log(
-    'Dynamic test category created successfully.'
-  )
-
-  console.log(
-    'Category: Shoes'
-  )
-
-  console.log(
-    'Slug: shoes'
-  )
-
-  console.log(
-    `Products: ${testProducts.length}`
-  )
-
-  console.log(
-    '\nOpen: http://localhost:5173/products/shoes'
-  )
-}
 
 
 const removeTestCategory =
-  async () => {
-    const shoesCategory =
-      await Category.findOne({
-        slug: 'shoes',
-      })
+  async (connection) => {
+    /*
+    |--------------------------------------------------------------------------
+    | Count Test Products
+    |--------------------------------------------------------------------------
+    */
+
+    const [productRows] =
+      await connection.execute(
+        `
+        SELECT COUNT(*) AS total
+
+        FROM products p
+
+        INNER JOIN categories c
+          ON c.id = p.category_id
+
+        WHERE c.slug = ?
+        `,
+        ['shoes']
+      )
 
 
-    if (!shoesCategory) {
+    const productCount =
+      productRows[0].total
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delete Category
+    |--------------------------------------------------------------------------
+    |
+    | Products are automatically deleted because our foreign key uses:
+    |
+    | ON DELETE CASCADE
+    |
+    */
+
+    const [result] =
+      await connection.execute(
+        `
+        DELETE FROM categories
+        WHERE slug = ?
+        `,
+        ['shoes']
+      )
+
+
+    if (
+      result.affectedRows === 0
+    ) {
       console.log(
         'Shoes test category does not exist.'
       )
@@ -277,63 +391,74 @@ const removeTestCategory =
     }
 
 
-    const productResult =
-      await Product.deleteMany({
-        category:
-          shoesCategory._id,
-      })
-
-
-    await Category.deleteOne({
-      _id:
-        shoesCategory._id,
-    })
-
-
     console.log(
       'Dynamic test category removed.'
     )
 
     console.log(
-      `Products removed: ${productResult.deletedCount}`
+      `Products removed: ${productCount}`
     )
   }
 
 
 const run = async () => {
+  let connection
+
+
   try {
-    await connectDB()
+    connection =
+      await pool.getConnection()
 
 
-    if (ACTION === 'create') {
-      await createTestCategory()
+    await connection.beginTransaction()
+
+
+    if (
+      ACTION === 'create'
+    ) {
+      await createTestCategory(
+        connection
+      )
+
     } else if (
       ACTION === 'remove'
     ) {
-      await removeTestCategory()
+      await removeTestCategory(
+        connection
+      )
+
     } else {
       throw new Error(
         'Invalid action. Use create or remove.'
       )
     }
 
+
+    await connection.commit()
+
   } catch (error) {
+
+    if (connection) {
+      await connection.rollback()
+    }
+
 
     console.error(
       'Dynamic category test failed:',
       error
     )
 
+
     process.exitCode = 1
 
   } finally {
 
-    if (
-      mongoose.connection.readyState !==
-      0
-    ) {
-      await mongoose.connection.close()
+    if (connection) {
+      connection.release()
     }
+
+
+    await pool.end()
   }
 }
 

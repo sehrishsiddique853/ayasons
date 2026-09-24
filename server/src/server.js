@@ -1,9 +1,11 @@
 import 'dotenv/config'
 
-import mongoose from 'mongoose'
-
 import app from './app.js'
-import connectDB from './config/db.js'
+
+import pool, {
+  testMySQLConnection,
+} from './config/mysql.js'
+
 
 const PORT =
   process.env.PORT || 5000
@@ -11,7 +13,20 @@ const PORT =
 
 const startServer = async () => {
   try {
-    await connectDB()
+    /*
+    |--------------------------------------------------------------------------
+    | MySQL Connection
+    |--------------------------------------------------------------------------
+    */
+
+    await testMySQLConnection()
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start HTTP Server
+    |--------------------------------------------------------------------------
+    */
 
     const server = app.listen(
       PORT,
@@ -30,46 +45,71 @@ const startServer = async () => {
     )
 
 
-    const shutdown = (signal) => {
-      console.log(
-        `\n${signal} received. Shutting down...`
-      )
+    /*
+    |--------------------------------------------------------------------------
+    | Graceful Shutdown
+    |--------------------------------------------------------------------------
+    */
 
-      server.close(async () => {
-        try {
-          await mongoose.connection.close()
+    const shutdown =
+      (signal) => {
+        console.log(
+          `\n${signal} received. Shutting down...`
+        )
 
-          console.log(
-            'MongoDB connection closed.'
-          )
 
-          console.log(
-            'HTTP server closed.'
-          )
+        server.close(
+          async () => {
+            try {
+              await pool.end()
 
-          process.exit(0)
-        } catch (error) {
-          console.error(
-            'Shutdown error:',
-            error.message
-          )
 
-          process.exit(1)
-        }
-      })
-    }
+              console.log(
+                'MySQL connection pool closed.'
+              )
+
+
+              console.log(
+                'HTTP server closed.'
+              )
+
+
+              process.exit(0)
+
+            } catch (error) {
+
+              console.error(
+                'Shutdown error:',
+                error.message
+              )
+
+
+              process.exit(1)
+            }
+          }
+        )
+      }
 
 
     process.on(
       'SIGTERM',
-      () => shutdown('SIGTERM')
+      () =>
+        shutdown('SIGTERM')
     )
+
 
     process.on(
       'SIGINT',
-      () => shutdown('SIGINT')
+      () =>
+        shutdown('SIGINT')
     )
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Unhandled Promise Rejections
+    |--------------------------------------------------------------------------
+    */
 
     process.on(
       'unhandledRejection',
@@ -79,20 +119,45 @@ const startServer = async () => {
           error
         )
 
-        server.close(() => {
-          process.exit(1)
-        })
+
+        server.close(
+          async () => {
+            try {
+              await pool.end()
+            } catch (
+              closeError
+            ) {
+              console.error(
+                'MySQL close error:',
+                closeError.message
+              )
+            }
+
+
+            process.exit(1)
+          }
+        )
       }
     )
 
   } catch (error) {
+
     console.error(
       'Server startup failed:',
       error.message
     )
 
+
+    try {
+      await pool.end()
+    } catch {
+      // Pool may not have opened successfully.
+    }
+
+
     process.exit(1)
   }
 }
+
 
 startServer()

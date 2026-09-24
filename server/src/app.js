@@ -5,6 +5,9 @@ import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
+import imageRoutes from './routes/imageRoutes.js'
+
+import path from 'node:path'
 
 import {
   notFound,
@@ -19,7 +22,13 @@ const app = express()
 |--------------------------------------------------------------------------
 */
 
-app.use(helmet())
+app.use(
+  helmet({
+    crossOriginResourcePolicy: {
+      policy: 'cross-origin',
+    },
+  })
+)
 
 /*
 |--------------------------------------------------------------------------
@@ -73,7 +82,20 @@ app.use(
     limit: '1mb',
   })
 )
+/*
+|--------------------------------------------------------------------------
+| Static Uploaded Files
+|--------------------------------------------------------------------------
+*/
 
+app.use(
+  '/uploads',
+  express.static(
+    path.resolve(
+      'uploads'
+    )
+  )
+)
 /*
 |--------------------------------------------------------------------------
 | Development Logging
@@ -145,7 +167,10 @@ app.use(
   '/api/products',
   productRoutes
 )
-
+app.use(
+  '/api/images',
+  imageRoutes
+)
 
 /*
 |--------------------------------------------------------------------------
