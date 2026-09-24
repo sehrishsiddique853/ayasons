@@ -24,43 +24,18 @@ const parseJson = (
 }
 
 
-const buildImageUrl = (
-  req,
-  imagePath
+const getBaseUrl = (
+  req
 ) => {
-  if (!imagePath) {
-    return ''
-  }
-
-
-  if (
-    imagePath.startsWith(
-      'http://'
-    ) ||
-    imagePath.startsWith(
-      'https://'
-    )
-  ) {
-    return imagePath
-  }
-
-
-  const configuredBaseUrl =
+  const configured =
     process.env.SERVER_URL
       ?.trim()
       ?.replace(/\/+$/, '')
 
-
-  const baseUrl =
-    configuredBaseUrl ||
+  return (
+    configured ||
     `${req.protocol}://${req.get('host')}`
-
-
-  return `${baseUrl}${
-    imagePath.startsWith('/')
-      ? imagePath
-      : `/${imagePath}`
-  }`
+  )
 }
 
 
@@ -88,25 +63,18 @@ const formatCategory = (
       row.description || '',
 
     collectionDescription:
-      row.collection_description ||
-      '',
+      row.collection_description || '',
 
     heroImage: {
       url:
-        buildImageUrl(
-          req,
-          row.hero_image
-        ),
+        `${getBaseUrl(req)}/api/images/categories/${row.id}/hero`,
 
       publicId: '',
     },
 
     collectionImage: {
       url:
-        buildImageUrl(
-          req,
-          row.collection_image
-        ),
+        `${getBaseUrl(req)}/api/images/categories/${row.id}/collection`,
 
       publicId: '',
     },
@@ -145,8 +113,6 @@ export const findActiveCategories =
           hero_title,
           description,
           collection_description,
-          hero_image,
-          collection_image,
           groups_json,
           active,
           display_order,
@@ -158,7 +124,6 @@ export const findActiveCategories =
           display_order ASC,
           created_at ASC
       `)
-
 
     return rows.map(
       (row) =>
@@ -187,8 +152,6 @@ export const findActiveCategoryBySlug =
           hero_title,
           description,
           collection_description,
-          hero_image,
-          collection_image,
           groups_json,
           active,
           display_order,
@@ -204,13 +167,11 @@ export const findActiveCategoryBySlug =
         ]
       )
 
-
     if (
       rows.length === 0
     ) {
       return null
     }
-
 
     return formatCategory(
       rows[0],
