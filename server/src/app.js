@@ -1,20 +1,21 @@
-import categoryRoutes from './routes/categoryRoutes.js'
-import productRoutes from './routes/productRoutes.js'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import rateLimit from 'express-rate-limit'
-import imageRoutes from './routes/imageRoutes.js'
 
-import path from 'node:path'
+import categoryRoutes from './routes/categoryRoutes.js'
+import productRoutes from './routes/productRoutes.js'
+import imageRoutes from './routes/imageRoutes.js'
 
 import {
   notFound,
   errorHandler,
 } from './middleware/errorMiddleware.js'
 
+
 const app = express()
+
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,7 @@ app.use(
   })
 )
 
+
 /*
 |--------------------------------------------------------------------------
 | CORS
@@ -37,32 +39,59 @@ app.use(
 */
 
 const allowedOrigins = (
-  process.env.CLIENT_URL || 'http://localhost:5173'
+  process.env.CLIENT_URL ||
+  'http://localhost:5173'
 )
   .split(',')
-  .map((origin) => origin.trim())
+  .map(
+    (origin) =>
+      origin.trim()
+  )
+
 
 app.use(
   cors({
-    origin(origin, callback) {
-      // Allow requests without an Origin header
-      // e.g. Postman / server-to-server requests
+    origin(
+      origin,
+      callback
+    ) {
+      /*
+      | Allow Postman,
+      | server-to-server requests,
+      | etc.
+      */
+
       if (!origin) {
-        return callback(null, true)
+        return callback(
+          null,
+          true
+        )
       }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true)
+
+      if (
+        allowedOrigins.includes(
+          origin
+        )
+      ) {
+        return callback(
+          null,
+          true
+        )
       }
+
 
       return callback(
-        new Error('Not allowed by CORS')
+        new Error(
+          'Not allowed by CORS'
+        )
       )
     },
 
     credentials: true,
   })
 )
+
 
 /*
 |--------------------------------------------------------------------------
@@ -76,35 +105,30 @@ app.use(
   })
 )
 
+
 app.use(
   express.urlencoded({
     extended: true,
     limit: '1mb',
   })
 )
-/*
-|--------------------------------------------------------------------------
-| Static Uploaded Files
-|--------------------------------------------------------------------------
-*/
 
-app.use(
-  '/uploads',
-  express.static(
-    path.resolve(
-      'uploads'
-    )
-  )
-)
+
 /*
 |--------------------------------------------------------------------------
 | Development Logging
 |--------------------------------------------------------------------------
 */
 
-if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('dev'))
+if (
+  process.env.NODE_ENV !==
+  'production'
+) {
+  app.use(
+    morgan('dev')
+  )
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -112,23 +136,33 @@ if (process.env.NODE_ENV !== 'production') {
 |--------------------------------------------------------------------------
 */
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
+const apiLimiter =
+  rateLimit({
+    windowMs:
+      15 * 60 * 1000,
 
-  limit: 300,
+    limit: 300,
 
-  standardHeaders: 'draft-8',
+    standardHeaders:
+      'draft-8',
 
-  legacyHeaders: false,
+    legacyHeaders:
+      false,
 
-  message: {
-    success: false,
-    message:
-      'Too many requests. Please try again later.',
-  },
-})
+    message: {
+      success: false,
 
-app.use('/api', apiLimiter)
+      message:
+        'Too many requests. Please try again later.',
+    },
+  })
+
+
+app.use(
+  '/api',
+  apiLimiter
+)
+
 
 /*
 |--------------------------------------------------------------------------
@@ -138,16 +172,23 @@ app.use('/api', apiLimiter)
 
 app.get(
   '/api/health',
-  (req, res) => {
-    res.status(200).json({
-      success: true,
-      message:
-        'AYOSONS API is running',
 
-      environment:
-        process.env.NODE_ENV ||
-        'development',
-    })
+  (
+    req,
+    res
+  ) => {
+    res
+      .status(200)
+      .json({
+        success: true,
+
+        message:
+          'AYOSONS API is running',
+
+        environment:
+          process.env.NODE_ENV ||
+          'development',
+      })
   }
 )
 
@@ -163,14 +204,18 @@ app.use(
   categoryRoutes
 )
 
+
 app.use(
   '/api/products',
   productRoutes
 )
+
+
 app.use(
   '/api/images',
   imageRoutes
 )
+
 
 /*
 |--------------------------------------------------------------------------
@@ -178,7 +223,14 @@ app.use(
 |--------------------------------------------------------------------------
 */
 
-app.use(notFound)
-app.use(errorHandler)
+app.use(
+  notFound
+)
+
+
+app.use(
+  errorHandler
+)
+
 
 export default app
