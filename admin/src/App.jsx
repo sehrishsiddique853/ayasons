@@ -5,7 +5,7 @@ import {
 } from 'react-router-dom'
 
 import AdminLayout from './components/layout/AdminLayout'
-
+import './styles/admin.css'
 import Dashboard from './pages/Dashboard'
 import Categories from './pages/Categories'
 import Products from './pages/Products'
