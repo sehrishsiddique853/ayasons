@@ -23,6 +23,11 @@ import {
 } from '../controllers/adminProductController.js'
 
 import {
+  getAdminHotSelling,
+  updateAdminHotSelling,
+} from '../controllers/adminHotSellingController.js'
+
+import {
   uploadCategoryImages,
   uploadProductImage,
 } from '../middleware/uploadMiddleware.js'
@@ -66,5 +71,15 @@ router.put(
   updateAdminProduct
 )
 router.delete('/products/:id', deleteAdminProduct)
+router.get(
+  '/hot-selling',
+  getAdminHotSelling
+)
+
+
+router.put(
+  '/hot-selling',
+  updateAdminHotSelling
+)
 
 export default router

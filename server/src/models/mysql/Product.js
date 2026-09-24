@@ -88,6 +88,9 @@ const formatProduct = (
     featured:
       Boolean(row.featured),
 
+    featuredOrder:
+      row.featured_order,
+
     active:
       Boolean(row.active),
 
@@ -127,6 +130,7 @@ export const findActiveProducts =
         p.image,
         p.features_json,
         p.featured,
+        p.featured_order,
         p.active,
         p.display_order,
         p.created_at,
@@ -147,11 +151,18 @@ export const findActiveProducts =
       `
     }
 
-    sql += `
-      ORDER BY
-        p.display_order ASC,
-        p.created_at ASC
-    `
+    if (featured) {
+      sql += `
+        ORDER BY
+          p.featured_order ASC
+      `
+    } else {
+      sql += `
+        ORDER BY
+          p.display_order ASC,
+          p.created_at ASC
+      `
+    }
 
     const [rows] =
       await pool.execute(sql)
@@ -190,6 +201,7 @@ export const findActiveProductById =
           p.image,
           p.features_json,
           p.featured,
+          p.featured_order,
           p.active,
           p.display_order,
           p.created_at,
@@ -290,6 +302,7 @@ export const findActiveProductsByCategory =
           p.image,
           p.features_json,
           p.featured,
+          p.featured_order,
           p.active,
           p.display_order,
           p.created_at,
