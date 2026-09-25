@@ -61,42 +61,23 @@ function ProductCategoryPage() {
         setError('')
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Fetch Category + Products
-        |--------------------------------------------------------------------------
-        */
-
-        const [
-          categoryResponse,
-          productsResponse,
-        ] =
-          await Promise.all([
-            api.get(
-              `/categories/${categorySlug}`,
-              {
-                signal:
-                  controller.signal,
-              }
-            ),
-
-            api.get(
-              `/products/category/${categorySlug}`,
-              {
-                signal:
-                  controller.signal,
-              }
-            ),
-          ])
+        const response =
+          await api.get(
+            `/products/category/${categorySlug}`,
+            {
+              signal:
+                controller.signal,
+            }
+          )
 
 
         setCategory(
-          categoryResponse.data.category
+          response.data.category
         )
 
 
         setProducts(
-          productsResponse.data.products ||
+          response.data.products ||
             []
         )
 

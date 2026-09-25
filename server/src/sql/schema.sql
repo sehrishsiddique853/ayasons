@@ -96,6 +96,12 @@ UNIQUE KEY uq_products_featured_order (
         display_order
     ),
 
+    KEY idx_products_featured_active_featured_order (
+        featured,
+        active,
+        featured_order
+    ),
+
     CONSTRAINT fk_products_category
         FOREIGN KEY (category_id)
         REFERENCES categories(id)

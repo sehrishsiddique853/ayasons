@@ -1,5 +1,8 @@
 
 import express from 'express'
+import {
+  publicJsonCache,
+} from '../middleware/publicCache.js'
 
 import {
   getProducts,
@@ -19,18 +22,21 @@ const router = express.Router()
 
 router.get(
   '/',
+  publicJsonCache(),
   getProducts
 )
 
 
 router.get(
   '/category/:slug',
+  publicJsonCache(),
   getProductsByCategory
 )
 
 
 router.get(
   '/:id',
+  publicJsonCache(),
   getProductById
 )
 

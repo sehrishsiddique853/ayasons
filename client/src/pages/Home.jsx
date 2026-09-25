@@ -27,6 +27,21 @@ function Home() {
     setHomepageContent,
   ] = useState(null)
 
+  const [
+    categories,
+    setCategories,
+  ] = useState([])
+
+  const [
+    categoriesLoading,
+    setCategoriesLoading,
+  ] = useState(true)
+
+  const [
+    categoriesError,
+    setCategoriesError,
+  ] = useState('')
+
 
   useEffect(() => {
 
@@ -34,23 +49,44 @@ function Home() {
       new AbortController()
 
 
-    const loadHomepageContent =
+    const loadHomeData =
       async () => {
 
         try {
+          setCategoriesLoading(true)
+          setCategoriesError('')
 
-          const response =
-            await api.get(
-              '/home-content',
-              {
-                signal:
-                  controller.signal,
-              }
-            )
+          const [
+            homepageResponse,
+            categoriesResponse,
+          ] =
+            await Promise.all([
+              api.get(
+                '/home-content',
+                {
+                  signal:
+                    controller.signal,
+                }
+              ),
+
+              api.get(
+                '/categories',
+                {
+                  signal:
+                    controller.signal,
+                }
+              ),
+            ])
 
 
           setHomepageContent(
-            response.data.content
+            homepageResponse.data.content
+          )
+
+
+          setCategories(
+            categoriesResponse.data.categories ||
+              []
           )
 
         } catch (error) {
@@ -64,8 +100,13 @@ function Home() {
 
 
           console.error(
-            'Homepage content error:',
+            'Home page data error:',
             error
+          )
+
+
+          setCategoriesError(
+            'Unable to load collections right now.'
           )
 
           /*
@@ -75,11 +116,18 @@ function Home() {
           */
 
         }
+        finally {
+          if (
+            !controller.signal.aborted
+          ) {
+            setCategoriesLoading(false)
+          }
+        }
 
       }
 
 
-    loadHomepageContent()
+    loadHomeData()
 
 
     return () => {
@@ -91,9 +139,23 @@ function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero
+        categories={
+          categories
+        }
+      />
 
-      <ManufactureSection />
+      <ManufactureSection
+        categories={
+          categories
+        }
+        loading={
+          categoriesLoading
+        }
+        error={
+          categoriesError
+        }
+      />
 
 
       <AboutSection

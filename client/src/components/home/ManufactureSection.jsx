@@ -1,13 +1,7 @@
 import {
-  useEffect,
-  useState,
-} from 'react'
-
-import {
   Link,
 } from 'react-router-dom'
 
-import api from '../../services/api'
 import { withImageWidth } from '../../utils/imageUrl'
 import { ManufactureCardSkeletons } from '../common/LoadingSkeletons'
 
@@ -28,91 +22,11 @@ const createCategoryPath = (category) => {
 }
 
 
-function ManufactureSection() {
-  const [
-    categories,
-    setCategories,
-  ] = useState([])
-
-  const [
-    loading,
-    setLoading,
-  ] = useState(true)
-
-  const [
-    error,
-    setError,
-  ] = useState('')
-
-
-  useEffect(() => {
-    const controller =
-      new AbortController()
-
-
-    const loadCategories =
-      async () => {
-        try {
-          setLoading(true)
-          setError('')
-
-
-          const response =
-            await api.get(
-              '/categories',
-              {
-                signal:
-                  controller.signal,
-              }
-            )
-
-
-          setCategories(
-            response.data.categories ||
-              []
-          )
-
-        } catch (requestError) {
-
-          if (
-            requestError.code ===
-            'ERR_CANCELED'
-          ) {
-            return
-          }
-
-
-          console.error(
-            'Failed to load categories:',
-            requestError
-          )
-
-
-          setError(
-            'Unable to load collections right now.'
-          )
-
-        } finally {
-
-          if (
-            !controller.signal.aborted
-          ) {
-            setLoading(false)
-          }
-        }
-      }
-
-
-    loadCategories()
-
-
-    return () => {
-      controller.abort()
-    }
-
-  }, [])
-
-
+function ManufactureSection({
+  categories = [],
+  loading = false,
+  error = '',
+}) {
   return (
     <section
       className="manufacture-section"

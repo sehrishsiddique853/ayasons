@@ -10,7 +10,6 @@ import {
 
 import heroAthlete from '../../assets/images/optimized/hero1.jpg'
 
-import api from '../../services/api'
 import { withImageWidth } from '../../utils/imageUrl'
 
 const createCategoryPath = (category) => {
@@ -30,73 +29,13 @@ const createCategoryPath = (category) => {
 }
 
 
-function Hero() {
-  const [
-    categories,
-    setCategories,
-  ] = useState([])
-
+function Hero({
+  categories = [],
+}) {
   const [
     activeIndex,
     setActiveIndex,
   ] = useState(0)
-
-
-  /*
-  |--------------------------------------------------------------------------
-  | Load Active Categories
-  |--------------------------------------------------------------------------
-  */
-
-  useEffect(() => {
-    const controller =
-      new AbortController()
-
-
-    const loadCategories =
-      async () => {
-        try {
-          const response =
-            await api.get(
-              '/categories',
-              {
-                signal:
-                  controller.signal,
-              }
-            )
-
-
-          setCategories(
-            response.data.categories ||
-              []
-          )
-
-        } catch (error) {
-
-          if (
-            error.code ===
-            'ERR_CANCELED'
-          ) {
-            return
-          }
-
-
-          console.error(
-            'Failed to load hero categories:',
-            error
-          )
-        }
-      }
-
-
-    loadCategories()
-
-
-    return () => {
-      controller.abort()
-    }
-
-  }, [])
 
 
   /*

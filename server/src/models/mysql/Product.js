@@ -98,6 +98,70 @@ const formatProduct = (
 }
 
 
+const formatCategoryForProductPage =
+  (
+    row,
+    req
+  ) => {
+    return {
+      id: row.id,
+
+      _id: row.id,
+
+      name: row.name,
+
+      slug: row.slug,
+
+      eyebrow:
+        row.eyebrow || '',
+
+      showcaseLabel:
+        row.showcase_label || '',
+
+      heroTitle:
+        row.hero_title || '',
+
+      description:
+        row.description || '',
+
+      collectionDescription:
+        row.collection_description || '',
+
+      heroImage: {
+        url:
+          `${getBaseUrl(req)}/api/images/categories/${row.id}/hero`,
+
+        publicId: '',
+      },
+
+      collectionImage: {
+        url:
+          `${getBaseUrl(req)}/api/images/categories/${row.id}/collection`,
+
+        publicId: '',
+      },
+
+      groups:
+        parseJson(
+          row.groups_json,
+          []
+        ),
+
+      active:
+        Boolean(row.active),
+
+      order:
+        row.display_order,
+
+      createdAt:
+        row.created_at,
+
+      updatedAt:
+        row.updated_at,
+    }
+  }
+
+
 /**
  * --------------------------------------------------------------------------
  * Get All Public Products
@@ -147,6 +211,8 @@ export const findActiveProducts =
       sql += `
         ORDER BY
           p.featured_order ASC
+
+        LIMIT 8
       `
     } else {
       sql += `
@@ -253,7 +319,16 @@ export const findActiveProductsByCategory =
           id,
           name,
           slug,
-          groups_json
+          eyebrow,
+          showcase_label,
+          hero_title,
+          description,
+          collection_description,
+          groups_json,
+          active,
+          display_order,
+          created_at,
+          updated_at
         FROM categories
         WHERE
           slug = ?
@@ -319,23 +394,10 @@ export const findActiveProductsByCategory =
 
     return {
       category: {
-        id:
-          categoryRow.id,
-
-        _id:
-          categoryRow.id,
-
-        name:
-          categoryRow.name,
-
-        slug:
-          categoryRow.slug,
-
-        groups:
-          parseJson(
-            categoryRow.groups_json,
-            []
-          ),
+        ...formatCategoryForProductPage(
+          categoryRow,
+          req
+        ),
       },
 
       products:
