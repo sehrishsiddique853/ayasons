@@ -16,7 +16,9 @@
     "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove",
     "mysql:add-featured-order": "node src/scripts/addFeaturedOrder.js",
     "mysql:add-homepage-content": "node src/scripts/addHomepageContent.js",
-    "mysql:add-process-content": "node src/scripts/addProcessContent.js"
+    "mysql:add-process-content": "node src/scripts/addProcessContent.js",
+    "mysql:add-department-cards": "node src/scripts/addDepartmentCards.js",
+    "mysql:add-contact-settings": "node src/scripts/addContactSettings.js"
   },
   "keywords": [],
   "author": "",
@@ -29,7 +31,8 @@
     "helmet": "^8.3.0",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
-    "mysql2": "^3.24.4"
+    "mysql2": "^3.24.4",
+    "resend": "^6.29.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

@@ -172,3 +172,48 @@ CREATE TABLE IF NOT EXISTS homepage_process_steps (
         step_order
     )
 );
+
+CREATE TABLE IF NOT EXISTS homepage_departments (
+
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    department_order TINYINT UNSIGNED NOT NULL,
+
+    department_number VARCHAR(10) NOT NULL,
+
+    title VARCHAR(150) NOT NULL,
+
+    description TEXT NOT NULL,
+
+    image_blob LONGBLOB NULL,
+
+    image_mime VARCHAR(100) NULL,
+
+    image_name VARCHAR(255) NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    UNIQUE KEY uq_homepage_department_order (
+        department_order
+    )
+);
+
+CREATE TABLE IF NOT EXISTS contact_settings (
+
+    id TINYINT UNSIGNED NOT NULL,
+
+    recipient_email VARCHAR(255) NOT NULL,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id)
+);

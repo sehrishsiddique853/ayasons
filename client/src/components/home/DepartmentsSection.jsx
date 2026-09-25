@@ -1,5 +1,6 @@
 import '../../style/DepartmentsSection.css'
-
+import addImagePlaceholder
+  from '../../assets/images/add-image-placeholder.png'
 
 const defaultStats = [
   {
@@ -33,6 +34,9 @@ const departments = [
 
     description:
       'From pattern development and size grading to precise cutting, every garment begins with accuracy and careful preparation.',
+
+    image:
+      addImagePlaceholder,
   },
 
   {
@@ -43,6 +47,9 @@ const departments = [
 
     description:
       'Performance apparel is produced with high-quality sublimation processes for vibrant colors, graphics and lasting finishes.',
+
+    image:
+      addImagePlaceholder,
   },
 
   {
@@ -53,6 +60,9 @@ const departments = [
 
     description:
       'Custom logos, names and branding are applied using embroidery and decoration techniques according to product requirements.',
+
+    image:
+      addImagePlaceholder,
   },
 
   {
@@ -63,6 +73,9 @@ const departments = [
 
     description:
       'Experienced production teams handle garment assembly with attention to construction, strength and finishing standards.',
+
+    image:
+      addImagePlaceholder,
   },
 
   {
@@ -73,6 +86,9 @@ const departments = [
 
     description:
       'Custom kit bags, duffle bags and other accessories are developed with durable materials and reinforced construction.',
+
+    image:
+      addImagePlaceholder,
   },
 
   {
@@ -83,6 +99,9 @@ const departments = [
 
     description:
       'Finished products are inspected for workmanship, measurements and overall quality before final packing and dispatch.',
+
+    image:
+      addImagePlaceholder,
   },
 ]
 
@@ -190,44 +209,59 @@ function DepartmentsSection({
               department
             ) => (
 
-              <article
-                className="department-card"
-                key={
-                  department.number
-                }
-              >
+             <article
+  className="department-card"
+  key={
+    department.number
+  }
+>
 
-                <span className="department-number">
-                  {
-                    department.number
-                  }
-                </span>
+  <div className="department-card-image">
+
+    <img
+      src={
+        department.image
+      }
+      alt={
+        department.title
+      }
+    />
+
+    <div className="department-card-image-overlay" />
+
+    <span className="department-number">
+      {
+        department.number
+      }
+    </span>
+
+  </div>
 
 
-                <div className="department-card-content">
+  <div className="department-card-content">
 
-                  <h3>
-                    {
-                      department.title
-                    }
-                  </h3>
-
-
-                  <span
-                    className="department-card-rule"
-                    aria-hidden="true"
-                  />
+    <h3>
+      {
+        department.title
+      }
+    </h3>
 
 
-                  <p>
-                    {
-                      department.description
-                    }
-                  </p>
+    <span
+      className="department-card-rule"
+      aria-hidden="true"
+    />
 
-                </div>
 
-              </article>
+    <p>
+      {
+        department.description
+      }
+    </p>
+
+  </div>
+
+</article>
 
             )
           )}

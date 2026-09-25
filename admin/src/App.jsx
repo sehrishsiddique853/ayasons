@@ -20,7 +20,8 @@ import HomeContent from './pages/HomeContent'
 import './styles/admin.css'
 
 import OurProcess from './pages/OurProcess'
-
+import Departments from './pages/Departments'
+import Contact from './pages/Contact'
 
 function App() {
   return (
@@ -79,6 +80,16 @@ function App() {
 <Route
   path="/our-process"
   element={<OurProcess />}
+/>
+
+<Route
+  path="/departments"
+  element={<Departments />}
+/>
+
+<Route
+  path="/contact"
+  element={<Contact />}
 />
 
           <Route

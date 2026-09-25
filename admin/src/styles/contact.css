@@ -1,0 +1,107 @@
+.contact-admin-page {
+  width: 100%;
+  max-width: 980px;
+}
+
+.contact-admin-message {
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.contact-admin-error {
+  border: 1px solid #efcccc;
+  background: #fff1f1;
+  color: #a51d1d;
+}
+
+.contact-admin-success {
+  border: 1px solid #c7ead2;
+  background: #effaf3;
+  color: #18773a;
+}
+
+.contact-admin-card {
+  display: flex;
+  gap: 20px;
+  padding: 26px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  background: var(--admin-card);
+}
+
+.contact-admin-card-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: var(--admin-gold-soft);
+  color: #8a7200;
+}
+
+.contact-admin-card-content {
+  width: min(100%, 620px);
+}
+
+.contact-admin-card label {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--admin-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.contact-admin-card p {
+  margin: 0 0 18px;
+  color: var(--admin-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.contact-admin-card input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 46px;
+  padding: 0 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  outline: none;
+  color: var(--admin-text);
+  font: inherit;
+}
+
+.contact-admin-card input:focus {
+  border-color: var(--admin-gold);
+  box-shadow: 0 0 0 3px var(--admin-gold-soft);
+}
+
+.contact-admin-card button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--admin-sidebar);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.contact-admin-card button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+@media (max-width: 620px) {
+  .contact-admin-card {
+    flex-direction: column;
+  }
+}

@@ -15,6 +15,14 @@ import {
 import homepageContentRoutes
   from './routes/homepageContentRoutes.js'
 
+  import departmentRoutes
+  from './routes/departmentRoutes.js'
+
+import adminDepartmentRoutes
+  from './routes/adminDepartmentRoutes.js'
+import contactRoutes
+  from './routes/contactRoutes.js'
+
 
 const app = express()
 
@@ -241,6 +249,22 @@ app.use(
 app.use(
   '/api/home-content',
   homepageContentRoutes
+)
+
+app.use(
+  '/api/departments',
+  departmentRoutes
+)
+
+
+app.use(
+  '/api/admin/departments',
+  adminDepartmentRoutes
+)
+
+app.use(
+  '/api/contact',
+  contactRoutes
 )
 
 /*

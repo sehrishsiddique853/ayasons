@@ -42,9 +42,16 @@ import {
   updateAdminProcessImage,
 } from '../controllers/adminHomepageContentController.js'
 
+import {
+  getAdminContactSettings,
+  updateAdminContactSettings,
+} from '../controllers/contactController.js'
+
 const router = express.Router()
 
 router.get('/dashboard', getAdminDashboard)
+router.get('/contact', getAdminContactSettings)
+router.put('/contact', updateAdminContactSettings)
 
 router.get('/categories', getAdminCategories)
 router.get('/categories/:id', getAdminCategory)

@@ -9,6 +9,8 @@ import {
   Flame,
   Home,
   Workflow,
+  Factory,
+  Mail,
   Settings,
   X,
 } from 'lucide-react'
@@ -51,6 +53,16 @@ const navigation = [
   icon: Workflow,
 },
 
+{
+  label: 'Departments',
+  path: '/departments',
+  icon: Factory,
+},
+  {
+    label: 'Contact',
+    path: '/contact',
+    icon: Mail,
+  },
   {
     label: 'Settings',
     path: '/settings',

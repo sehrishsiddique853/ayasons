@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import '../../style/RequestQuote.css'
+import api from '../../services/api'
 import whatsappIcon from '../../assets/icons/whatsapp.png'
 import emailIcon from '../../assets/icons/email.png'
 import instagramIcon from '../../assets/icons/instagram.png'
@@ -48,20 +49,10 @@ function RequestQuote() {
     const formData = new FormData(form)
 
     try {
-      const response = await fetch(
-        Process.env.FORMSPREE_API_KEY,
-        {
-          method: 'POST',
-          body: formData,
-          headers: {
-            Accept: 'application/json',
-          },
-        }
+      await api.post(
+        '/contact',
+        Object.fromEntries(formData.entries())
       )
-
-      if (!response.ok) {
-        throw new Error('Form submission failed')
-      }
 
       setStatus('success')
       form.reset()
