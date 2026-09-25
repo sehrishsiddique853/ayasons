@@ -48,6 +48,8 @@ function Footer() {
             <img
               src={ayosonsLogo}
               alt="AYOSONS Industries"
+              loading="lazy"
+              decoding="async"
             />
           </a>
 
@@ -112,6 +114,8 @@ function Footer() {
                 <img
                   src={social.icon}
                   alt={social.name}
+                  loading="lazy"
+                  decoding="async"
                 />
               </a>
             ))}
@@ -146,6 +150,8 @@ function Footer() {
               <img
                 src={fbrLogo}
                 alt="Federal Board of Revenue"
+                loading="lazy"
+                decoding="async"
               />
             </div>
 
@@ -167,6 +173,8 @@ function Footer() {
       src={scciLogo}
       alt="Sialkot Chamber of Commerce"
       className="footer-registration-logo--chamber"
+      loading="lazy"
+      decoding="async"
     />
   </div>
 

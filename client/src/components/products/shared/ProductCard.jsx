@@ -1,4 +1,5 @@
 import '../../../style/products/ProductCard.css'
+import { withImageWidth } from '../../../utils/imageUrl'
 
 function ProductCard({
   title,
@@ -12,8 +13,14 @@ function ProductCard({
       <div className="category-product-image">
 
         <img
-          src={image}
+          src={withImageWidth(
+            image,
+            520
+          )}
           alt={title}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
 
         <div className="category-product-image-overlay" />

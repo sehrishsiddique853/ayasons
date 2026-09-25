@@ -1,5 +1,5 @@
 import factoryImage
-  from '../../assets/images/ayosons-about-manufacturing.png'
+  from '../../assets/images/optimized/ayosons-about-manufacturing.jpg'
 
 
 const defaultManufacturingStats = [
@@ -217,6 +217,8 @@ function ManufacturingExcellence({
                 factoryImage
               }
               alt="AYOSONS apparel manufacturing facility"
+              loading="lazy"
+              decoding="async"
             />
 
           )}

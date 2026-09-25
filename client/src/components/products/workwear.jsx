@@ -1,6 +1,6 @@
 import ProductCategoryPage from './shared/ProductCategoryPage'
 
-import workwearImage from '../../assets/images/workwear.png'
+import workwearImage from '../../assets/images/optimized/workwear.jpg'
 
 
 const collections = [

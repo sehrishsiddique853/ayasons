@@ -5,7 +5,7 @@ import CategoryHero from './shared/CategoryHero'
 import ProductCollectionSection from './shared/ProductCollectionSection'
 import ProductGallery from './shared/ProductGallery'
 
-import performanceImage from '../../assets/images/category-performance-wear.png'
+import performanceImage from '../../assets/images/optimized/category-performance-wear.jpg'
 
 import '../../style/products/Activewear.css'
 

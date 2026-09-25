@@ -1,6 +1,7 @@
 import {
   useEffect,
   useRef,
+  useState,
 } from 'react'
 
 import {
@@ -137,11 +138,56 @@ function ScrollManager() {
 }
 
 
+function RouteLoadingBar() {
+  const location = useLocation()
+
+  const [
+    isVisible,
+    setIsVisible,
+  ] = useState(false)
+
+
+  useEffect(() => {
+    setIsVisible(true)
+
+    const timeoutId =
+      window.setTimeout(
+        () => {
+          setIsVisible(false)
+        },
+        650
+      )
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [
+    location.pathname,
+    location.search,
+  ])
+
+
+  if (!isVisible) {
+    return null
+  }
+
+
+  return (
+    <div
+      className="route-loading-bar"
+      aria-hidden="true"
+    />
+  )
+}
+
+
 function App() {
   return (
     <div className="site-shell">
 
       <ScrollManager />
+
+      <RouteLoadingBar />
 
 
       <Navbar />
@@ -154,7 +200,9 @@ function App() {
 
           <Route
             path="/"
-            element={<Home />}
+            element={
+              <Home />
+            }
           />
 
 

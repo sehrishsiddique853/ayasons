@@ -36,17 +36,7 @@ const parseJson = (
 const getBaseUrl = (
   req
 ) => {
-
-  const configured =
-    process.env.SERVER_URL
-      ?.trim()
-      ?.replace(/\/+$/, '')
-
-
-  return (
-    configured ||
-    `${req.protocol}://${req.get('host')}`
-  )
+  return ''
 }
 
 
@@ -324,7 +314,7 @@ export const getHomepageAboutImage =
           `inline; filename="${image.about_image_name || 'about-image'}"`,
 
         'Cache-Control':
-          'public, max-age=3600',
+          'public, max-age=604800, immutable',
       })
 
 
@@ -427,8 +417,8 @@ export const getHomepageManufacturingVideo =
           'Accept-Ranges':
             'bytes',
 
-          'Cache-Control':
-            'public, max-age=3600',
+        'Cache-Control':
+            'public, max-age=604800, immutable',
         })
 
 
@@ -522,7 +512,7 @@ export const getHomepageManufacturingVideo =
           'bytes',
 
         'Cache-Control':
-          'public, max-age=3600',
+          'public, max-age=604800, immutable',
       })
 
 

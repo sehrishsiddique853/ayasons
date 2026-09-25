@@ -27,15 +27,7 @@ const parseJson = (
 const getBaseUrl = (
   req
 ) => {
-  const configured =
-    process.env.SERVER_URL
-      ?.trim()
-      ?.replace(/\/+$/, '')
-
-  return (
-    configured ||
-    `${req.protocol}://${req.get('host')}`
-  )
+  return ''
 }
 
 

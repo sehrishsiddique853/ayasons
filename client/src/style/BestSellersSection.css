@@ -270,12 +270,12 @@
   background:
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.05),
-      rgba(0, 0, 0, 0.62)
+      rgba(0, 0, 0, 0.02),
+      rgba(0, 0, 0, 0.36)
     ),
     linear-gradient(
       90deg,
-      rgba(240, 212, 79, 0.08),
+      rgba(240, 212, 79, 0.04),
       transparent 38%
     );
 }

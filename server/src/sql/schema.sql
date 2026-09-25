@@ -217,3 +217,68 @@ CREATE TABLE IF NOT EXISTS contact_settings (
 
     PRIMARY KEY (id)
 );
+
+
+CREATE TABLE IF NOT EXISTS homepage_standards_content (
+
+    id TINYINT UNSIGNED NOT NULL,
+
+    kicker VARCHAR(150)
+        NOT NULL
+        DEFAULT 'Certifications & Compliance',
+
+    heading VARCHAR(255)
+        NOT NULL
+        DEFAULT 'Documentation Available On Request',
+
+    footer_text TEXT NULL,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id)
+);
+
+
+CREATE TABLE IF NOT EXISTS homepage_standards (
+
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    display_order INT UNSIGNED
+        NOT NULL DEFAULT 0,
+
+    title VARCHAR(180) NOT NULL,
+
+    description TEXT NOT NULL,
+
+
+    logo_image_blob LONGBLOB NULL,
+
+    logo_image_mime VARCHAR(100) NULL,
+
+    logo_image_name VARCHAR(255) NULL,
+
+
+    certificate_blob LONGBLOB NULL,
+
+    certificate_mime VARCHAR(100) NULL,
+
+    certificate_name VARCHAR(255) NULL,
+
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+
+    PRIMARY KEY (id),
+
+    KEY idx_homepage_standards_order (
+        display_order,
+        id
+    )
+);

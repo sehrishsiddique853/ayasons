@@ -1,4 +1,7 @@
 .product-gallery-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 900px;
+
   position: relative;
 
   overflow: hidden;

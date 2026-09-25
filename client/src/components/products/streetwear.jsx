@@ -1,6 +1,6 @@
 import ProductCategoryPage from './shared/ProductCategoryPage'
 
-import streetwearImage from '../../assets/images/category-lifestyle-accessories.png'
+import streetwearImage from '../../assets/images/optimized/category-lifestyle-accessories.jpg'
 
 
 const collections = [

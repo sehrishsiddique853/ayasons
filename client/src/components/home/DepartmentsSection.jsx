@@ -1,6 +1,6 @@
 import '../../style/DepartmentsSection.css'
 import addImagePlaceholder
-  from '../../assets/images/add-image-placeholder.png'
+  from '../../assets/images/optimized/add-image-placeholder.jpg'
 
 const defaultStats = [
   {
@@ -225,6 +225,8 @@ function DepartmentsSection({
       alt={
         department.title
       }
+      loading="lazy"
+      decoding="async"
     />
 
     <div className="department-card-image-overlay" />

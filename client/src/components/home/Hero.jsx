@@ -8,9 +8,10 @@ import {
   Link,
 } from 'react-router-dom'
 
-import heroAthlete from '../../assets/images/hero1.png'
+import heroAthlete from '../../assets/images/optimized/hero1.jpg'
 
 import api from '../../services/api'
+import { withImageWidth } from '../../utils/imageUrl'
 
 const createCategoryPath = (category) => {
   const slug =
@@ -123,11 +124,14 @@ function Hero() {
 
 
   const activeImage =
-    activeCategory
-      ?.heroImage?.url ||
-    activeCategory
-      ?.collectionImage?.url ||
-    ''
+    withImageWidth(
+      activeCategory
+        ?.heroImage?.url ||
+      activeCategory
+        ?.collectionImage?.url ||
+      '',
+      900
+    )
 
 
   /*
@@ -170,53 +174,6 @@ function Hero() {
 
   /*
   |--------------------------------------------------------------------------
-  | Auto Rotation
-  |--------------------------------------------------------------------------
-  */
-
-  useEffect(() => {
-    if (
-      categories.length <= 1
-    ) {
-      return undefined
-    }
-
-
-    const reduceMotion =
-      window.matchMedia(
-        '(prefers-reduced-motion: reduce)'
-      ).matches
-
-
-    if (reduceMotion) {
-      return undefined
-    }
-
-
-    const interval =
-      window.setInterval(
-        () => {
-          setActiveIndex(
-            (current) =>
-              (current + 1) %
-              categories.length
-          )
-        },
-        4200
-      )
-
-
-    return () => {
-      window.clearInterval(
-        interval
-      )
-    }
-
-  }, [categories.length])
-
-
-  /*
-  |--------------------------------------------------------------------------
   | Small Category Strip
   |--------------------------------------------------------------------------
   |
@@ -245,6 +202,8 @@ function Hero() {
         src={heroAthlete}
         alt=""
         aria-hidden="true"
+        decoding="async"
+        fetchPriority="high"
       />
 
 
@@ -255,7 +214,7 @@ function Hero() {
         <p className="hero-meta">
 
           <span>
-            Est. 2005
+            Est. 2015
           </span>
 
           <span>
@@ -408,6 +367,8 @@ function Hero() {
                 alt={
                   activeCategory.name
                 }
+                decoding="async"
+                fetchPriority="high"
               />
             )}
 

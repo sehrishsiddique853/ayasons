@@ -2,13 +2,13 @@ import '../../style/ProcessSection.css'
 
 
 import sportsImage
-  from '../../assets/images/category-sports-teamwear.png'
+  from '../../assets/images/optimized/category-sports-teamwear.jpg'
 
 import performanceImage
-  from '../../assets/images/category-performance-wear.png'
+  from '../../assets/images/optimized/category-performance-wear.jpg'
 
 import lifestyleImage
-  from '../../assets/images/category-lifestyle-accessories.png'
+  from '../../assets/images/optimized/category-lifestyle-accessories.jpg'
 
 
 const defaultProcess = {
@@ -306,6 +306,8 @@ function ProcessSection({
                         alt={
                           step.title
                         }
+                        loading="lazy"
+                        decoding="async"
                       />
 
 

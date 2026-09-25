@@ -1,6 +1,6 @@
 import ProductCategoryPage from './shared/ProductCategoryPage'
 
-import sportsImage from '../../assets/images/category-sports-teamwear.png'
+import sportsImage from '../../assets/images/optimized/category-sports-teamwear.jpg'
 
 
 const collections = [

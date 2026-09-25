@@ -1,6 +1,6 @@
 import ProductCategoryPage from './shared/ProductCategoryPage'
 
-import accessoriesImage from '../../assets/images/accessories.png'
+import accessoriesImage from '../../assets/images/optimized/accessories.jpg'
 
 
 const collections = [

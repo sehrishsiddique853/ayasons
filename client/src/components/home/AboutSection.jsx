@@ -1,5 +1,5 @@
 import aboutImageFallback
-  from '../../assets/images/factory2.png'
+  from '../../assets/images/optimized/factory2.jpg'
 
 
 const trustPoints = [
@@ -42,6 +42,8 @@ function AboutSection({
             aboutImage
           }
           alt="AYOSONS apparel manufacturing facility"
+          loading="lazy"
+          decoding="async"
         />
 
       </div>

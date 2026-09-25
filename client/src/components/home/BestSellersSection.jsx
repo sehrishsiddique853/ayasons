@@ -7,6 +7,8 @@ import {
 import '../../style/BestSellersSection.css'
 
 import api from '../../services/api'
+import { withImageWidth } from '../../utils/imageUrl'
+import { ProductCardSkeletons } from '../common/LoadingSkeletons'
 
 function BestSellersSection() {
   const [products, setProducts] = useState([])
@@ -86,9 +88,7 @@ function BestSellersSection() {
         </div>
 
         {loading && (
-          <div className="best-sellers-state">
-            Loading Hot Selling products...
-          </div>
+          <ProductCardSkeletons />
         )}
 
         {!loading && error && (
@@ -122,11 +122,17 @@ function BestSellersSection() {
                         key={`${product.id}-${rowIndex}-${index}`}
                       >
                         <div className="best-seller-image-wrap">
-                          <img
-                            src={product.image?.url}
-                            alt={product.name}
-                            className="best-seller-image"
-                          />
+                      <img
+                        src={withImageWidth(
+                          product.image?.url,
+                          520
+                        )}
+                        alt={product.name}
+                        className="best-seller-image"
+                        loading="eager"
+                        decoding="async"
+                        fetchPriority="high"
+                      />
 
                           <div className="best-seller-image-overlay" />
 

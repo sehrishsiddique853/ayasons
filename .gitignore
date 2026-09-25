@@ -34,6 +34,7 @@ Thumbs.db
 *.sw?
 
 # Local temp files
+.cache/
 .tmp/
 tmp/
 temp/

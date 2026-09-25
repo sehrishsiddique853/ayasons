@@ -22,6 +22,11 @@ import adminDepartmentRoutes
   from './routes/adminDepartmentRoutes.js'
 import contactRoutes
   from './routes/contactRoutes.js'
+  import standardRoutes
+  from './routes/standardRoutes.js'
+
+import adminStandardRoutes
+  from './routes/adminStandardRoutes.js'
 
 
 const app = express()
@@ -265,6 +270,17 @@ app.use(
 app.use(
   '/api/contact',
   contactRoutes
+)
+
+app.use(
+  '/api/standards',
+  standardRoutes
+)
+
+
+app.use(
+  '/api/admin/standards',
+  adminStandardRoutes
 )
 
 /*

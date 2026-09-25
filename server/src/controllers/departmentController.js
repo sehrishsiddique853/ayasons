@@ -4,17 +4,7 @@ import pool from '../config/mysql.js'
 const getBaseUrl = (
   req
 ) => {
-
-  const configured =
-    process.env.SERVER_URL
-      ?.trim()
-      ?.replace(/\/+$/, '')
-
-
-  return (
-    configured ||
-    `${req.protocol}://${req.get('host')}`
-  )
+  return ''
 }
 
 
@@ -189,7 +179,7 @@ export const getDepartmentImage =
           `inline; filename="${image.image_name || 'department-image'}"`,
 
         'Cache-Control':
-          'public, max-age=3600',
+          'public, max-age=604800, immutable',
       })
 
 

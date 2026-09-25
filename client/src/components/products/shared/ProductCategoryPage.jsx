@@ -12,8 +12,10 @@ import Footer from '../../home/Footer'
 import CategoryHero from './CategoryHero'
 import ProductCollectionSection from './ProductCollectionSection'
 import ProductGallery from './ProductGallery'
+import PageLoader from '../../common/PageLoader'
 
 import api from '../../../services/api'
+import { withImageWidth } from '../../../utils/imageUrl'
 
 import '../../../style/products/Activewear.css'
 
@@ -165,9 +167,10 @@ function ProductCategoryPage() {
       <>
         <main className="activewear-page">
           <div className="activewear-content">
-            <p>
-              Loading collection...
-            </p>
+            <PageLoader
+              label="Loading collection"
+              variant="inline"
+            />
           </div>
         </main>
 
@@ -217,17 +220,33 @@ function ProductCategoryPage() {
   */
 
   const heroImage =
-    category.heroImage?.url ||
-    category.collectionImage
-      ?.url ||
-    ''
+    withImageWidth(
+      category.heroImage?.url ||
+      category.collectionImage
+        ?.url ||
+      '',
+      1400
+    )
 
 
   const collectionImage =
-    category.collectionImage
-      ?.url ||
-    category.heroImage?.url ||
-    ''
+    withImageWidth(
+      category.collectionImage
+        ?.url ||
+      category.heroImage?.url ||
+      '',
+      900
+    )
+
+
+  const cardImage =
+    withImageWidth(
+      category.collectionImage
+        ?.url ||
+      category.heroImage?.url ||
+      '',
+      520
+    )
 
 
   /*
@@ -257,8 +276,8 @@ function ProductCategoryPage() {
           product.description,
 
         image:
-          product.image?.url ||
-          collectionImage,
+          cardImage ||
+          product.image?.url,
 
         features:
           product.features || [],

@@ -1,6 +1,6 @@
 import ProductCategoryPage from './shared/ProductCategoryPage'
 
-import varsityImage from '../../assets/images/versity_jackets.png'
+import varsityImage from '../../assets/images/optimized/versity_jackets.jpg'
 
 
 const collections = [

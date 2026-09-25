@@ -11,6 +11,7 @@ import {
   Workflow,
   Factory,
   Mail,
+  Award,
   Settings,
   X,
 } from 'lucide-react'
@@ -57,6 +58,12 @@ const navigation = [
   label: 'Departments',
   path: '/departments',
   icon: Factory,
+},
+
+{
+  label: 'Certifications',
+  path: '/certifications',
+  icon: Award,
 },
   {
     label: 'Contact',

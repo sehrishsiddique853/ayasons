@@ -18,7 +18,9 @@
     "mysql:add-homepage-content": "node src/scripts/addHomepageContent.js",
     "mysql:add-process-content": "node src/scripts/addProcessContent.js",
     "mysql:add-department-cards": "node src/scripts/addDepartmentCards.js",
-    "mysql:add-contact-settings": "node src/scripts/addContactSettings.js"
+    "mysql:add-standards": "node src/scripts/addStandards.js",
+    "mysql:add-contact-settings": "node src/scripts/addContactSettings.js",
+    "images:warm-cache": "node src/scripts/warmImageCache.js"
   },
   "keywords": [],
   "author": "",

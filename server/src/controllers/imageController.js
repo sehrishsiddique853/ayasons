@@ -1,4 +1,319 @@
+import { execFile } from 'node:child_process'
+import { promises as fs } from 'node:fs'
+import path from 'node:path'
+import { promisify } from 'node:util'
+import { fileURLToPath } from 'node:url'
+
 import pool from '../config/mysql.js'
+
+
+const execFileAsync =
+  promisify(execFile)
+
+
+const __filename =
+  fileURLToPath(import.meta.url)
+
+
+const __dirname =
+  path.dirname(__filename)
+
+
+const imageCacheDirectory =
+  path.resolve(
+    __dirname,
+    '../../.cache/images'
+  )
+
+
+const defaultOptimizedImageWidth =
+  1400
+
+
+const minimumOptimizedImageWidth =
+  320
+
+
+const maximumOptimizedImageWidth =
+  1800
+
+
+const optimizedImageQuality =
+  72
+
+
+const isOptimizableImage =
+  (mimeType = '') => {
+    return [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+    ].includes(
+      mimeType.toLowerCase()
+    )
+  }
+
+
+const sanitizeCacheKey =
+  (cacheKey) => {
+    return String(cacheKey)
+      .replace(/[^a-z0-9_.-]/gi, '-')
+  }
+
+
+const fileExists =
+  async (filePath) => {
+    try {
+      await fs.access(filePath)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+
+const optimizeImageBuffer =
+  async (
+    imageBuffer,
+    cacheKey,
+    requestedWidth =
+      defaultOptimizedImageWidth
+  ) => {
+    if (
+      process.platform !== 'win32' ||
+      !imageBuffer?.length
+    ) {
+      return null
+    }
+
+
+    await fs.mkdir(
+      imageCacheDirectory,
+      {
+        recursive: true,
+      }
+    )
+
+
+    const optimizedWidth =
+      Math.min(
+        maximumOptimizedImageWidth,
+        Math.max(
+          minimumOptimizedImageWidth,
+          Math.round(
+            requestedWidth
+          )
+        )
+      )
+
+
+    const safeCacheKey =
+      sanitizeCacheKey(cacheKey)
+
+
+    const outputPath =
+      path.join(
+        imageCacheDirectory,
+        `${safeCacheKey}-w${optimizedWidth}.jpg`
+      )
+
+
+    if (
+      await fileExists(outputPath)
+    ) {
+      return fs.readFile(outputPath)
+    }
+
+
+    const sourcePath =
+      path.join(
+        imageCacheDirectory,
+        `${safeCacheKey}-w${optimizedWidth}.source`
+      )
+
+
+    await fs.writeFile(
+      sourcePath,
+      imageBuffer
+    )
+
+
+    const powershellScript =
+      `
+      Add-Type -AssemblyName System.Drawing
+
+      $sourcePath = @'
+${sourcePath}
+'@
+      $outputPath = @'
+${outputPath}
+'@
+
+      $sourceImage = [System.Drawing.Image]::FromFile($sourcePath)
+      $largestSide = [Math]::Max($sourceImage.Width, $sourceImage.Height)
+      $scale = [Math]::Min(1.0, ${optimizedWidth} / [double]$largestSide)
+      $targetWidth = [Math]::Max(1, [int]($sourceImage.Width * $scale))
+      $targetHeight = [Math]::Max(1, [int]($sourceImage.Height * $scale))
+
+      $bitmap = New-Object System.Drawing.Bitmap($targetWidth, $targetHeight, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
+      $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+      $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
+      $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+      $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+      $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+      $graphics.Clear([System.Drawing.Color]::Black)
+      $graphics.DrawImage($sourceImage, 0, 0, $targetWidth, $targetHeight)
+
+      $jpegCodec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' }
+      $encoderParameters = New-Object System.Drawing.Imaging.EncoderParameters(1)
+      $encoderParameters.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, [long]${optimizedImageQuality})
+      $bitmap.Save($outputPath, $jpegCodec, $encoderParameters)
+
+      $graphics.Dispose()
+      $bitmap.Dispose()
+      $sourceImage.Dispose()
+      `
+
+
+    const encodedCommand =
+      Buffer
+        .from(
+          powershellScript,
+          'utf16le'
+        )
+        .toString('base64')
+
+
+    try {
+      await execFileAsync(
+        'powershell.exe',
+        [
+          '-NoProfile',
+          '-ExecutionPolicy',
+          'Bypass',
+          '-EncodedCommand',
+          encodedCommand,
+        ],
+        {
+          timeout: 30000,
+          windowsHide: true,
+        }
+      )
+
+
+      const optimizedBuffer =
+        await fs.readFile(outputPath)
+
+
+      return optimizedBuffer
+    } finally {
+      await fs.rm(
+        sourcePath,
+        {
+          force: true,
+        }
+      )
+    }
+  }
+
+
+const sendImageResponse =
+  async (
+    req,
+    res,
+    {
+      imageBlob,
+      imageMime,
+      imageName,
+      cacheKey,
+      fallbackName,
+    }
+  ) => {
+    let responseBuffer =
+      imageBlob
+
+
+    let responseMime =
+      imageMime ||
+      'application/octet-stream'
+
+
+    let responseName =
+      imageName ||
+      fallbackName
+
+
+    const requestedWidth =
+      Number(req.query.w)
+
+
+    const optimizedWidth =
+      Number.isFinite(requestedWidth)
+        ? Math.round(requestedWidth)
+        : defaultOptimizedImageWidth
+
+
+    if (
+      isOptimizableImage(responseMime)
+    ) {
+      try {
+        const optimizedBuffer =
+          await optimizeImageBuffer(
+            imageBlob,
+            cacheKey,
+            optimizedWidth
+          )
+
+
+        if (
+          optimizedBuffer?.length &&
+          optimizedBuffer.length < imageBlob.length
+        ) {
+          responseBuffer =
+            optimizedBuffer
+
+
+          responseMime =
+            'image/jpeg'
+
+
+          responseName =
+            responseName
+              ? responseName.replace(
+                /\.[^.]+$/,
+                '.jpg'
+              )
+              : `${fallbackName}.jpg`
+        }
+      } catch (error) {
+        console.warn(
+          'Image optimization failed; serving original image:',
+          error.message
+        )
+      }
+    }
+
+
+    res.set({
+      'Content-Type':
+        responseMime,
+
+      'Content-Length':
+        responseBuffer.length,
+
+      'Content-Disposition':
+        `inline; filename="${responseName || fallbackName}"`,
+
+      'Cache-Control':
+        'public, max-age=604800, immutable',
+    })
+
+
+    res.send(
+      responseBuffer
+    )
+  }
 
 
 const getCategoryImage =
@@ -53,7 +368,8 @@ const getCategoryImage =
           SELECT
             ${blobColumn} AS image_blob,
             ${mimeColumn} AS image_mime,
-            ${nameColumn} AS image_name
+            ${nameColumn} AS image_name,
+            updated_at
 
           FROM categories
 
@@ -85,24 +401,25 @@ const getCategoryImage =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          image.image_mime ||
-          'application/octet-stream',
+      await sendImageResponse(
+        req,
+        res,
+        {
+          imageBlob:
+            image.image_blob,
 
-        'Content-Length':
-          image.image_blob.length,
+          imageMime:
+            image.image_mime,
 
-        'Content-Disposition':
-          `inline; filename="${image.image_name || 'image'}"`,
+          imageName:
+            image.image_name,
 
-        'Cache-Control':
-          'public, max-age=86400',
-      })
+          cacheKey:
+            `category-${type}-${categoryId}-${new Date(image.updated_at).getTime()}`,
 
-
-      res.send(
-        image.image_blob
+          fallbackName:
+            `category-${type}-${categoryId}`,
+        }
       )
 
     } catch (error) {
@@ -171,7 +488,8 @@ export const getCategoryCollectionImage =
           SELECT
             p.image_blob,
             p.image_mime,
-            p.image_name
+            p.image_name,
+            p.updated_at
 
           FROM products p
 
@@ -208,24 +526,25 @@ export const getCategoryCollectionImage =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          image.image_mime ||
-          'application/octet-stream',
+      await sendImageResponse(
+        req,
+        res,
+        {
+          imageBlob:
+            image.image_blob,
 
-        'Content-Length':
-          image.image_blob.length,
+          imageMime:
+            image.image_mime,
 
-        'Content-Disposition':
-          `inline; filename="${image.image_name || 'product-image'}"`,
+          imageName:
+            image.image_name,
 
-        'Cache-Control':
-          'public, max-age=86400',
-      })
+          cacheKey:
+            `product-${productId}-${new Date(image.updated_at).getTime()}`,
 
-
-      res.send(
-        image.image_blob
+          fallbackName:
+            `product-${productId}`,
+        }
       )
 
     } catch (error) {

@@ -338,6 +338,8 @@ function RequestQuote() {
   <img
     src={whatsappIcon}
     alt="WhatsApp"
+    loading="lazy"
+    decoding="async"
   />
 </div>
 
@@ -379,6 +381,8 @@ function RequestQuote() {
   <img
     src={method.icon}
     alt={`${method.label} icon`}
+    loading="lazy"
+    decoding="async"
   />
 </div>
 

@@ -8,6 +8,8 @@ import {
 } from 'react-router-dom'
 
 import api from '../../services/api'
+import { withImageWidth } from '../../utils/imageUrl'
+import { ManufactureCardSkeletons } from '../common/LoadingSkeletons'
 
 const createCategoryPath = (category) => {
   const slug =
@@ -138,9 +140,7 @@ function ManufactureSection() {
 
 
       {loading && (
-        <p className="manufacture-status">
-          Loading collections...
-        </p>
+        <ManufactureCardSkeletons />
       )}
 
 
@@ -178,13 +178,16 @@ function ManufactureSection() {
                 */
 
                 const cardImage =
-                  category
-                    .collectionImage
-                    ?.url ||
-                  category
-                    .heroImage
-                    ?.url ||
-                  ''
+                  withImageWidth(
+                    category
+                      .collectionImage
+                      ?.url ||
+                    category
+                      .heroImage
+                      ?.url ||
+                    '',
+                    640
+                  )
 
 
                 /*
@@ -215,11 +218,26 @@ function ManufactureSection() {
                       category.slug
                     }
 
-                    style={{
-                      '--card-image':
-                        `url("${cardImage}")`,
-                    }}
                   >
+                    {cardImage && (
+                      <img
+                        className="manufacture-card-image"
+                        src={cardImage}
+                        alt=""
+                        aria-hidden="true"
+                        loading={
+                          index < 4
+                            ? 'eager'
+                            : 'lazy'
+                        }
+                        decoding="async"
+                        fetchPriority={
+                          index < 4
+                            ? 'high'
+                            : 'low'
+                        }
+                      />
+                    )}
 
                     <span className="card-number">
                       {String(

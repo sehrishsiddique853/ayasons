@@ -41,6 +41,9 @@ function ProductCollectionSection({
         <img
           src={image}
           alt={title}
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
 
         <div className="product-collection-image-overlay" />
