@@ -102,3 +102,73 @@ UNIQUE KEY uq_products_featured_order (
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS homepage_content (
+
+    id TINYINT UNSIGNED NOT NULL,
+
+    about_image_blob LONGBLOB NULL,
+
+    about_image_mime VARCHAR(100) NULL,
+
+    about_image_name VARCHAR(255) NULL,
+
+    manufacturing_stats_json JSON NOT NULL,
+
+    manufacturing_video_blob LONGBLOB NULL,
+
+    manufacturing_video_mime VARCHAR(100) NULL,
+
+    manufacturing_video_name VARCHAR(255) NULL,
+
+    department_stats_json JSON NOT NULL,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+        process_kicker VARCHAR(100)
+    NOT NULL DEFAULT 'Our Process',
+
+process_heading_line_1 VARCHAR(150)
+    NOT NULL DEFAULT 'From Design',
+
+process_heading_line_2 VARCHAR(150)
+    NOT NULL DEFAULT 'To Your Door.',
+
+process_intro TEXT NULL,
+
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS homepage_process_steps (
+
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    step_order TINYINT UNSIGNED NOT NULL,
+
+    step_number VARCHAR(10) NOT NULL,
+
+    title VARCHAR(150) NOT NULL,
+
+    description TEXT NOT NULL,
+
+    image_blob LONGBLOB NULL,
+
+    image_mime VARCHAR(100) NULL,
+
+    image_name VARCHAR(255) NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    UNIQUE KEY uq_homepage_process_order (
+        step_order
+    )
+);

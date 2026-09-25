@@ -97,7 +97,7 @@ function ProductCollectionSection({
 
         <a
           className="product-category-button"
-          href="#contact"
+          href="/#contact"
         >
           Enquire
 

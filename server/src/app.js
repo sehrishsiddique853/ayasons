@@ -12,6 +12,8 @@ import {
   notFound,
   errorHandler,
 } from './middleware/errorMiddleware.js'
+import homepageContentRoutes
+  from './routes/homepageContentRoutes.js'
 
 
 const app = express()
@@ -234,6 +236,11 @@ app.use(
 app.use(
   '/api/admin',
   adminRoutes
+)
+
+app.use(
+  '/api/home-content',
+  homepageContentRoutes
 )
 
 /*

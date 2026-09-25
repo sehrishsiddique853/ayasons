@@ -491,3 +491,53 @@
     font-size: 50px;
   }
 }
+
+.manufacturing-visual img,
+.manufacturing-visual video {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+
+.manufacturing-visual img {
+  transition:
+    transform 600ms ease;
+}
+
+
+.manufacturing-video {
+  position: absolute;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  background: #080808;
+}
+
+.manufacturing-image-overlay {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.08) 20%,
+      rgba(0, 0, 0, 0.72) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(240, 212, 79, 0.12),
+      transparent 35%
+    );
+}

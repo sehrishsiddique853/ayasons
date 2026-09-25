@@ -36,8 +36,8 @@ export const errorHandler = (
       .json({
         success: false,
 
-        message:
-          'Image is too large. Maximum allowed size is 5 MB.',
+       message:
+  'Uploaded file is too large. Images must be 5 MB or smaller and homepage videos must be 50 MB or smaller.',
       })
   }
 

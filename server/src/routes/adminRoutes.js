@@ -28,9 +28,19 @@ import {
 } from '../controllers/adminHotSellingController.js'
 
 import {
+  uploadImage,
   uploadCategoryImages,
   uploadProductImage,
+  uploadHomepageMedia,
 } from '../middleware/uploadMiddleware.js'
+
+import {
+  getAdminHomepageContent,
+  updateAdminHomepageContent,
+  getAdminProcessContent,
+  updateAdminProcessContent,
+  updateAdminProcessImage,
+} from '../controllers/adminHomepageContentController.js'
 
 const router = express.Router()
 
@@ -80,6 +90,56 @@ router.get(
 router.put(
   '/hot-selling',
   updateAdminHotSelling
+)
+
+router.get(
+  '/home-content',
+  getAdminHomepageContent
+)
+
+
+router.put(
+  '/home-content',
+
+  uploadHomepageMedia.fields([
+    {
+      name:
+        'aboutImage',
+
+      maxCount: 1,
+    },
+
+    {
+      name:
+        'manufacturingVideo',
+
+      maxCount: 1,
+    },
+  ]),
+
+  updateAdminHomepageContent
+)
+
+router.get(
+  '/home-content/process',
+  getAdminProcessContent
+)
+
+
+router.put(
+  '/home-content/process',
+  updateAdminProcessContent
+)
+
+
+router.put(
+  '/home-content/process/:id/image',
+
+  uploadImage.single(
+    'image'
+  ),
+
+  updateAdminProcessImage
 )
 
 export default router

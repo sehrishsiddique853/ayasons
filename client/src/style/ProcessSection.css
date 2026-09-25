@@ -1,6 +1,6 @@
 .process-section {
-  --process-card-size: clamp(225px, 17vw, 255px);
-  --process-gap: 16px;
+  --process-card-size: clamp(290px, 22vw, 340px);
+  --process-gap: 22px;
 
   position: relative;
   overflow: hidden;
@@ -26,8 +26,10 @@
 
 .process-section::before {
   content: '';
+
   position: absolute;
   inset: 0;
+
   pointer-events: none;
 
   background-image: repeating-linear-gradient(
@@ -42,10 +44,13 @@
 .process-inner {
   position: relative;
   z-index: 1;
+
   width: 100%;
   max-width: 1360px;
+
   margin: 0 auto;
 }
+
 
 /* ========================= */
 /* HEADER                    */
@@ -53,50 +58,69 @@
 
 .process-header {
   max-width: 760px;
+
   margin: 0 auto;
+
   padding: 0 clamp(18px, 4vw, 48px);
+
   text-align: center;
 }
 
 .process-kicker {
   display: inline-flex;
+
   align-items: center;
+
   gap: 8px;
 
   margin: 0 0 16px;
+
   padding: 7px 12px;
 
   border: 1px solid rgba(240, 212, 79, 0.3);
   border-radius: 999px;
 
   background: rgba(240, 212, 79, 0.06);
+
   color: var(--brand-yellow);
 
   font-family: var(--font-display);
+
   font-size: 10px;
+
   font-weight: 900;
+
   letter-spacing: 0.24em;
+
   text-transform: uppercase;
 }
 
 .process-kicker::before {
   content: '';
+
   width: 6px;
   height: 6px;
+
   border-radius: 50%;
+
   background: var(--brand-yellow);
 }
 
 .process-header h2 {
   display: grid;
+
   gap: 0;
 
   margin: 0;
 
   font-family: var(--font-display);
+
   font-size: clamp(42px, 4.6vw, 62px);
+
   font-weight: 900;
+
   line-height: 0.9;
+
   text-transform: uppercase;
 }
 
@@ -113,19 +137,25 @@
     #f7e36a 72%,
     #b8860b 100%
   );
+
   background-clip: text;
   -webkit-background-clip: text;
+
   color: transparent;
 }
 
 .process-intro {
   max-width: 620px;
+
   margin: 18px auto 0;
 
   color: rgba(255, 255, 255, 0.56);
+
   font-size: 14px;
+
   line-height: 1.62;
 }
+
 
 /* ========================= */
 /* SCROLL AREA               */
@@ -143,6 +173,7 @@
     8px;
 
   scroll-behavior: smooth;
+
   scrollbar-width: none;
 }
 
@@ -154,14 +185,18 @@
   width: max-content;
 }
 
+
 /* ========================= */
 /* CARD TRACK                */
 /* ========================= */
 
 .process-track {
   display: flex;
+
   align-items: flex-start;
+
   gap: var(--process-gap);
+
   width: max-content;
 }
 
@@ -170,11 +205,12 @@
 
   width: var(--process-card-size);
 
-  aspect-ratio: 1 / 1;
+  min-height: 390px;
 
   overflow: hidden;
 
   border: 1px solid rgba(255, 255, 255, 0.1);
+
   border-radius: 14px;
 
   background:
@@ -199,10 +235,13 @@
 
 .process-card:hover {
   transform: translateY(-4px);
+
   border-color: rgba(240, 212, 79, 0.36);
+
   box-shadow:
     0 18px 42px rgba(0, 0, 0, 0.28);
 }
+
 
 /* ========================= */
 /* IMAGE                     */
@@ -211,7 +250,7 @@
 .process-card-image {
   position: relative;
 
-  height: 88px;
+  height: 175px;
 
   overflow: hidden;
 
@@ -221,9 +260,15 @@
 .process-card-image img {
   width: 100%;
   height: 100%;
+
   display: block;
+
   object-fit: cover;
-  transition: transform 400ms ease;
+
+  object-position: center 35%;
+
+  transition:
+    transform 400ms ease;
 }
 
 .process-card:hover .process-card-image img {
@@ -232,6 +277,7 @@
 
 .process-image-overlay {
   position: absolute;
+
   inset: 0;
 
   background:
@@ -249,27 +295,36 @@
 
 .process-card-number {
   position: absolute;
+
   top: 12px;
   right: 12px;
 
   display: grid;
+
   place-items: center;
 
   min-width: 34px;
   height: 26px;
+
   padding: 0 8px;
 
   border: 1px solid rgba(240, 212, 79, 0.34);
+
   border-radius: 999px;
 
   background: rgba(8, 8, 8, 0.74);
+
   color: var(--brand-yellow);
 
   font-family: var(--font-display);
+
   font-size: 10px;
+
   font-weight: 900;
+
   letter-spacing: 0.08em;
 }
+
 
 /* ========================= */
 /* CONTENT                   */
@@ -277,30 +332,40 @@
 
 .process-card-content {
   display: flex;
+
   flex-direction: column;
+
   justify-content: flex-start;
 
-  height: calc(100% - 104px);
-  padding: 16px 16px 18px;
+  min-height: 210px;
+
+  padding: 24px 22px 24px;
 }
 
 .process-card-content h3 {
   max-width: 14ch;
+
   margin: 0;
 
   color: #fff;
 
   font-family: var(--font-display);
-  font-size: clamp(19px, 1.5vw, 23px);
+
+  font-size: clamp(23px, 1.8vw, 30px);
+
   font-weight: 900;
+
   line-height: 0.98;
+
   text-transform: uppercase;
 }
 
 .process-card-rule {
   display: block;
+
   width: 40px;
   height: 2px;
+
   margin: 14px 0;
 
   background: linear-gradient(
@@ -314,10 +379,13 @@
 .process-card-content p {
   margin: 0;
 
-  color: rgba(255, 255, 255, 0.54);
-  font-size: 12px;
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.58);
+
+  font-size: 14px;
+
+  line-height: 1.6;
 }
+
 
 /* ========================= */
 /* ROAD TRACK                */
@@ -325,7 +393,9 @@
 
 .process-road-track {
   display: flex;
+
   gap: var(--process-gap);
+
   width: max-content;
 
   margin-top: 18px;
@@ -333,18 +403,27 @@
 
 .process-road-item {
   position: relative;
+
   flex: 0 0 var(--process-card-size);
+
   width: var(--process-card-size);
+
   display: flex;
+
   justify-content: center;
 }
 
 .process-road-item::before {
   content: '';
+
   position: absolute;
+
   top: 18px;
+
   left: calc(50% + 22px);
+
   width: calc(100% + var(--process-gap) - 44px);
+
   height: 2px;
 
   background: repeating-linear-gradient(
@@ -365,12 +444,15 @@
   height: 36px;
 
   display: grid;
+
   place-items: center;
 
   border: 2px solid #050505;
+
   border-radius: 50%;
 
   background: var(--brand-yellow);
+
   color: #060606;
 
   box-shadow:
@@ -379,9 +461,12 @@
 
 .process-road-step span {
   font-family: var(--font-display);
+
   font-size: 11px;
+
   font-weight: 900;
 }
+
 
 /* ========================= */
 /* HINT                      */
@@ -393,12 +478,18 @@
   color: rgba(255, 255, 255, 0.3);
 
   font-family: var(--font-display);
+
   font-size: 9px;
+
   font-weight: 900;
+
   letter-spacing: 0.22em;
+
   text-align: center;
+
   text-transform: uppercase;
 }
+
 
 /* ========================= */
 /* RESPONSIVE                */
@@ -406,7 +497,11 @@
 
 @media (max-width: 960px) {
   .process-section {
-    --process-card-size: 220px;
+    --process-card-size: 275px;
+  }
+
+  .process-card-image {
+    height: 155px;
   }
 
   .process-header h2 {
@@ -416,8 +511,9 @@
 
 @media (max-width: 680px) {
   .process-section {
-    --process-card-size: 210px;
+    --process-card-size: 250px;
     --process-gap: 14px;
+
     padding: 56px 0;
   }
 
@@ -441,29 +537,33 @@
 
 @media (max-width: 520px) {
   .process-section {
-    --process-card-size: 196px;
+    --process-card-size: 235px;
   }
 
   .process-kicker {
     font-size: 9px;
+
     letter-spacing: 0.2em;
   }
 
   .process-card-image {
-    height: 96px;
+    height: 145px;
   }
 
   .process-card-content {
-    height: calc(100% - 96px);
-    padding: 14px;
+    min-height: 210px;
+
+    padding: 18px;
   }
 
   .process-card-content h3 {
-    font-size: 18px;
+    font-size: 21px;
   }
 
   .process-card-content p {
-    font-size: 11px;
+    font-size: 12px;
+
+    line-height: 1.55;
   }
 
   .process-road-step {

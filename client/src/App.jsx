@@ -1,11 +1,13 @@
 import {
   useEffect,
+  useRef,
 } from 'react'
 
 import {
   Routes,
   Route,
   useLocation,
+  useNavigationType,
 } from 'react-router-dom'
 
 import Navbar from './components/layout/Navbar'
@@ -23,44 +25,111 @@ import './style/ManufacturingExcellence.css'
 import './style/Footer.css'
 
 
-function ScrollToHash() {
-  const {
-    hash,
-    pathname,
-  } = useLocation()
-
+function ScrollManager() {
+  const location = useLocation()
+  const navigationType = useNavigationType()
+  const scrollPositions = useRef(new Map())
 
   useEffect(() => {
+    if (
+      'scrollRestoration' in
+      window.history
+    ) {
+      const previousValue =
+        window.history.scrollRestoration
 
-    if (!hash) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      })
+      window.history.scrollRestoration =
+        'manual'
 
-      return
+      return () => {
+        window.history.scrollRestoration =
+          previousValue
+      }
     }
 
+    return undefined
+  }, [])
 
-    window.requestAnimationFrame(
-      () => {
-        const section =
-          document.querySelector(
-            hash
-          )
+  useEffect(() => {
+    return () => {
+      scrollPositions.current.set(
+        location.key,
+        {
+          x:
+            window.scrollX,
 
+          y:
+            window.scrollY,
+        }
+      )
+    }
+  }, [
+    location.key,
+  ])
 
-        if (section) {
-          section.scrollIntoView({
-            behavior: 'smooth',
+  useEffect(() => {
+    const scrollFrame =
+      window.requestAnimationFrame(
+        () => {
+          if (location.hash) {
+            const section =
+              document.querySelector(
+                location.hash
+              )
+
+            if (section) {
+              section.scrollIntoView({
+                behavior:
+                  'smooth',
+              })
+            }
+
+            return
+          }
+
+          if (
+            navigationType ===
+            'POP'
+          ) {
+            const position =
+              scrollPositions
+                .current
+                .get(location.key)
+
+            window.scrollTo({
+              left:
+                position?.x || 0,
+
+              top:
+                position?.y || 0,
+
+              behavior:
+                'auto',
+            })
+
+            return
+          }
+
+          window.scrollTo({
+            left: 0,
+
+            top: 0,
+
+            behavior:
+              'auto',
           })
         }
-      }
-    )
+      )
 
+    return () => {
+      window.cancelAnimationFrame(
+        scrollFrame
+      )
+    }
   }, [
-    hash,
-    pathname,
+    location.key,
+    location.hash,
+    navigationType,
   ])
 
 
@@ -72,7 +141,7 @@ function App() {
   return (
     <div className="site-shell">
 
-      <ScrollToHash />
+      <ScrollManager />
 
 
       <Navbar />

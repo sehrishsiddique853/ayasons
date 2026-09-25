@@ -136,3 +136,64 @@ export const uploadProductImage =
       files: 1,
     },
   })
+
+  const homepageAllowedTypes =
+  new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'video/mp4',
+    'video/webm',
+  ])
+
+
+const homepageFileFilter = (
+  req,
+  file,
+  callback
+) => {
+
+  if (
+    homepageAllowedTypes.has(
+      file.mimetype
+    )
+  ) {
+    callback(
+      null,
+      true
+    )
+
+    return
+  }
+
+
+  const error =
+    new Error(
+      'Only JPG, PNG, WEBP, MP4 and WEBM files are allowed.'
+    )
+
+
+  error.statusCode = 415
+
+
+  callback(
+    error,
+    false
+  )
+}
+
+
+export const uploadHomepageMedia =
+  multer({
+    storage,
+
+    fileFilter:
+      homepageFileFilter,
+
+    limits: {
+      fileSize:
+        50 * 1024 * 1024,
+
+      files: 2,
+    },
+  })

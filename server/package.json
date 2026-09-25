@@ -14,7 +14,9 @@
     "mysql:migrate-category-images": "node src/scripts/migrateCategoryImagesToMysql.js",
     "test:dynamic-category": "node src/seed/testDynamicCategory.js create",
     "test:dynamic-category:cleanup": "node src/seed/testDynamicCategory.js remove",
-    "mysql:add-featured-order": "node src/scripts/addFeaturedOrder.js"
+    "mysql:add-featured-order": "node src/scripts/addFeaturedOrder.js",
+    "mysql:add-homepage-content": "node src/scripts/addHomepageContent.js",
+    "mysql:add-process-content": "node src/scripts/addProcessContent.js"
   },
   "keywords": [],
   "author": "",

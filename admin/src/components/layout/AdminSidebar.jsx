@@ -7,6 +7,8 @@ import {
   Layers3,
   Package,
   Flame,
+  Home,
+  Workflow,
   Settings,
   X,
 } from 'lucide-react'
@@ -38,12 +40,23 @@ const navigation = [
   },
 
   {
+    label: 'Home Content',
+    path: '/home-content',
+    icon: Home,
+  },
+
+  {
+  label: 'Our Process',
+  path: '/our-process',
+  icon: Workflow,
+},
+
+  {
     label: 'Settings',
     path: '/settings',
     icon: Settings,
   },
 ]
-
 
 function AdminSidebar({
   open,

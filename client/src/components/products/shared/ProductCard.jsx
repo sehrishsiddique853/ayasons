@@ -1,4 +1,5 @@
 import '../../../style/products/ProductCard.css'
+
 function ProductCard({
   title,
   description,
@@ -43,7 +44,7 @@ function ProductCard({
 
         <a
           className="category-product-button"
-          href="#contact"
+          href="/#contact"
         >
           Request A Quote
 

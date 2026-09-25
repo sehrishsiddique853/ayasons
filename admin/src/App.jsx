@@ -15,8 +15,11 @@ import AddProduct from './pages/AddProduct'
 import EditProduct from './pages/EditProduct'
 import HotSelling from './pages/HotSelling'
 import Settings from './pages/Settings'
+import HomeContent from './pages/HomeContent'
 
 import './styles/admin.css'
+
+import OurProcess from './pages/OurProcess'
 
 
 function App() {
@@ -67,6 +70,16 @@ function App() {
             path="/hot-selling"
             element={<HotSelling />}
           />
+
+          <Route
+  path="/home-content"
+  element={<HomeContent />}
+/>
+
+<Route
+  path="/our-process"
+  element={<OurProcess />}
+/>
 
           <Route
             path="/settings"
