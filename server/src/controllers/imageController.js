@@ -57,18 +57,11 @@ const sendImageResponse = (
         fallbackName
       }"`,
 
-    /*
-    |--------------------------------------------------------------------------
-    | Browser Cache
-    |--------------------------------------------------------------------------
-    |
-    | Keep this reasonably short for now because
-    | the image URL stays the same when admin
-    | replaces an image.
-    */
+   'Cache-Control':
+  'public, max-age=604800, immutable',
 
     'Cache-Control':
-      'public, max-age=3600',
+  'public, max-age=604800, immutable',
   })
 
 

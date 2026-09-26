@@ -638,7 +638,7 @@ export const getHomepageProcessImage =
           `inline; filename="${image.image_name || 'process-image'}"`,
 
         'Cache-Control':
-          'public, max-age=3600',
+  'public, max-age=604800, immutable',
       })
 
 
