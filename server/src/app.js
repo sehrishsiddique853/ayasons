@@ -31,6 +31,21 @@ import adminStandardRoutes
 
 const app = express()
 
+/*
+|--------------------------------------------------------------------------
+| Trust Proxy
+|--------------------------------------------------------------------------
+|
+| Required when the API is accessed through a reverse proxy /
+| VS Code forwarded port so Express can correctly resolve req.ip.
+|
+*/
+
+app.set(
+  'trust proxy',
+  1
+)
+
 
 /*
 |--------------------------------------------------------------------------

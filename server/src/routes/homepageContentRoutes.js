@@ -1,7 +1,4 @@
 import express from 'express'
-import {
-  publicJsonCache,
-} from '../middleware/publicCache.js'
 
 import {
   getHomepageContent,
@@ -16,7 +13,6 @@ const router =
 
 router.get(
   '/',
-  publicJsonCache(),
   getHomepageContent
 )
 

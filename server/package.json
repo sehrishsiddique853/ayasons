@@ -20,7 +20,6 @@
     "mysql:add-department-cards": "node src/scripts/addDepartmentCards.js",
     "mysql:add-standards": "node src/scripts/addStandards.js",
     "mysql:add-contact-settings": "node src/scripts/addContactSettings.js",
-    "mysql:add-performance-indexes": "node src/scripts/addPerformanceIndexes.js",
     "images:warm-cache": "node src/scripts/warmImageCache.js"
   },
   "keywords": [],
@@ -35,7 +34,8 @@
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
     "mysql2": "^3.24.4",
-    "resend": "^6.29.0"
+    "resend": "^6.29.0",
+    "sharp": "^0.35.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

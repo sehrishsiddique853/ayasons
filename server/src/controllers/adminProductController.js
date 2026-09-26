@@ -1,5 +1,10 @@
 import pool from '../config/mysql.js'
 
+import {
+  optimizeImage,
+  IMAGE_PRESETS,
+} from '../utils/imageOptimizer.js'
+
 const getBaseUrl = (req) => {
   const configured = process.env.SERVER_URL?.trim()?.replace(/\/+$/, '')
   return configured || `${req.protocol}://${req.get('host')}`
@@ -356,15 +361,62 @@ export const createAdminProduct = async (req, res, next) => {
     }
 
     if (!req.file) {
-      res.status(400)
-      throw new Error('Product image is required.')
-    }
+  res.status(400)
+  throw new Error(
+    'Product image is required.'
+  )
+}
 
-    const normalizedSlug = normalizeSlug(slug)
-    const parsedFeatures = parseArray(features, 'Features')
-    const displayOrder = Number.isFinite(Number(order)) ? Number(order) : 0
 
-    connection = await pool.getConnection()
+/*
+|--------------------------------------------------------------------------
+| Optimize Product Image Before MySQL
+|--------------------------------------------------------------------------
+*/
+
+const optimizedImage =
+  await optimizeImage(
+    req.file,
+    IMAGE_PRESETS.product
+  )
+
+
+console.log(
+  `Product image optimized: ${
+    (
+      optimizedImage.originalSize /
+      1024
+    ).toFixed(2)
+  } KB → ${
+    (
+      optimizedImage.optimizedSize /
+      1024
+    ).toFixed(2)
+  } KB`
+)
+
+
+const normalizedSlug =
+  normalizeSlug(slug)
+
+
+const parsedFeatures =
+  parseArray(
+    features,
+    'Features'
+  )
+
+
+const displayOrder =
+  Number.isFinite(
+    Number(order)
+  )
+    ? Number(order)
+    : 0
+
+
+connection =
+  await pool.getConnection()
     await connection.beginTransaction()
 
     const [result] = await connection.execute(
@@ -393,9 +445,9 @@ export const createAdminProduct = async (req, res, next) => {
         normalizedSlug,
         group.trim(),
         description.trim(),
-        req.file.buffer,
-        req.file.mimetype,
-        req.file.originalname,
+        optimizedImage.buffer,
+optimizedImage.mimeType,
+optimizedImage.fileName,
         JSON.stringify(parsedFeatures),
         parseBoolean(featured) ? 1 : 0,
         parseBoolean(active) ? 1 : 0,
@@ -479,11 +531,65 @@ export const updateAdminProduct = async (req, res, next) => {
       throw new Error('Valid product ID, category, name, slug and description are required.')
     }
 
-    const normalizedSlug = normalizeSlug(slug)
-    const parsedFeatures = parseArray(features, 'Features')
-    const displayOrder = Number.isFinite(Number(order)) ? Number(order) : 0
+    const normalizedSlug =
+  normalizeSlug(slug)
 
-    const fields = [
+
+const parsedFeatures =
+  parseArray(
+    features,
+    'Features'
+  )
+
+
+const displayOrder =
+  Number.isFinite(
+    Number(order)
+  )
+    ? Number(order)
+    : 0
+
+
+/*
+|--------------------------------------------------------------------------
+| Optimize New Product Image
+|--------------------------------------------------------------------------
+|
+| Only runs if admin selected
+| a replacement image.
+|
+*/
+
+let optimizedImage = null
+
+
+if (req.file) {
+
+  optimizedImage =
+    await optimizeImage(
+      req.file,
+      IMAGE_PRESETS.product
+    )
+
+
+  console.log(
+    `Product image optimized: ${
+      (
+        optimizedImage.originalSize /
+        1024
+      ).toFixed(2)
+    } KB → ${
+      (
+        optimizedImage.optimizedSize /
+        1024
+      ).toFixed(2)
+    } KB`
+  )
+
+}
+
+
+const fields = [
       'category_id = ?',
       'name = ?',
       'slug = ?',
@@ -507,10 +613,22 @@ export const updateAdminProduct = async (req, res, next) => {
       displayOrder,
     ]
 
-    if (req.file) {
-      fields.push('image_blob = ?', 'image_mime = ?', 'image_name = ?')
-      params.push(req.file.buffer, req.file.mimetype, req.file.originalname)
-    }
+    if (optimizedImage) {
+
+  fields.push(
+    'image_blob = ?',
+    'image_mime = ?',
+    'image_name = ?'
+  )
+
+
+  params.push(
+    optimizedImage.buffer,
+    optimizedImage.mimeType,
+    optimizedImage.fileName
+  )
+
+}
 
     params.push(id)
 

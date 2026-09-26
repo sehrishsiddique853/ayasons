@@ -211,8 +211,6 @@ export const findActiveProducts =
       sql += `
         ORDER BY
           p.featured_order ASC
-
-        LIMIT 8
       `
     } else {
       sql += `
