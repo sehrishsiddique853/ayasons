@@ -1,15 +1,16 @@
 import pool from '../config/mysql.js'
 
+import {
+  optimizeImage,
+  IMAGE_PRESETS,
+} from '../utils/imageOptimizer.js'
 
-const getBaseUrl = (
-  req
-) => {
 
+const getBaseUrl = (req) => {
   const configured =
     process.env.SERVER_URL
       ?.trim()
       ?.replace(/\/+$/, '')
-
 
   return (
     configured ||
@@ -18,11 +19,11 @@ const getBaseUrl = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET All Departments For Admin
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | GET All Departments For Admin
+ * |--------------------------------------------------------------------------
+ */
 
 export const getAdminDepartments =
   async (
@@ -30,9 +31,7 @@ export const getAdminDepartments =
     res,
     next
   ) => {
-
     try {
-
       const [rows] =
         await pool.execute(`
           SELECT
@@ -53,10 +52,8 @@ export const getAdminDepartments =
             department_order ASC
         `)
 
-
       const baseUrl =
         getBaseUrl(req)
-
 
       const departments =
         rows.map(
@@ -94,7 +91,6 @@ export const getAdminDepartments =
           })
         )
 
-
       res.status(200).json({
         success: true,
 
@@ -103,18 +99,17 @@ export const getAdminDepartments =
 
         departments,
       })
-
     } catch (error) {
       next(error)
     }
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| PUT Department Details
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | PUT Department Details
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminDepartment =
   async (
@@ -122,28 +117,22 @@ export const updateAdminDepartment =
     res,
     next
   ) => {
-
     try {
-
       const id =
         Number(
           req.params.id
         )
 
-
       if (
         !Number.isInteger(id) ||
         id <= 0
       ) {
-
         res.status(400)
 
         throw new Error(
           'Invalid department ID.'
         )
-
       }
-
 
       const {
         number,
@@ -151,21 +140,17 @@ export const updateAdminDepartment =
         description,
       } = req.body
 
-
       if (
         !number?.trim() ||
         !title?.trim() ||
         !description?.trim()
       ) {
-
         res.status(400)
 
         throw new Error(
           'Department number, title and description are required.'
         )
-
       }
-
 
       const [result] =
         await pool.execute(
@@ -187,19 +172,15 @@ export const updateAdminDepartment =
           ]
         )
 
-
       if (
         result.affectedRows === 0
       ) {
-
         res.status(404)
 
         throw new Error(
           'Department not found.'
         )
-
       }
-
 
       res.status(200).json({
         success: true,
@@ -207,18 +188,17 @@ export const updateAdminDepartment =
         message:
           'Department updated successfully.',
       })
-
     } catch (error) {
       next(error)
     }
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| PUT Department Image
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | PUT Department Image
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminDepartmentImage =
   async (
@@ -226,39 +206,65 @@ export const updateAdminDepartmentImage =
     res,
     next
   ) => {
-
     try {
-
       const id =
         Number(
           req.params.id
         )
 
-
       if (
         !Number.isInteger(id) ||
         id <= 0
       ) {
-
         res.status(400)
 
         throw new Error(
           'Invalid department ID.'
         )
-
       }
 
-
       if (!req.file) {
-
         res.status(400)
 
         throw new Error(
           'Department image is required.'
         )
-
       }
 
+
+      /*
+      |--------------------------------------------------------------------------
+      | Optimize Department Image
+      |--------------------------------------------------------------------------
+      */
+
+      const optimizedImage =
+        await optimizeImage(
+          req.file,
+          IMAGE_PRESETS.department
+        )
+
+
+      console.log(
+        `Department image optimized: ${
+          (
+            optimizedImage.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            optimizedImage.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
+      )
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Store Optimized Image In MySQL
+      |--------------------------------------------------------------------------
+      */
 
       const [result] =
         await pool.execute(
@@ -273,9 +279,9 @@ export const updateAdminDepartmentImage =
           WHERE id = ?
           `,
           [
-            req.file.buffer,
-            req.file.mimetype,
-            req.file.originalname,
+            optimizedImage.buffer,
+            optimizedImage.mimeType,
+            optimizedImage.fileName,
             id,
           ]
         )
@@ -284,13 +290,11 @@ export const updateAdminDepartmentImage =
       if (
         result.affectedRows === 0
       ) {
-
         res.status(404)
 
         throw new Error(
           'Department not found.'
         )
-
       }
 
 
@@ -304,13 +308,12 @@ export const updateAdminDepartmentImage =
           available: true,
 
           name:
-            req.file.originalname,
+            optimizedImage.fileName,
 
           url:
             `${getBaseUrl(req)}/api/departments/${id}/image`,
         },
       })
-
     } catch (error) {
       next(error)
     }
