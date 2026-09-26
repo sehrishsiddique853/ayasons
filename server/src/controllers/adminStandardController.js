@@ -1,15 +1,16 @@
 import pool from '../config/mysql.js'
 
+import {
+  optimizeImage,
+  IMAGE_PRESETS,
+} from '../utils/imageOptimizer.js'
 
-const getBaseUrl = (
-  req
-) => {
 
+const getBaseUrl = (req) => {
   const configured =
     process.env.SERVER_URL
       ?.trim()
       ?.replace(/\/+$/, '')
-
 
   return (
     configured ||
@@ -18,11 +19,11 @@ const getBaseUrl = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Admin Standards
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | GET Admin Standards
+ * |--------------------------------------------------------------------------
+ */
 
 export const getAdminStandards =
   async (
@@ -162,11 +163,11 @@ export const getAdminStandards =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE Section Heading
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | UPDATE Section Heading
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminStandardsContent =
   async (
@@ -200,14 +201,14 @@ export const updateAdminStandardsContent =
 
       await pool.execute(
         `
-        UPDATE homepage_standards_content
+          UPDATE homepage_standards_content
 
-        SET
-          kicker = ?,
-          heading = ?,
-          footer_text = ?
+          SET
+            kicker = ?,
+            heading = ?,
+            footer_text = ?
 
-        WHERE id = 1
+          WHERE id = 1
         `,
         [
           kicker.trim(),
@@ -231,11 +232,11 @@ export const updateAdminStandardsContent =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| CREATE Card
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | CREATE Card
+ * |--------------------------------------------------------------------------
+ */
 
 export const createAdminStandard =
   async (
@@ -288,13 +289,13 @@ export const createAdminStandard =
       const [result] =
         await pool.execute(
           `
-          INSERT INTO homepage_standards (
-            display_order,
-            title,
-            description
-          )
+            INSERT INTO homepage_standards (
+              display_order,
+              title,
+              description
+            )
 
-          VALUES (?, ?, ?)
+            VALUES (?, ?, ?)
           `,
           [
             nextOrder,
@@ -344,11 +345,11 @@ export const createAdminStandard =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE Card
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | UPDATE Card
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminStandard =
   async (
@@ -402,13 +403,13 @@ export const updateAdminStandard =
       const [result] =
         await pool.execute(
           `
-          UPDATE homepage_standards
+            UPDATE homepage_standards
 
-          SET
-            title = ?,
-            description = ?
+            SET
+              title = ?,
+              description = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
             title.trim(),
@@ -444,11 +445,11 @@ export const updateAdminStandard =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE Logo
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | UPDATE Logo
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminStandardLogo =
   async (
@@ -490,22 +491,50 @@ export const updateAdminStandardLogo =
       }
 
 
+      /*
+      |--------------------------------------------------------------------------
+      | Optimize Certification Logo
+      |--------------------------------------------------------------------------
+      */
+
+      const optimizedLogo =
+        await optimizeImage(
+          req.file,
+          IMAGE_PRESETS.certificationLogo
+        )
+
+
+      console.log(
+        `Certification logo optimized: ${
+          (
+            optimizedLogo.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            optimizedLogo.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
+      )
+
+
       const [result] =
         await pool.execute(
           `
-          UPDATE homepage_standards
+            UPDATE homepage_standards
 
-          SET
-            logo_image_blob = ?,
-            logo_image_mime = ?,
-            logo_image_name = ?
+            SET
+              logo_image_blob = ?,
+              logo_image_mime = ?,
+              logo_image_name = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
-            req.file.buffer,
-            req.file.mimetype,
-            req.file.originalname,
+            optimizedLogo.buffer,
+            optimizedLogo.mimeType,
+            optimizedLogo.fileName,
             id,
           ]
         )
@@ -534,7 +563,7 @@ export const updateAdminStandardLogo =
           available: true,
 
           name:
-            req.file.originalname,
+            optimizedLogo.fileName,
 
           url:
             `${getBaseUrl(req)}/api/standards/${id}/logo`,
@@ -547,11 +576,11 @@ export const updateAdminStandardLogo =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| UPDATE Certificate File
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | UPDATE Certificate File
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminStandardCertificate =
   async (
@@ -593,22 +622,87 @@ export const updateAdminStandardCertificate =
       }
 
 
+      /*
+      |--------------------------------------------------------------------------
+      | Prepare Certificate File
+      |--------------------------------------------------------------------------
+      |
+      | PDFs stay untouched.
+      |
+      | Image certificates are optimized
+      | and converted to WebP.
+      |
+      */
+
+      let certificateFile = {
+        buffer:
+          req.file.buffer,
+
+        mimeType:
+          req.file.mimetype,
+
+        fileName:
+          req.file.originalname,
+      }
+
+
+      if (
+        req.file.mimetype !==
+        'application/pdf'
+      ) {
+
+        const optimizedCertificate =
+          await optimizeImage(
+            req.file,
+            IMAGE_PRESETS.certificateImage
+          )
+
+
+        certificateFile = {
+          buffer:
+            optimizedCertificate.buffer,
+
+          mimeType:
+            optimizedCertificate.mimeType,
+
+          fileName:
+            optimizedCertificate.fileName,
+        }
+
+
+        console.log(
+          `Certificate image optimized: ${
+            (
+              optimizedCertificate.originalSize /
+              1024
+            ).toFixed(2)
+          } KB → ${
+            (
+              optimizedCertificate.optimizedSize /
+              1024
+            ).toFixed(2)
+          } KB`
+        )
+
+      }
+
+
       const [result] =
         await pool.execute(
           `
-          UPDATE homepage_standards
+            UPDATE homepage_standards
 
-          SET
-            certificate_blob = ?,
-            certificate_mime = ?,
-            certificate_name = ?
+            SET
+              certificate_blob = ?,
+              certificate_mime = ?,
+              certificate_name = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
-            req.file.buffer,
-            req.file.mimetype,
-            req.file.originalname,
+            certificateFile.buffer,
+            certificateFile.mimeType,
+            certificateFile.fileName,
             id,
           ]
         )
@@ -637,10 +731,10 @@ export const updateAdminStandardCertificate =
           available: true,
 
           name:
-            req.file.originalname,
+            certificateFile.fileName,
 
           mime:
-            req.file.mimetype,
+            certificateFile.mimeType,
 
           url:
             `${getBaseUrl(req)}/api/standards/${id}/certificate`,
@@ -653,11 +747,11 @@ export const updateAdminStandardCertificate =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| DELETE Card
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | DELETE Card
+ * |--------------------------------------------------------------------------
+ */
 
 export const deleteAdminStandard =
   async (
@@ -702,9 +796,9 @@ export const deleteAdminStandard =
       const [result] =
         await connection.execute(
           `
-          DELETE FROM homepage_standards
+            DELETE FROM homepage_standards
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
             id,
@@ -740,17 +834,17 @@ export const deleteAdminStandard =
       for (
         let index = 0;
         index <
-        remaining.length;
+          remaining.length;
         index += 1
       ) {
 
         await connection.execute(
           `
-          UPDATE homepage_standards
+            UPDATE homepage_standards
 
-          SET display_order = ?
+            SET display_order = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
             index + 1,
