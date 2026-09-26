@@ -8,11 +8,31 @@ const getBaseUrl = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Department Cards
-|--------------------------------------------------------------------------
-*/
+const getMediaVersion = (
+  value
+) => {
+
+  const timestamp =
+    value
+      ? new Date(
+          value
+        ).getTime()
+      : NaN
+
+
+  return Number.isFinite(
+    timestamp
+  )
+    ? timestamp
+    : 1
+}
+
+
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Department Cards
+ *|--------------------------------------------------------------------------
+ */
 
 export const getDepartments =
   async (
@@ -31,6 +51,7 @@ export const getDepartments =
             department_number,
             title,
             description,
+            updated_at,
 
             image_blob IS NOT NULL
               AS has_image
@@ -72,7 +93,9 @@ export const getDepartments =
 
               url:
                 row.has_image
-                  ? `${baseUrl}/api/departments/${row.id}/image`
+                  ? `${baseUrl}/api/departments/${row.id}/image?v=${getMediaVersion(
+                      row.updated_at
+                    )}`
                   : null,
             },
           })
@@ -94,11 +117,11 @@ export const getDepartments =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Department Image
-|--------------------------------------------------------------------------
-*/
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Department Image
+ *|--------------------------------------------------------------------------
+ */
 
 export const getDepartmentImage =
   async (

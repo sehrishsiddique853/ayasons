@@ -8,11 +8,31 @@ const getBaseUrl = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Standards Section
-|--------------------------------------------------------------------------
-*/
+const getMediaVersion = (
+  value
+) => {
+
+  const timestamp =
+    value
+      ? new Date(
+          value
+        ).getTime()
+      : NaN
+
+
+  return Number.isFinite(
+    timestamp
+  )
+    ? timestamp
+    : 1
+}
+
+
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Standards Section
+ *|--------------------------------------------------------------------------
+ */
 
 export const getStandards =
   async (
@@ -45,6 +65,7 @@ export const getStandards =
             display_order,
             title,
             description,
+            updated_at,
 
             logo_image_blob IS NOT NULL
               AS has_logo,
@@ -103,7 +124,9 @@ export const getStandards =
 
               url:
                 row.has_logo
-                  ? `${baseUrl}/api/standards/${row.id}/logo`
+                  ? `${baseUrl}/api/standards/${row.id}/logo?v=${getMediaVersion(
+                      row.updated_at
+                    )}`
                   : null,
             },
 
@@ -119,7 +142,9 @@ export const getStandards =
 
               url:
                 row.has_certificate
-                  ? `${baseUrl}/api/standards/${row.id}/certificate`
+                  ? `${baseUrl}/api/standards/${row.id}/certificate?v=${getMediaVersion(
+                      row.updated_at
+                    )}`
                   : null,
             },
 
@@ -154,11 +179,11 @@ export const getStandards =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Logo
-|--------------------------------------------------------------------------
-*/
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Logo
+ *|--------------------------------------------------------------------------
+ */
 
 export const getStandardLogo =
   async (
@@ -256,11 +281,11 @@ export const getStandardLogo =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Actual Certificate
-|--------------------------------------------------------------------------
-*/
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Actual Certificate
+ *|--------------------------------------------------------------------------
+ */
 
 export const getStandardCertificate =
   async (

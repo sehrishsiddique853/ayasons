@@ -40,11 +40,31 @@ const getBaseUrl = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET /api/home-content
-|--------------------------------------------------------------------------
-*/
+const getMediaVersion = (
+  value
+) => {
+
+  const timestamp =
+    value
+      ? new Date(
+          value
+        ).getTime()
+      : NaN
+
+
+  return Number.isFinite(
+    timestamp
+  )
+    ? timestamp
+    : 1
+}
+
+
+/**
+ *|--------------------------------------------------------------------------
+ *| GET /api/home-content
+ *|--------------------------------------------------------------------------
+ */
 
 export const getHomepageContent =
   async (
@@ -108,11 +128,11 @@ export const getHomepageContent =
         getBaseUrl(req)
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Homepage Process Steps
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Homepage Process Steps
+       * |--------------------------------------------------------------------------
+       */
 
       const [processRows] =
         await pool.execute(`
@@ -122,6 +142,7 @@ export const getHomepageContent =
             step_number,
             title,
             description,
+            updated_at,
 
             image_blob IS NOT NULL
               AS has_image
@@ -146,7 +167,9 @@ export const getHomepageContent =
 
             url:
               row.has_about_image
-                ? `${baseUrl}/api/home-content/about-image`
+                ? `${baseUrl}/api/home-content/about-image?v=${getMediaVersion(
+                    row.updated_at
+                  )}`
                 : null,
           },
 
@@ -170,7 +193,9 @@ export const getHomepageContent =
 
             url:
               row.has_manufacturing_video
-                ? `${baseUrl}/api/home-content/manufacturing-video`
+                ? `${baseUrl}/api/home-content/manufacturing-video?v=${getMediaVersion(
+                    row.updated_at
+                  )}`
                 : null,
           },
 
@@ -182,11 +207,11 @@ export const getHomepageContent =
             ),
 
 
-          /*
-          |--------------------------------------------------------------------------
-          | Process Section
-          |--------------------------------------------------------------------------
-          */
+          /**
+           * |--------------------------------------------------------------------------
+           * | Process Section
+           * |--------------------------------------------------------------------------
+           */
 
           process: {
 
@@ -232,7 +257,9 @@ export const getHomepageContent =
 
                     url:
                       step.has_image
-                        ? `${baseUrl}/api/home-content/process/${step.id}/image`
+                        ? `${baseUrl}/api/home-content/process/${step.id}/image?v=${getMediaVersion(
+                            step.updated_at
+                          )}`
                         : null,
                   },
                 })
@@ -251,11 +278,11 @@ export const getHomepageContent =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET About Image
-|--------------------------------------------------------------------------
-*/
+/**
+ *|--------------------------------------------------------------------------
+ *| GET About Image
+ *|--------------------------------------------------------------------------
+ */
 
 export const getHomepageAboutImage =
   async (
@@ -328,14 +355,14 @@ export const getHomepageAboutImage =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Manufacturing Video
-|--------------------------------------------------------------------------
-|
-| Range support is important for HTML5 <video>.
-|
-*/
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Manufacturing Video
+ *|--------------------------------------------------------------------------
+ *|
+ *| Range support is important for HTML5 <video>.
+ *|
+ */
 
 export const getHomepageManufacturingVideo =
   async (
@@ -399,11 +426,11 @@ export const getHomepageManufacturingVideo =
         req.headers.range
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Full Video
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Full Video
+       * |--------------------------------------------------------------------------
+       */
 
       if (!range) {
 
@@ -417,7 +444,7 @@ export const getHomepageManufacturingVideo =
           'Accept-Ranges':
             'bytes',
 
-        'Cache-Control':
+          'Cache-Control':
             'public, max-age=604800, immutable',
         })
 
@@ -426,16 +453,16 @@ export const getHomepageManufacturingVideo =
           buffer
         )
 
-        return
 
+        return
       }
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Range Request
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Range Request
+       * |--------------------------------------------------------------------------
+       */
 
       const parts =
         range
@@ -483,8 +510,8 @@ export const getHomepageManufacturingVideo =
           })
           .end()
 
-        return
 
+        return
       }
 
 
@@ -525,7 +552,14 @@ export const getHomepageManufacturingVideo =
     }
   }
 
-  export const getHomepageProcessImage =
+
+/**
+ *|--------------------------------------------------------------------------
+ *| GET Process Image
+ *|--------------------------------------------------------------------------
+ */
+
+export const getHomepageProcessImage =
   async (
     req,
     res,

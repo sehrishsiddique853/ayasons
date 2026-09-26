@@ -31,6 +31,26 @@ const getBaseUrl = (
 }
 
 
+const getMediaVersion = (
+  value
+) => {
+
+  const timestamp =
+    value
+      ? new Date(
+          value
+        ).getTime()
+      : NaN
+
+
+  return Number.isFinite(
+    timestamp
+  )
+    ? timestamp
+    : 1
+}
+
+
 const formatCategory = (
   row,
   req
@@ -59,14 +79,18 @@ const formatCategory = (
 
     heroImage: {
       url:
-        `${getBaseUrl(req)}/api/images/categories/${row.id}/hero`,
+        `${getBaseUrl(req)}/api/images/categories/${row.id}/hero?v=${getMediaVersion(
+          row.updated_at
+        )}`,
 
       publicId: '',
     },
 
     collectionImage: {
       url:
-        `${getBaseUrl(req)}/api/images/categories/${row.id}/collection`,
+        `${getBaseUrl(req)}/api/images/categories/${row.id}/collection?v=${getMediaVersion(
+          row.updated_at
+        )}`,
 
       publicId: '',
     },
