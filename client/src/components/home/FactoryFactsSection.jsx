@@ -11,7 +11,7 @@ const factoryFacts = [
   },
   {
     label: 'Experience',
-    value: '20+ years of apparel manufacturing experience',
+    value: '10+ years of apparel manufacturing experience',
   },
   {
     label: 'Production',

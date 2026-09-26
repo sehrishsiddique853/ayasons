@@ -20,12 +20,18 @@ import RequestQuote from '../components/home/RequestQuote'
 import Footer from '../components/home/Footer'
 
 
+
 function Home() {
 
   const [
     homepageContent,
     setHomepageContent,
   ] = useState(null)
+
+  const [
+  departments,
+  setDepartments,
+] = useState([])
 
   const [
     categories,
@@ -56,31 +62,45 @@ function Home() {
           setCategoriesLoading(true)
           setCategoriesError('')
 
-          const [
-            homepageResponse,
-            categoriesResponse,
-          ] =
-            await Promise.all([
-              api.get(
-                '/home-content',
-                {
-                  signal:
-                    controller.signal,
-                }
-              ),
+         const [
+  homepageResponse,
+  categoriesResponse,
+  departmentsResponse,
+] =
+  await Promise.all([
+    api.get(
+      '/home-content',
+      {
+        signal:
+          controller.signal,
+      }
+    ),
 
-              api.get(
-                '/categories',
-                {
-                  signal:
-                    controller.signal,
-                }
-              ),
-            ])
+    api.get(
+      '/categories',
+      {
+        signal:
+          controller.signal,
+      }
+    ),
+
+    api.get(
+      '/departments',
+      {
+        signal:
+          controller.signal,
+      }
+    ),
+  ])
 
 
           setHomepageContent(
             homepageResponse.data.content
+          )
+
+          setDepartments(
+            departmentsResponse.data.departments ||
+              []
           )
 
 
@@ -172,11 +192,14 @@ function Home() {
       />
 
 
-      <DepartmentSection
-        homepageContent={
-          homepageContent
-        }
-      />
+     <DepartmentSection
+  homepageContent={
+    homepageContent
+  }
+  departments={
+    departments
+  }
+/>
 
 
       <BuyerTypesSection />

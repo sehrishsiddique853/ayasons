@@ -8,6 +8,7 @@ min-height: 100svh;
 .navbar {
 position: fixed;
   top: 0;
+
   left: 0;
   right: 0;
   z-index: 40;
@@ -15,9 +16,9 @@ position: fixed;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 30px;
-  min-height: 72px;
+  min-height: 72 px;
   padding: 0 clamp(18px, 4vw, 48px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+ 
   background: rgba(0, 0, 0, 0);
   backdrop-filter: blur(16px);
 }

@@ -197,6 +197,67 @@
   opacity: 0.88;
 }
 
+.hero-image {
+  position: absolute;
+
+  inset:
+    72px
+    0
+    0
+    auto;
+
+  z-index: -3;
+
+  width: min(72vw, 1180px);
+  height: calc(100% - 72px);
+
+  object-fit: cover;
+  object-position: right center;
+
+  opacity: 0.88;
+
+  animation:
+    heroBackgroundChange
+    700ms
+    ease;
+    border-bottom: 2px solid var(--brand-yellow);
+}
+
+.hero-image {
+  width: min(72vw, 1180px);
+  height: calc(100% - 72px);
+  object-fit: cover;
+  object-position: right center;
+}
+
+.hero-image {
+  position: absolute;
+
+  top: 72px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: -3;
+
+  width: 100%;
+  height: calc(100% - 72px);
+
+  object-fit: cover;
+  object-position: center center;
+
+  opacity: 0.88;
+}
+@keyframes heroBackgroundChange {
+  from {
+    opacity: 0.45;
+  }
+
+  to {
+    opacity: 0.88;
+  }
+}
+
 @keyframes logoGoldShift {
   0% {
     background-position: 0% 50%;
@@ -1474,4 +1535,231 @@ span:first-child {
   to {
     transform: scaleX(1);
   }
+}
+/* =========================================================
+   HERO FIXES
+   ========================================================= */
+
+/* -----------------------------------------
+   HERO: REMOVE ANY GAP ABOVE THE HERO
+----------------------------------------- */
+
+.hero-section {
+  margin-top: 0 !important;
+}
+
+
+/* -----------------------------------------
+   BACKGROUND IMAGE
+----------------------------------------- */
+
+.hero-image {
+  top: 1 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  /*
+   * Keep the whole hero image visible.
+   * This prevents the extreme zoom/crop.
+   */
+  object-fit: cover;
+
+  /*
+   * Slightly shift the image to show more
+   * of the important subject.
+   */
+  object-position: center center;
+
+  opacity: 0.88;
+
+  transition:
+    opacity 450ms ease,
+    transform 700ms ease;
+}
+
+
+/* -----------------------------------------
+   IMAGE CHANGE ANIMATION
+----------------------------------------- */
+
+.hero-image.changing {
+  opacity: 0.35;
+  transform: scale(1.01);
+}
+
+
+/* -----------------------------------------
+   DARK OVERLAY
+   MUST COVER THE ENTIRE HERO
+----------------------------------------- */
+
+.hero-overlay {
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+
+  inset: 0 !important;
+}
+
+
+/* -----------------------------------------
+   REMOVE THE OLD 72px OFFSET
+   FROM HERO DECORATIVE LAYERS
+----------------------------------------- */
+
+.hero-section::before {
+  top: 0 !important;
+}
+
+.hero-section::after {
+  top: 0 !important;
+}
+
+
+/* =========================================================
+   CAROUSEL CONTROLS
+   ========================================================= */
+
+/*
+ * IMPORTANT:
+ * The controls are now completely separate from
+ * the left-side hero content.
+ *
+ * They are centered at the bottom of the hero.
+ */
+
+.hero-carousel-controls {
+  position: absolute;
+
+  left: 50%;
+  bottom: 22px;
+
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 14px;
+
+  transform: translateX(-50%);
+}
+
+
+/* -----------------------------------------
+   ARROWS
+----------------------------------------- */
+
+.hero-carousel-arrow {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.25);
+
+  background:
+    rgba(5, 5, 5, 0.75);
+
+  color: #fff;
+
+  font-size: 18px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.hero-carousel-arrow:hover {
+  border-color:
+    var(--brand-yellow);
+
+  color:
+    var(--brand-yellow);
+
+  background:
+    rgba(5, 5, 5, 0.92);
+
+  transform: translateY(-2px);
+}
+
+
+/* -----------------------------------------
+   DOTS
+----------------------------------------- */
+
+.hero-carousel-dots {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+}
+
+
+.hero-carousel-dots button {
+  width: 7px;
+  height: 7px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.35);
+
+  cursor: pointer;
+
+  transition:
+    width 180ms ease,
+    background 180ms ease,
+    border-radius 180ms ease;
+}
+
+
+.hero-carousel-dots button.active {
+  width: 25px;
+
+  border-radius: 20px;
+
+  background:
+    var(--brand-yellow);
+}
+
+
+/* -----------------------------------------
+   MOBILE
+----------------------------------------- */
+
+@media (max-width: 620px) {
+
+  .hero-carousel-controls {
+    bottom: 18px;
+
+    gap: 10px;
+  }
+
+  .hero-carousel-arrow {
+    width: 36px;
+    height: 36px;
+
+    font-size: 16px;
+  }
+
 }

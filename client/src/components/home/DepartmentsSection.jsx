@@ -25,7 +25,7 @@ const defaultStats = [
 ]
 
 
-const departments = [
+const defaultDepartments = [
   {
     number: '01',
 
@@ -108,6 +108,8 @@ const departments = [
 
 function DepartmentsSection({
   homepageContent,
+  departments:
+    managedDepartments = [],
 }) {
 
   const stats =
@@ -121,7 +123,50 @@ function DepartmentsSection({
       ? homepageContent
           .departmentStats
       : defaultStats
+ 
+      const departmentCards =
+  defaultDepartments.map(
+    (
+      fallbackDepartment,
+      index
+    ) => {
 
+      const managedDepartment =
+        managedDepartments[index]
+
+      if (!managedDepartment) {
+        return fallbackDepartment
+      }
+
+      return {
+        id:
+          managedDepartment.id,
+
+        number:
+          managedDepartment.number ||
+          fallbackDepartment.number,
+
+        title:
+          managedDepartment.title ||
+          fallbackDepartment.title,
+
+        description:
+          managedDepartment.description ||
+          fallbackDepartment.description,
+
+        image:
+          managedDepartment.image
+            ?.available &&
+          managedDepartment.image
+            ?.url
+            ? managedDepartment
+                .image
+                .url
+            : fallbackDepartment
+                .image,
+      }
+    }
+  )
 
   return (
     <section className="departments-section">
@@ -204,7 +249,7 @@ function DepartmentsSection({
 
         <div className="departments-grid">
 
-          {departments.map(
+          {departmentCards.map(
             (
               department
             ) => (
@@ -212,8 +257,9 @@ function DepartmentsSection({
              <article
   className="department-card"
   key={
-    department.number
-  }
+  department.id ||
+  department.number
+}
 >
 
   <div className="department-card-image">
