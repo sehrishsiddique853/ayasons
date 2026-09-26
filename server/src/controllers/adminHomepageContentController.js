@@ -295,6 +295,41 @@ export const updateAdminHomepageContent =
       }
 
 
+      /*
+      |--------------------------------------------------------------------------
+      | Optimize About Image
+      |--------------------------------------------------------------------------
+      */
+
+      let optimizedAboutImage = null
+
+
+      if (aboutImage) {
+
+        optimizedAboutImage =
+          await optimizeImage(
+            aboutImage,
+            IMAGE_PRESETS.homepageAbout
+          )
+
+
+        console.log(
+          `Homepage About image optimized: ${
+            (
+              optimizedAboutImage.originalSize /
+              1024
+            ).toFixed(2)
+          } KB → ${
+            (
+              optimizedAboutImage.optimizedSize /
+              1024
+            ).toFixed(2)
+          } KB`
+        )
+
+      }
+
+
       /**
        * |--------------------------------------------------------------------------
        * | Video Validation
@@ -344,7 +379,7 @@ export const updateAdminHomepageContent =
        * |--------------------------------------------------------------------------
        */
 
-      if (aboutImage) {
+      if (optimizedAboutImage) {
 
         fields.push(
           'about_image_blob = ?',
@@ -354,9 +389,9 @@ export const updateAdminHomepageContent =
 
 
         params.push(
-          aboutImage.buffer,
-          aboutImage.mimetype,
-          aboutImage.originalname
+          optimizedAboutImage.buffer,
+          optimizedAboutImage.mimeType,
+          optimizedAboutImage.fileName
         )
 
       }
@@ -813,12 +848,6 @@ export const updateAdminProcessImage =
       }
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Keep Existing 5 MB Upload Limit
-      |--------------------------------------------------------------------------
-      */
-
       if (
         req.file.size >
         5 * 1024 * 1024
@@ -860,12 +889,6 @@ export const updateAdminProcessImage =
         } KB`
       )
 
-
-      /*
-      |--------------------------------------------------------------------------
-      | Store Optimized Process Image
-      |--------------------------------------------------------------------------
-      */
 
       const [result] =
         await pool.execute(
