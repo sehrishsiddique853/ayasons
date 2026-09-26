@@ -1,9 +1,17 @@
+import 'dotenv/config'
+
 import pool from '../config/mysql.js'
 
 import {
   optimizeImage,
   IMAGE_PRESETS,
 } from '../utils/imageOptimizer.js'
+
+
+const dryRun =
+  process.argv.includes(
+    '--dry-run'
+  )
 
 
 const isImageMime = (mime) =>
@@ -113,24 +121,28 @@ const optimizeProducts = async (
     }
 
 
-    await connection.execute(
-      `
-        UPDATE products
+    if (!dryRun) {
 
-        SET
-          image_blob = ?,
-          image_mime = ?,
-          image_name = ?
+      await connection.execute(
+        `
+          UPDATE products
 
-        WHERE id = ?
-      `,
-      [
-        optimized.buffer,
-        optimized.mimeType,
-        optimized.fileName,
-        row.id,
-      ]
-    )
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
 
 
     console.log(
@@ -204,24 +216,28 @@ const optimizeCategories = async (
 
     if (hero) {
 
-      await connection.execute(
-        `
-          UPDATE categories
+      if (!dryRun) {
 
-          SET
-            hero_image_blob = ?,
-            hero_image_mime = ?,
-            hero_image_name = ?
+        await connection.execute(
+          `
+            UPDATE categories
 
-          WHERE id = ?
-        `,
-        [
-          hero.buffer,
-          hero.mimeType,
-          hero.fileName,
-          row.id,
-        ]
-      )
+            SET
+              hero_image_blob = ?,
+              hero_image_mime = ?,
+              hero_image_name = ?
+
+            WHERE id = ?
+          `,
+          [
+            hero.buffer,
+            hero.mimeType,
+            hero.fileName,
+            row.id,
+          ]
+        )
+
+      }
 
 
       console.log(
@@ -259,24 +275,28 @@ const optimizeCategories = async (
 
     if (collection) {
 
-      await connection.execute(
-        `
-          UPDATE categories
+      if (!dryRun) {
 
-          SET
-            collection_image_blob = ?,
-            collection_image_mime = ?,
-            collection_image_name = ?
+        await connection.execute(
+          `
+            UPDATE categories
 
-          WHERE id = ?
-        `,
-        [
-          collection.buffer,
-          collection.mimeType,
-          collection.fileName,
-          row.id,
-        ]
-      )
+            SET
+              collection_image_blob = ?,
+              collection_image_mime = ?,
+              collection_image_name = ?
+
+            WHERE id = ?
+          `,
+          [
+            collection.buffer,
+            collection.mimeType,
+            collection.fileName,
+            row.id,
+          ]
+        )
+
+      }
 
 
       console.log(
@@ -352,24 +372,28 @@ const optimizeDepartments = async (
     }
 
 
-    await connection.execute(
-      `
-        UPDATE homepage_departments
+    if (!dryRun) {
 
-        SET
-          image_blob = ?,
-          image_mime = ?,
-          image_name = ?
+      await connection.execute(
+        `
+          UPDATE homepage_departments
 
-        WHERE id = ?
-      `,
-      [
-        optimized.buffer,
-        optimized.mimeType,
-        optimized.fileName,
-        row.id,
-      ]
-    )
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
 
 
     console.log(
@@ -443,24 +467,28 @@ const optimizeProcessImages = async (
     }
 
 
-    await connection.execute(
-      `
-        UPDATE homepage_process_steps
+    if (!dryRun) {
 
-        SET
-          image_blob = ?,
-          image_mime = ?,
-          image_name = ?
+      await connection.execute(
+        `
+          UPDATE homepage_process_steps
 
-        WHERE id = ?
-      `,
-      [
-        optimized.buffer,
-        optimized.mimeType,
-        optimized.fileName,
-        row.id,
-      ]
-    )
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
 
 
     console.log(
@@ -542,23 +570,27 @@ const optimizeAboutImage = async (
   }
 
 
-  await connection.execute(
-    `
-      UPDATE homepage_content
+  if (!dryRun) {
 
-      SET
-        about_image_blob = ?,
-        about_image_mime = ?,
-        about_image_name = ?
+    await connection.execute(
+      `
+        UPDATE homepage_content
 
-      WHERE id = 1
-    `,
-    [
-      optimized.buffer,
-      optimized.mimeType,
-      optimized.fileName,
-    ]
-  )
+        SET
+          about_image_blob = ?,
+          about_image_mime = ?,
+          about_image_name = ?
+
+        WHERE id = 1
+      `,
+      [
+        optimized.buffer,
+        optimized.mimeType,
+        optimized.fileName,
+      ]
+    )
+
+  }
 
 
   console.log(
@@ -636,24 +668,28 @@ const optimizeStandards = async (
 
     if (logo) {
 
-      await connection.execute(
-        `
-          UPDATE homepage_standards
+      if (!dryRun) {
 
-          SET
-            logo_image_blob = ?,
-            logo_image_mime = ?,
-            logo_image_name = ?
+        await connection.execute(
+          `
+            UPDATE homepage_standards
 
-          WHERE id = ?
-        `,
-        [
-          logo.buffer,
-          logo.mimeType,
-          logo.fileName,
-          row.id,
-        ]
-      )
+            SET
+              logo_image_blob = ?,
+              logo_image_mime = ?,
+              logo_image_name = ?
+
+            WHERE id = ?
+          `,
+          [
+            logo.buffer,
+            logo.mimeType,
+            logo.fileName,
+            row.id,
+          ]
+        )
+
+      }
 
 
       console.log(
@@ -700,24 +736,28 @@ const optimizeStandards = async (
 
     if (certificate) {
 
-      await connection.execute(
-        `
-          UPDATE homepage_standards
+      if (!dryRun) {
 
-          SET
-            certificate_blob = ?,
-            certificate_mime = ?,
-            certificate_name = ?
+        await connection.execute(
+          `
+            UPDATE homepage_standards
 
-          WHERE id = ?
-        `,
-        [
-          certificate.buffer,
-          certificate.mimeType,
-          certificate.fileName,
-          row.id,
-        ]
-      )
+            SET
+              certificate_blob = ?,
+              certificate_mime = ?,
+              certificate_name = ?
+
+            WHERE id = ?
+          `,
+          [
+            certificate.buffer,
+            certificate.mimeType,
+            certificate.fileName,
+            row.id,
+          ]
+        )
+
+      }
 
 
       console.log(
@@ -755,12 +795,25 @@ const run = async () => {
   try {
 
     console.log(
-      'Starting existing image optimization...'
+      dryRun
+        ? 'Starting existing image optimization — DRY RUN. Database will NOT be changed.'
+        : 'Starting existing image optimization — LIVE MODE.'
     )
 
 
     connection =
       await pool.getConnection()
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start Transaction In Live Mode
+    |--------------------------------------------------------------------------
+    */
+
+    if (!dryRun) {
+      await connection.beginTransaction()
+    }
 
 
     await optimizeProducts(
@@ -793,11 +846,40 @@ const run = async () => {
     )
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | Commit Only After Everything Succeeds
+    |--------------------------------------------------------------------------
+    */
+
+    if (!dryRun) {
+      await connection.commit()
+    }
+
+
     console.log(
-      '\nExisting image optimization completed successfully.'
+      dryRun
+        ? '\nDry run completed successfully. Database was NOT changed.'
+        : '\nExisting image optimization completed successfully.'
     )
 
   } catch (error) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Roll Back Live Migration On Failure
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      connection &&
+      !dryRun
+    ) {
+      await connection
+        .rollback()
+        .catch(() => {})
+    }
+
 
     console.error(
       '\nExisting image optimization failed:',

@@ -1,553 +1,906 @@
-import { execFile } from 'node:child_process'
-import { promises as fs } from 'node:fs'
-import path from 'node:path'
-import { promisify } from 'node:util'
-import { fileURLToPath } from 'node:url'
+import 'dotenv/config'
 
 import pool from '../config/mysql.js'
 
-
-const execFileAsync =
-  promisify(execFile)
-
-
-const __filename =
-  fileURLToPath(import.meta.url)
+import {
+  optimizeImage,
+  IMAGE_PRESETS,
+} from '../utils/imageOptimizer.js'
 
 
-const __dirname =
-  path.dirname(__filename)
-
-
-const imageCacheDirectory =
-  path.resolve(
-    __dirname,
-    '../../.cache/images'
+const dryRun =
+  process.argv.includes(
+    '--dry-run'
   )
 
 
-const defaultOptimizedImageWidth =
-  1400
+const isImageMime = (mime) =>
+  [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ].includes(mime)
 
 
-const minimumOptimizedImageWidth =
-  320
+/**
+ * |--------------------------------------------------------------------------
+ * | Optimize One Stored Image
+ * |--------------------------------------------------------------------------
+ */
 
+const optimizeStoredImage = async ({
+  buffer,
+  mime,
+  name,
+  preset,
+}) => {
 
-const maximumOptimizedImageWidth =
-  1800
-
-
-const optimizedImageQuality =
-  72
-
-
-const isOptimizableImage =
-  (mimeType = '') => {
-    return [
-      'image/jpeg',
-      'image/jpg',
-      'image/png',
-      'image/webp',
-    ].includes(
-      mimeType.toLowerCase()
-    )
+  if (
+    !buffer ||
+    !isImageMime(mime)
+  ) {
+    return null
   }
 
 
-const sanitizeCacheKey =
-  (cacheKey) => {
-    return String(cacheKey)
-      .replace(/[^a-z0-9_.-]/gi, '-')
+  /**
+   * |--------------------------------------------------------------------------
+   * | Skip New WebP Uploads
+   * |--------------------------------------------------------------------------
+   *
+   * Images uploaded after our Sharp changes
+   * are already WebP, so don't recompress them.
+   */
+
+  if (mime === 'image/webp') {
+    return null
   }
 
 
-const fileExists =
-  async (filePath) => {
-    try {
-      await fs.access(filePath)
-      return true
-    } catch {
-      return false
-    }
-  }
-
-
-const optimizeImageBuffer =
-  async (
-    imageBuffer,
-    cacheKey,
-    requestedWidth =
-      defaultOptimizedImageWidth
-  ) => {
-    if (
-      process.platform !== 'win32' ||
-      !imageBuffer?.length
-    ) {
-      return null
-    }
-
-
-    await fs.mkdir(
-      imageCacheDirectory,
-      {
-        recursive: true,
-      }
-    )
-
-
-    const optimizedWidth =
-      Math.min(
-        maximumOptimizedImageWidth,
-        Math.max(
-          minimumOptimizedImageWidth,
-          Math.round(
-            requestedWidth
-          )
-        )
-      )
-
-
-    const safeCacheKey =
-      sanitizeCacheKey(cacheKey)
-
-
-    const outputPath =
-      path.join(
-        imageCacheDirectory,
-        `${safeCacheKey}-w${optimizedWidth}.jpg`
-      )
-
-
-    if (
-      await fileExists(outputPath)
-    ) {
-      return fs.readFile(outputPath)
-    }
-
-
-    const sourcePath =
-      path.join(
-        imageCacheDirectory,
-        `${safeCacheKey}-w${optimizedWidth}.source`
-      )
-
-
-    await fs.writeFile(
-      sourcePath,
-      imageBuffer
-    )
-
-
-    const powershellScript =
-      `
-      Add-Type -AssemblyName System.Drawing
-
-      $sourcePath = @'
-${sourcePath}
-'@
-      $outputPath = @'
-${outputPath}
-'@
-
-      $sourceImage = [System.Drawing.Image]::FromFile($sourcePath)
-      $largestSide = [Math]::Max($sourceImage.Width, $sourceImage.Height)
-      $scale = [Math]::Min(1.0, ${optimizedWidth} / [double]$largestSide)
-      $targetWidth = [Math]::Max(1, [int]($sourceImage.Width * $scale))
-      $targetHeight = [Math]::Max(1, [int]($sourceImage.Height * $scale))
-
-      $bitmap = New-Object System.Drawing.Bitmap($targetWidth, $targetHeight, [System.Drawing.Imaging.PixelFormat]::Format24bppRgb)
-      $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-      $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
-      $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-      $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
-      $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-      $graphics.Clear([System.Drawing.Color]::Black)
-      $graphics.DrawImage($sourceImage, 0, 0, $targetWidth, $targetHeight)
-
-      $jpegCodec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' }
-      $encoderParameters = New-Object System.Drawing.Imaging.EncoderParameters(1)
-      $encoderParameters.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter([System.Drawing.Imaging.Encoder]::Quality, [long]${optimizedImageQuality})
-      $bitmap.Save($outputPath, $jpegCodec, $encoderParameters)
-
-      $graphics.Dispose()
-      $bitmap.Dispose()
-      $sourceImage.Dispose()
-      `
-
-
-    const encodedCommand =
-      Buffer
-        .from(
-          powershellScript,
-          'utf16le'
-        )
-        .toString('base64')
-
-
-    try {
-      await execFileAsync(
-        'powershell.exe',
-        [
-          '-NoProfile',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-EncodedCommand',
-          encodedCommand,
-        ],
-        {
-          timeout: 30000,
-          windowsHide: true,
-        }
-      )
-
-
-      const optimizedBuffer =
-        await fs.readFile(outputPath)
-
-
-      return optimizedBuffer
-    } finally {
-      await fs.rm(
-        sourcePath,
-        {
-          force: true,
-        }
-      )
-    }
-  }
-
-
-const sendImageResponse =
-  async (
-    req,
-    res,
+  return optimizeImage(
     {
-      imageBlob,
-      imageMime,
-      imageName,
-      cacheKey,
-      fallbackName,
+      buffer,
+      mimetype: mime,
+      originalname:
+        name || 'image',
+    },
+    preset
+  )
+}
+
+
+/**
+ * |--------------------------------------------------------------------------
+ * | Products
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeProducts = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing product images...'
+  )
+
+
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        id,
+        image_blob,
+        image_mime,
+        image_name
+
+      FROM products
+
+      WHERE image_blob IS NOT NULL
+    `)
+
+
+  for (const row of rows) {
+
+    const optimized =
+      await optimizeStoredImage({
+        buffer:
+          row.image_blob,
+
+        mime:
+          row.image_mime,
+
+        name:
+          row.image_name,
+
+        preset:
+          IMAGE_PRESETS.product,
+      })
+
+
+    if (!optimized) {
+      continue
     }
-  ) => {
-    let responseBuffer =
-      imageBlob
 
 
-    let responseMime =
-      imageMime ||
-      'application/octet-stream'
+    if (!dryRun) {
+
+      await connection.execute(
+        `
+          UPDATE products
+
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
 
 
-    let responseName =
-      imageName ||
-      fallbackName
+    console.log(
+      `Product ${row.id}: ${
+        (
+          optimized.originalSize /
+          1024
+        ).toFixed(2)
+      } KB → ${
+        (
+          optimized.optimizedSize /
+          1024
+        ).toFixed(2)
+      } KB`
+    )
+
+  }
+
+}
 
 
-    const requestedWidth =
-      Number(req.query.w)
+/**
+ * |--------------------------------------------------------------------------
+ * | Categories
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeCategories = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing category images...'
+  )
 
 
-    const optimizedWidth =
-      Number.isFinite(requestedWidth)
-        ? Math.round(requestedWidth)
-        : defaultOptimizedImageWidth
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        id,
+
+        hero_image_blob,
+        hero_image_mime,
+        hero_image_name,
+
+        collection_image_blob,
+        collection_image_mime,
+        collection_image_name
+
+      FROM categories
+    `)
 
 
-    if (
-      isOptimizableImage(responseMime)
-    ) {
-      try {
-        const optimizedBuffer =
-          await optimizeImageBuffer(
-            imageBlob,
-            cacheKey,
-            optimizedWidth
-          )
+  for (const row of rows) {
+
+    const hero =
+      await optimizeStoredImage({
+        buffer:
+          row.hero_image_blob,
+
+        mime:
+          row.hero_image_mime,
+
+        name:
+          row.hero_image_name,
+
+        preset:
+          IMAGE_PRESETS.categoryHero,
+      })
 
 
-        if (
-          optimizedBuffer?.length &&
-          optimizedBuffer.length < imageBlob.length
-        ) {
-          responseBuffer =
-            optimizedBuffer
+    if (hero) {
 
+      if (!dryRun) {
 
-          responseMime =
-            'image/jpeg'
+        await connection.execute(
+          `
+            UPDATE categories
 
+            SET
+              hero_image_blob = ?,
+              hero_image_mime = ?,
+              hero_image_name = ?
 
-          responseName =
-            responseName
-              ? responseName.replace(
-                /\.[^.]+$/,
-                '.jpg'
-              )
-              : `${fallbackName}.jpg`
-        }
-      } catch (error) {
-        console.warn(
-          'Image optimization failed; serving original image:',
-          error.message
+            WHERE id = ?
+          `,
+          [
+            hero.buffer,
+            hero.mimeType,
+            hero.fileName,
+            row.id,
+          ]
         )
+
       }
+
+
+      console.log(
+        `Category ${row.id} hero: ${
+          (
+            hero.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            hero.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
+      )
+
     }
 
 
-    res.set({
-      'Content-Type':
-        responseMime,
+    const collection =
+      await optimizeStoredImage({
+        buffer:
+          row.collection_image_blob,
 
-      'Content-Length':
-        responseBuffer.length,
+        mime:
+          row.collection_image_mime,
 
-      'Content-Disposition':
-        `inline; filename="${responseName || fallbackName}"`,
+        name:
+          row.collection_image_name,
 
-      'Cache-Control':
-        'public, max-age=604800, immutable',
+        preset:
+          IMAGE_PRESETS.categoryCollection,
+      })
+
+
+    if (collection) {
+
+      if (!dryRun) {
+
+        await connection.execute(
+          `
+            UPDATE categories
+
+            SET
+              collection_image_blob = ?,
+              collection_image_mime = ?,
+              collection_image_name = ?
+
+            WHERE id = ?
+          `,
+          [
+            collection.buffer,
+            collection.mimeType,
+            collection.fileName,
+            row.id,
+          ]
+        )
+
+      }
+
+
+      console.log(
+        `Category ${row.id} collection: ${
+          (
+            collection.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            collection.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
+      )
+
+    }
+
+  }
+
+}
+
+
+/**
+ * |--------------------------------------------------------------------------
+ * | Departments
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeDepartments = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing department images...'
+  )
+
+
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        id,
+        image_blob,
+        image_mime,
+        image_name
+
+      FROM homepage_departments
+
+      WHERE image_blob IS NOT NULL
+    `)
+
+
+  for (const row of rows) {
+
+    const optimized =
+      await optimizeStoredImage({
+        buffer:
+          row.image_blob,
+
+        mime:
+          row.image_mime,
+
+        name:
+          row.image_name,
+
+        preset:
+          IMAGE_PRESETS.department,
+      })
+
+
+    if (!optimized) {
+      continue
+    }
+
+
+    if (!dryRun) {
+
+      await connection.execute(
+        `
+          UPDATE homepage_departments
+
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
+
+
+    console.log(
+      `Department ${row.id}: ${
+        (
+          optimized.originalSize /
+          1024
+        ).toFixed(2)
+      } KB → ${
+        (
+          optimized.optimizedSize /
+          1024
+        ).toFixed(2)
+      } KB`
+    )
+
+  }
+
+}
+
+
+/**
+ * |--------------------------------------------------------------------------
+ * | Process Images
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeProcessImages = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing process images...'
+  )
+
+
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        id,
+        image_blob,
+        image_mime,
+        image_name
+
+      FROM homepage_process_steps
+
+      WHERE image_blob IS NOT NULL
+    `)
+
+
+  for (const row of rows) {
+
+    const optimized =
+      await optimizeStoredImage({
+        buffer:
+          row.image_blob,
+
+        mime:
+          row.image_mime,
+
+        name:
+          row.image_name,
+
+        preset:
+          IMAGE_PRESETS.process,
+      })
+
+
+    if (!optimized) {
+      continue
+    }
+
+
+    if (!dryRun) {
+
+      await connection.execute(
+        `
+          UPDATE homepage_process_steps
+
+          SET
+            image_blob = ?,
+            image_mime = ?,
+            image_name = ?
+
+          WHERE id = ?
+        `,
+        [
+          optimized.buffer,
+          optimized.mimeType,
+          optimized.fileName,
+          row.id,
+        ]
+      )
+
+    }
+
+
+    console.log(
+      `Process ${row.id}: ${
+        (
+          optimized.originalSize /
+          1024
+        ).toFixed(2)
+      } KB → ${
+        (
+          optimized.optimizedSize /
+          1024
+        ).toFixed(2)
+      } KB`
+    )
+
+  }
+
+}
+
+
+/**
+ * |--------------------------------------------------------------------------
+ * | Homepage About Image
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeAboutImage = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing About image...'
+  )
+
+
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        about_image_blob,
+        about_image_mime,
+        about_image_name
+
+      FROM homepage_content
+
+      WHERE id = 1
+
+      LIMIT 1
+    `)
+
+
+  if (!rows.length) {
+    return
+  }
+
+
+  const row =
+    rows[0]
+
+
+  const optimized =
+    await optimizeStoredImage({
+      buffer:
+        row.about_image_blob,
+
+      mime:
+        row.about_image_mime,
+
+      name:
+        row.about_image_name,
+
+      preset:
+        IMAGE_PRESETS.homepageAbout,
     })
 
 
-    res.send(
-      responseBuffer
-    )
+  if (!optimized) {
+    return
   }
 
 
-const getCategoryImage =
-  async (
-    req,
-    res,
-    next,
-    type
-  ) => {
-    try {
-      const categoryId =
-        Number(req.params.id)
+  if (!dryRun) {
+
+    await connection.execute(
+      `
+        UPDATE homepage_content
+
+        SET
+          about_image_blob = ?,
+          about_image_mime = ?,
+          about_image_name = ?
+
+        WHERE id = 1
+      `,
+      [
+        optimized.buffer,
+        optimized.mimeType,
+        optimized.fileName,
+      ]
+    )
+
+  }
 
 
-      if (
-        !Number.isInteger(categoryId) ||
-        categoryId <= 0
-      ) {
-        res.status(400)
+  console.log(
+    `Homepage About: ${
+      (
+        optimized.originalSize /
+        1024
+      ).toFixed(2)
+    } KB → ${
+      (
+        optimized.optimizedSize /
+        1024
+      ).toFixed(2)
+    } KB`
+  )
 
-        throw new Error(
-          'Invalid category ID'
-        )
-      }
-
-
-      const isHero =
-        type === 'hero'
-
-
-      const blobColumn =
-        isHero
-          ? 'hero_image_blob'
-          : 'collection_image_blob'
+}
 
 
-      const mimeColumn =
-        isHero
-          ? 'hero_image_mime'
-          : 'collection_image_mime'
+/**
+ * |--------------------------------------------------------------------------
+ * | Standards / Certifications
+ * |--------------------------------------------------------------------------
+ */
+
+const optimizeStandards = async (
+  connection
+) => {
+
+  console.log(
+    '\nOptimizing certification images...'
+  )
 
 
-      const nameColumn =
-        isHero
-          ? 'hero_image_name'
-          : 'collection_image_name'
+  const [rows] =
+    await connection.execute(`
+      SELECT
+        id,
+
+        logo_image_blob,
+        logo_image_mime,
+        logo_image_name,
+
+        certificate_blob,
+        certificate_mime,
+        certificate_name
+
+      FROM homepage_standards
+    `)
 
 
-      const [rows] =
-        await pool.query(
+  for (const row of rows) {
+
+    /**
+     * |--------------------------------------------------------------------------
+     * | Logo
+     * |--------------------------------------------------------------------------
+     */
+
+    const logo =
+      await optimizeStoredImage({
+        buffer:
+          row.logo_image_blob,
+
+        mime:
+          row.logo_image_mime,
+
+        name:
+          row.logo_image_name,
+
+        preset:
+          IMAGE_PRESETS.certificationLogo,
+      })
+
+
+    if (logo) {
+
+      if (!dryRun) {
+
+        await connection.execute(
           `
-          SELECT
-            ${blobColumn} AS image_blob,
-            ${mimeColumn} AS image_mime,
-            ${nameColumn} AS image_name,
-            updated_at
+            UPDATE homepage_standards
 
-          FROM categories
+            SET
+              logo_image_blob = ?,
+              logo_image_mime = ?,
+              logo_image_name = ?
 
-          WHERE
-            id = ?
-            AND active = 1
-
-          LIMIT 1
+            WHERE id = ?
           `,
           [
-            categoryId,
+            logo.buffer,
+            logo.mimeType,
+            logo.fileName,
+            row.id,
           ]
         )
 
-
-      if (
-        rows.length === 0 ||
-        !rows[0].image_blob
-      ) {
-        res.status(404)
-
-        throw new Error(
-          'Category image not found'
-        )
       }
 
 
-      const image =
-        rows[0]
-
-
-      await sendImageResponse(
-        req,
-        res,
-        {
-          imageBlob:
-            image.image_blob,
-
-          imageMime:
-            image.image_mime,
-
-          imageName:
-            image.image_name,
-
-          cacheKey:
-            `category-${type}-${categoryId}-${new Date(image.updated_at).getTime()}`,
-
-          fallbackName:
-            `category-${type}-${categoryId}`,
-        }
+      console.log(
+        `Certification ${row.id} logo: ${
+          (
+            logo.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            logo.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
       )
 
-    } catch (error) {
-      next(error)
     }
-  }
 
 
-export const getCategoryHeroImage =
-  async (
-    req,
-    res,
-    next
-  ) => {
-    return getCategoryImage(
-      req,
-      res,
-      next,
-      'hero'
-    )
-  }
+    /**
+     * |--------------------------------------------------------------------------
+     * | Certificate
+     * |--------------------------------------------------------------------------
+     *
+     * PDF certificates are automatically
+     * ignored because isImageMime() returns false.
+     */
+
+    const certificate =
+      await optimizeStoredImage({
+        buffer:
+          row.certificate_blob,
+
+        mime:
+          row.certificate_mime,
+
+        name:
+          row.certificate_name,
+
+        preset:
+          IMAGE_PRESETS.certificateImage,
+      })
 
 
-export const getCategoryCollectionImage =
-  async (
-    req,
-    res,
-    next
-  ) => {
-    return getCategoryImage(
-      req,
-      res,
-      next,
-      'collection'
-    )
-  }
+    if (certificate) {
 
-  export const getProductImage =
-  async (
-    req,
-    res,
-    next
-  ) => {
-    try {
-      const productId =
-        Number(req.params.id)
+      if (!dryRun) {
 
-
-      if (
-        !Number.isInteger(
-          productId
-        ) ||
-        productId <= 0
-      ) {
-        res.status(400)
-
-        throw new Error(
-          'Invalid product ID'
-        )
-      }
-
-
-      const [rows] =
-        await pool.execute(
+        await connection.execute(
           `
-          SELECT
-            p.image_blob,
-            p.image_mime,
-            p.image_name,
-            p.updated_at
+            UPDATE homepage_standards
 
-          FROM products p
+            SET
+              certificate_blob = ?,
+              certificate_mime = ?,
+              certificate_name = ?
 
-          INNER JOIN categories c
-            ON c.id =
-              p.category_id
-
-          WHERE
-            p.id = ?
-            AND p.active = 1
-            AND c.active = 1
-
-          LIMIT 1
+            WHERE id = ?
           `,
           [
-            productId,
+            certificate.buffer,
+            certificate.mimeType,
+            certificate.fileName,
+            row.id,
           ]
         )
 
-
-      if (
-        rows.length === 0 ||
-        !rows[0].image_blob
-      ) {
-        res.status(404)
-
-        throw new Error(
-          'Product image not found'
-        )
       }
 
 
-      const image =
-        rows[0]
-
-
-      await sendImageResponse(
-        req,
-        res,
-        {
-          imageBlob:
-            image.image_blob,
-
-          imageMime:
-            image.image_mime,
-
-          imageName:
-            image.image_name,
-
-          cacheKey:
-            `product-${productId}-${new Date(image.updated_at).getTime()}`,
-
-          fallbackName:
-            `product-${productId}`,
-        }
+      console.log(
+        `Certification ${row.id} certificate: ${
+          (
+            certificate.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            certificate.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
       )
 
-    } catch (error) {
-      next(error)
     }
+
   }
+
+}
+
+
+/**
+ * |--------------------------------------------------------------------------
+ * | Run Migration
+ * |--------------------------------------------------------------------------
+ */
+
+const run = async () => {
+
+  let connection
+
+
+  try {
+
+    console.log(
+      dryRun
+        ? 'Starting existing image optimization — DRY RUN. Database will NOT be changed.'
+        : 'Starting existing image optimization — LIVE MODE.'
+    )
+
+
+    connection =
+      await pool.getConnection()
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start Transaction In Live Mode
+    |--------------------------------------------------------------------------
+    */
+
+    if (!dryRun) {
+      await connection.beginTransaction()
+    }
+
+
+    await optimizeProducts(
+      connection
+    )
+
+
+    await optimizeCategories(
+      connection
+    )
+
+
+    await optimizeDepartments(
+      connection
+    )
+
+
+    await optimizeProcessImages(
+      connection
+    )
+
+
+    await optimizeAboutImage(
+      connection
+    )
+
+
+    await optimizeStandards(
+      connection
+    )
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Commit Only After Everything Succeeds
+    |--------------------------------------------------------------------------
+    */
+
+    if (!dryRun) {
+      await connection.commit()
+    }
+
+
+    console.log(
+      dryRun
+        ? '\nDry run completed successfully. Database was NOT changed.'
+        : '\nExisting image optimization completed successfully.'
+    )
+
+  } catch (error) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Roll Back Live Migration On Failure
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+      connection &&
+      !dryRun
+    ) {
+      await connection
+        .rollback()
+        .catch(() => {})
+    }
+
+
+    console.error(
+      '\nExisting image optimization failed:',
+      error
+    )
+
+
+    process.exitCode = 1
+
+  } finally {
+
+    if (connection) {
+      connection.release()
+    }
+
+
+    await pool.end()
+
+  }
+
+}
+
+
+run()
