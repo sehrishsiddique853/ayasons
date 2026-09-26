@@ -1,5 +1,11 @@
 import pool from '../config/mysql.js'
 
+import {
+  optimizeImage,
+  IMAGE_PRESETS,
+} from '../utils/imageOptimizer.js'
+
+
 const getBaseUrl = (
   req
 ) => {
@@ -103,11 +109,11 @@ const parseStats = (
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| GET Admin Homepage Content
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | GET Admin Homepage Content
+ * |--------------------------------------------------------------------------
+ */
 
 export const getAdminHomepageContent =
   async (
@@ -219,11 +225,11 @@ export const getAdminHomepageContent =
   }
 
 
-/*
-|--------------------------------------------------------------------------
-| PUT Admin Homepage Content
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | PUT Admin Homepage Content
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminHomepageContent =
   async (
@@ -268,11 +274,11 @@ export const updateAdminHomepageContent =
           ?.[0]
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | About Image Validation
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | About Image Validation
+       * |--------------------------------------------------------------------------
+       */
 
       if (
         aboutImage &&
@@ -289,11 +295,11 @@ export const updateAdminHomepageContent =
       }
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Video Validation
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Video Validation
+       * |--------------------------------------------------------------------------
+       */
 
       if (
         manufacturingVideo &&
@@ -332,11 +338,11 @@ export const updateAdminHomepageContent =
       ]
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Optional New About Image
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Optional New About Image
+       * |--------------------------------------------------------------------------
+       */
 
       if (aboutImage) {
 
@@ -356,11 +362,11 @@ export const updateAdminHomepageContent =
       }
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Optional New Video
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Optional New Video
+       * |--------------------------------------------------------------------------
+       */
 
       if (
         manufacturingVideo
@@ -390,12 +396,12 @@ export const updateAdminHomepageContent =
       const [result] =
         await pool.execute(
           `
-          UPDATE homepage_content
+            UPDATE homepage_content
 
-          SET
-            ${fields.join(', ')}
+            SET
+              ${fields.join(', ')}
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           params
         )
@@ -427,11 +433,11 @@ export const updateAdminHomepageContent =
   }
 
 
-  /*
-|--------------------------------------------------------------------------
-| GET Process Section
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | GET Process Section
+ * |--------------------------------------------------------------------------
+ */
 
 export const getAdminProcessContent =
   async (
@@ -564,11 +570,11 @@ export const getAdminProcessContent =
   }
 
 
-  /*
-|--------------------------------------------------------------------------
-| PUT Process Content
-|--------------------------------------------------------------------------
-*/
+/**
+ * |--------------------------------------------------------------------------
+ * | PUT Process Content
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminProcessContent =
   async (
@@ -661,23 +667,23 @@ export const updateAdminProcessContent =
         .beginTransaction()
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Update Header
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Update Header
+       * |--------------------------------------------------------------------------
+       */
 
       await connection.execute(
         `
-        UPDATE homepage_content
+          UPDATE homepage_content
 
-        SET
-          process_kicker = ?,
-          process_heading_line_1 = ?,
-          process_heading_line_2 = ?,
-          process_intro = ?
+          SET
+            process_kicker = ?,
+            process_heading_line_1 = ?,
+            process_heading_line_2 = ?,
+            process_intro = ?
 
-        WHERE id = 1
+          WHERE id = 1
         `,
         [
           kicker.trim(),
@@ -688,11 +694,11 @@ export const updateAdminProcessContent =
       )
 
 
-      /*
-      |--------------------------------------------------------------------------
-      | Update Cards
-      |--------------------------------------------------------------------------
-      */
+      /**
+       * |--------------------------------------------------------------------------
+       * | Update Cards
+       * |--------------------------------------------------------------------------
+       */
 
       for (
         let index = 0;
@@ -706,15 +712,15 @@ export const updateAdminProcessContent =
 
         await connection.execute(
           `
-          UPDATE homepage_process_steps
+            UPDATE homepage_process_steps
 
-          SET
-            step_order = ?,
-            step_number = ?,
-            title = ?,
-            description = ?
+            SET
+              step_order = ?,
+              step_number = ?,
+              title = ?,
+              description = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
             index + 1,
@@ -760,11 +766,12 @@ export const updateAdminProcessContent =
     }
   }
 
-  /*
-|--------------------------------------------------------------------------
-| PUT Process Card Image
-|--------------------------------------------------------------------------
-*/
+
+/**
+ * |--------------------------------------------------------------------------
+ * | PUT Process Card Image
+ * |--------------------------------------------------------------------------
+ */
 
 export const updateAdminProcessImage =
   async (
@@ -806,6 +813,12 @@ export const updateAdminProcessImage =
       }
 
 
+      /*
+      |--------------------------------------------------------------------------
+      | Keep Existing 5 MB Upload Limit
+      |--------------------------------------------------------------------------
+      */
+
       if (
         req.file.size >
         5 * 1024 * 1024
@@ -820,22 +833,56 @@ export const updateAdminProcessImage =
       }
 
 
+      /*
+      |--------------------------------------------------------------------------
+      | Optimize Process Image
+      |--------------------------------------------------------------------------
+      */
+
+      const optimizedImage =
+        await optimizeImage(
+          req.file,
+          IMAGE_PRESETS.process
+        )
+
+
+      console.log(
+        `Process image optimized: ${
+          (
+            optimizedImage.originalSize /
+            1024
+          ).toFixed(2)
+        } KB → ${
+          (
+            optimizedImage.optimizedSize /
+            1024
+          ).toFixed(2)
+        } KB`
+      )
+
+
+      /*
+      |--------------------------------------------------------------------------
+      | Store Optimized Process Image
+      |--------------------------------------------------------------------------
+      */
+
       const [result] =
         await pool.execute(
           `
-          UPDATE homepage_process_steps
+            UPDATE homepage_process_steps
 
-          SET
-            image_blob = ?,
-            image_mime = ?,
-            image_name = ?
+            SET
+              image_blob = ?,
+              image_mime = ?,
+              image_name = ?
 
-          WHERE id = ?
+            WHERE id = ?
           `,
           [
-            req.file.buffer,
-            req.file.mimetype,
-            req.file.originalname,
+            optimizedImage.buffer,
+            optimizedImage.mimeType,
+            optimizedImage.fileName,
             id,
           ]
         )
