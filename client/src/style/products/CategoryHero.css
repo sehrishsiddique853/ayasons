@@ -1,6 +1,6 @@
 .product-category-hero {
   position: relative;
-  min-height: 470px;
+  min-height: 120svh;
 
   display: flex;
   align-items: center;
@@ -47,6 +47,7 @@
       rgba(5, 6, 9, 0.66) 70%,
       rgba(5, 6, 9, 0.48) 100%
     );
+    opacity: 0.7;
 }
 
 .product-category-hero-content {

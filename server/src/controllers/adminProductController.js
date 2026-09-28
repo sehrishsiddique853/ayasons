@@ -57,6 +57,9 @@ const parseBoolean = (value) =>
   value === '1' ||
   value === 1
 
+const versionImageName = (fileName) =>
+  `${Date.now()}-${fileName}`
+
 const formatProduct = (row, req) => ({
   id: row.id,
   name: row.name,
@@ -447,7 +450,7 @@ connection =
         description.trim(),
         optimizedImage.buffer,
 optimizedImage.mimeType,
-optimizedImage.fileName,
+versionImageName(optimizedImage.fileName),
         JSON.stringify(parsedFeatures),
         parseBoolean(featured) ? 1 : 0,
         parseBoolean(active) ? 1 : 0,
@@ -625,7 +628,7 @@ const fields = [
   params.push(
     optimizedImage.buffer,
     optimizedImage.mimeType,
-    optimizedImage.fileName
+    versionImageName(optimizedImage.fileName)
   )
 
 }

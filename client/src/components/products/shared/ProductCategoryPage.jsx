@@ -257,8 +257,8 @@ function ProductCategoryPage() {
           product.description,
 
         image:
-          cardImage ||
-          product.image?.url,
+          product.image?.url ||
+          cardImage,
 
         features:
           product.features || [],

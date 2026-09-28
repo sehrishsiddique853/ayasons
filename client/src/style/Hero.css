@@ -4,7 +4,7 @@
 
 .hero-section {
   position: relative;
-  min-height: 100svh;
+  min-height: 120svh;
   display: flex;
   align-items: center;
 
@@ -1576,6 +1576,9 @@ span:first-child {
 
   opacity: 0.88;
 
+  /* The first hero frame must render at full opacity without flashing. */
+  animation: none;
+
   transition:
     opacity 450ms ease,
     transform 700ms ease;
@@ -1587,8 +1590,8 @@ span:first-child {
 ----------------------------------------- */
 
 .hero-image.changing {
-  opacity: 0.35;
-  transform: scale(1.01);
+  opacity: 0.72;
+  transform: scale(1.005);
 }
 
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import heroAthlete from '../../assets/images/optimized/hero1.jpg'
+import sportswearHero from '../../assets/images/optimized/category-sports-teamwear.jpg'
 import { withImageWidth } from '../../utils/imageUrl'
 
 const CATEGORY_ORDER = [
@@ -53,6 +53,7 @@ const sortHeroCategories = (categories) => {
 function Hero({ categories = [] }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isChanging, setIsChanging] = useState(false)
+  const [displayedImage, setDisplayedImage] = useState(sportswearHero)
 
   const heroCategories = sortHeroCategories(categories)
 
@@ -142,7 +143,47 @@ function Hero({ categories = [] }) {
     )
 
   const backgroundImage =
-    activeImage || heroAthlete
+    activeImage || sportswearHero
+
+  /*
+   * Keep the current background visible until the next one has fully
+   * downloaded and decoded. This prevents a blank frame when API data
+   * arrives or the carousel advances.
+   */
+  useEffect(() => {
+    if (backgroundImage === displayedImage) {
+      return undefined
+    }
+
+    let cancelled = false
+    const nextImage = new Image()
+
+    const showNextImage = async () => {
+      try {
+        await nextImage.decode()
+      } catch {
+        // The load event still confirms the image can be displayed.
+      }
+
+      if (!cancelled) {
+        setDisplayedImage(backgroundImage)
+      }
+    }
+
+    nextImage.addEventListener('load', showNextImage, {
+      once: true,
+    })
+    nextImage.src = backgroundImage
+
+    if (nextImage.complete) {
+      showNextImage()
+    }
+
+    return () => {
+      cancelled = true
+      nextImage.removeEventListener('load', showNextImage)
+    }
+  }, [backgroundImage, displayedImage])
 
   return (
     <section
@@ -151,16 +192,10 @@ function Hero({ categories = [] }) {
     >
       {/* BACKGROUND IMAGE */}
       <img
-        key={
-          activeCategory?._id ||
-          activeCategory?.slug ||
-          activeCategory?.name ||
-          'default-hero'
-        }
         className={`hero-image ${
           isChanging ? 'changing' : ''
         }`}
-        src={backgroundImage}
+        src={displayedImage}
         alt=""
         aria-hidden="true"
         decoding="async"

@@ -139,17 +139,9 @@ function ManufactureSection({
                         src={cardImage}
                         alt=""
                         aria-hidden="true"
-                        loading={
-                          index < 4
-                            ? 'eager'
-                            : 'lazy'
-                        }
+                        loading="lazy"
                         decoding="async"
-                        fetchPriority={
-                          index < 4
-                            ? 'high'
-                            : 'low'
-                        }
+                        fetchPriority="low"
                       />
                     )}
 

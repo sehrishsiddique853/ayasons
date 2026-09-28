@@ -194,18 +194,19 @@ function ManufacturingExcellence({
           {hasVideo ? (
 
             <video
-              className="manufacturing-video"
-              src={
-                manufacturingVideo
-                  .url
-              }
-              poster={
-                factoryImage
-              }
-              controls
-              playsInline
-              preload="metadata"
-            >
+  className="manufacturing-video"
+  src={
+    manufacturingVideo
+      .url
+  }
+  
+  autoPlay
+  loop
+  muted
+  playsInline
+  controls
+  preload="auto"
+>
               Your browser does not
               support HTML5 video.
             </video>

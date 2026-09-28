@@ -51,6 +51,15 @@ const getMediaVersion = (
 }
 
 
+const getProductImageVersion = (
+  row
+) => {
+  return row.image_name || getMediaVersion(
+    row.updated_at
+  )
+}
+
+
 const formatProduct = (
   row,
   req
@@ -86,8 +95,8 @@ const formatProduct = (
 
     image: {
       url:
-        `${getBaseUrl(req)}/api/images/products/${row.id}?v=${getMediaVersion(
-          row.updated_at
+        `${getBaseUrl(req)}/api/images/products/${row.id}?v=${encodeURIComponent(
+          getProductImageVersion(row)
         )}`,
 
       publicId: '',
@@ -210,6 +219,7 @@ export const findActiveProducts =
         p.group_name,
         p.description,
         p.image,
+        p.image_name,
         p.features_json,
         p.featured,
         p.featured_order,
@@ -281,6 +291,7 @@ export const findActiveProductById =
           p.group_name,
           p.description,
           p.image,
+          p.image_name,
           p.features_json,
           p.featured,
           p.featured_order,
@@ -392,6 +403,7 @@ export const findActiveProductsByCategory =
           p.group_name,
           p.description,
           p.image,
+          p.image_name,
           p.features_json,
           p.featured,
           p.featured_order,

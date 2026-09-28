@@ -12,6 +12,7 @@ import {
 } from 'react-router-dom'
 
 import Navbar from './components/layout/Navbar'
+import ImagePreloader from './components/common/ImagePreloader'
 
 import Home from './pages/Home'
 
@@ -184,6 +185,8 @@ function RouteLoadingBar() {
 function App() {
   return (
     <div className="site-shell">
+
+      <ImagePreloader />
 
       <ScrollManager />
 

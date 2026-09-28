@@ -129,9 +129,9 @@ function BestSellersSection() {
                         )}
                         alt={product.name}
                         className="best-seller-image"
-                        loading="eager"
+                        loading="lazy"
                         decoding="async"
-                        fetchPriority="high"
+                        fetchPriority="low"
                       />
 
                           <div className="best-seller-image-overlay" />
