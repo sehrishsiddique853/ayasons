@@ -27,9 +27,18 @@ import contactRoutes
 
 import adminStandardRoutes
   from './routes/adminStandardRoutes.js'
+import cookieParser
+  from 'cookie-parser'
 
+import adminAuthRoutes
+  from './routes/adminAuthRoutes.js'
+
+  import {
+  requireAdmin,
+} from './middleware/adminAuthMiddleware.js'
 
 const app = express()
+
 
 /*
 |--------------------------------------------------------------------------
@@ -142,7 +151,7 @@ app.use(
     limit: '1mb',
   })
 )
-
+app.use(cookieParser())
 
 /*
 |--------------------------------------------------------------------------
@@ -261,10 +270,7 @@ app.use(
   imageRoutes
 )
 
-app.use(
-  '/api/admin',
-  adminRoutes
-)
+
 
 app.use(
   '/api/home-content',
@@ -277,10 +283,6 @@ app.use(
 )
 
 
-app.use(
-  '/api/admin/departments',
-  adminDepartmentRoutes
-)
 
 app.use(
   '/api/contact',
@@ -292,6 +294,52 @@ app.use(
   standardRoutes
 )
 
+/*
+|--------------------------------------------------------------------------
+| Admin Authentication
+|--------------------------------------------------------------------------
+|
+| Login must stay public.
+|
+*/
+
+app.use(
+  '/api/admin/auth',
+  adminAuthRoutes
+)
+
+
+/*
+|--------------------------------------------------------------------------
+| Protect All Admin Routes
+|--------------------------------------------------------------------------
+|
+| Everything under /api/admin after this
+| requires a valid admin JWT cookie.
+|
+*/
+
+app.use(
+  '/api/admin',
+  requireAdmin
+)
+
+
+/*
+|--------------------------------------------------------------------------
+| Protected Admin APIs
+|--------------------------------------------------------------------------
+*/
+
+app.use(
+  '/api/admin',
+  adminRoutes
+)
+
+app.use(
+  '/api/admin/departments',
+  adminDepartmentRoutes
+)
 
 app.use(
   '/api/admin/standards',

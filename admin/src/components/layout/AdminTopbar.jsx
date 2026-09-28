@@ -1,12 +1,58 @@
 import {
+  LogOut,
   Menu,
 } from 'lucide-react'
+
+import {
+  useNavigate,
+} from 'react-router-dom'
+
+import {
+  useAuth,
+} from '../../context/AuthContext'
+
+import '../../styles/admin-topbar-auth.css'
 
 
 function AdminTopbar({
   onMenuClick,
 }) {
+
+  const {
+    admin,
+    logout,
+  } = useAuth()
+
+
+  const navigate =
+    useNavigate()
+
+
+  const handleLogout =
+    async () => {
+
+      await logout()
+
+      navigate(
+        '/login',
+        {
+          replace: true,
+        }
+      )
+
+  }
+
+
+  const adminInitial =
+    admin?.name
+      ?.trim()
+      ?.charAt(0)
+      ?.toUpperCase() ||
+    'A'
+
+
   return (
+
     <header className="admin-topbar">
 
       <div className="admin-topbar-left">
@@ -19,7 +65,9 @@ function AdminTopbar({
           <Menu size={22} />
         </button>
 
+
         <div>
+
           <span className="admin-topbar-label">
             AYOSONS
           </span>
@@ -27,33 +75,69 @@ function AdminTopbar({
           <p>
             Product Management
           </p>
+
         </div>
 
       </div>
 
 
-      <div className="admin-profile">
+      <div className="admin-topbar-account">
 
-        <div className="admin-profile-avatar">
-          A
+        <div className="admin-profile">
+
+          <div className="admin-profile-avatar">
+
+            {adminInitial}
+
+          </div>
+
+
+          <div className="admin-profile-info">
+
+            <strong>
+              {
+                admin?.name ||
+                'Administrator'
+              }
+            </strong>
+
+            <span>
+              {
+                admin?.email ||
+                'Admin'
+              }
+            </span>
+
+          </div>
+
         </div>
 
-        <div className="admin-profile-info">
 
-          <strong>
-            Administrator
-          </strong>
+        <button
+          type="button"
+          className="admin-logout-button"
+          onClick={
+            handleLogout
+          }
+          title="Logout"
+        >
+
+          <LogOut
+            size={17}
+          />
 
           <span>
-            Admin
+            Logout
           </span>
 
-        </div>
+        </button>
 
       </div>
 
     </header>
+
   )
+
 }
 
 

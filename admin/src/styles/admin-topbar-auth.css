@@ -1,0 +1,182 @@
+.admin-topbar-account {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+}
+
+
+/* ==============================
+   PROFILE
+============================== */
+
+.admin-profile {
+  display: flex;
+
+  align-items: center;
+
+  gap: 11px;
+}
+
+
+.admin-profile-avatar {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background:
+    #08090c;
+
+  color:
+    var(--admin-gold);
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+
+.admin-profile-info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+
+  max-width: 210px;
+}
+
+
+.admin-profile-info strong {
+  overflow: hidden;
+
+  color:
+    var(--admin-text);
+
+  font-size: 13px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+.admin-profile-info span {
+  overflow: hidden;
+
+  color:
+    var(--admin-muted);
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ==============================
+   LOGOUT
+============================== */
+
+.admin-logout-button {
+  min-height: 38px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 0 13px;
+
+  border:
+    1px solid
+    var(--admin-border);
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #555555;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
+}
+
+
+.admin-logout-button:hover {
+  border-color:
+    #e5b5b5;
+
+  background:
+    #fff5f5;
+
+  color:
+    #b3261e;
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .admin-profile-info {
+    display: none;
+  }
+
+
+  .admin-topbar-account {
+    gap: 9px;
+  }
+
+
+  .admin-logout-button {
+    width: 38px;
+
+    padding: 0;
+  }
+
+
+  .admin-logout-button span {
+    display: none;
+  }
+
+}
+
+
+@media (
+  max-width: 430px
+) {
+
+  .admin-profile-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+
+  .admin-logout-button {
+    width: 36px;
+    min-height: 36px;
+  }
+
+}

@@ -4,110 +4,219 @@ import {
   Route,
 } from 'react-router-dom'
 
-import AdminLayout from './components/layout/AdminLayout'
-import './styles/admin.css'
-import Dashboard from './pages/Dashboard'
-import Categories from './pages/Categories'
-import AddCategory from './pages/AddCategory'
-import EditCategory from './pages/EditCategory'
-import Products from './pages/Products'
-import AddProduct from './pages/AddProduct'
-import EditProduct from './pages/EditProduct'
-import HotSelling from './pages/HotSelling'
-import Settings from './pages/Settings'
-import HomeContent from './pages/HomeContent'
+import {
+  AuthProvider,
+} from './context/AuthContext'
+
+import ProtectedRoute
+  from './components/auth/ProtectedRoute'
+
+import AdminLayout
+  from './components/layout/AdminLayout'
+
+import Login
+  from './pages/Login'
+
+import Dashboard
+  from './pages/Dashboard'
+
+import Categories
+  from './pages/Categories'
+
+import AddCategory
+  from './pages/AddCategory'
+
+import EditCategory
+  from './pages/EditCategory'
+
+import Products
+  from './pages/Products'
+
+import AddProduct
+  from './pages/AddProduct'
+
+import EditProduct
+  from './pages/EditProduct'
+
+import HotSelling
+  from './pages/HotSelling'
+
+import Settings
+  from './pages/Settings'
+
+import HomeContent
+  from './pages/HomeContent'
+
+import OurProcess
+  from './pages/OurProcess'
+
+import Departments
+  from './pages/Departments'
+
+import Contact
+  from './pages/Contact'
+
+import Certifications
+  from './pages/Certifications'
 
 import './styles/admin.css'
 
-import OurProcess from './pages/OurProcess'
-import Departments from './pages/Departments'
-import Contact from './pages/Contact'
-import Certifications from './pages/Certifications'
 
 function App() {
+
   return (
+
     <BrowserRouter>
-      <Routes>
 
-        <Route
-          element={<AdminLayout />}
-        >
+      <AuthProvider>
+
+        <Routes>
+
+          {/* PUBLIC LOGIN */}
 
           <Route
-            path="/"
-            element={<Dashboard />}
+            path="/login"
+            element={<Login />}
           />
 
-          <Route
-            path="/categories"
-            element={<Categories />}
-          />
+
+          {/* AUTHENTICATED ADMIN */}
 
           <Route
-            path="/categories/new"
-            element={<AddCategory />}
-          />
+            element={
+              <ProtectedRoute />
+            }
+          >
 
-          <Route
-            path="/categories/:id/edit"
-            element={<EditCategory />}
-          />
+            <Route
+              element={
+                <AdminLayout />
+              }
+            >
 
-          <Route
-            path="/products"
-            element={<Products />}
-          />
+              <Route
+                path="/"
+                element={
+                  <Dashboard />
+                }
+              />
 
-          <Route
-            path="/products/new"
-            element={<AddProduct />}
-          />
 
-          <Route
-            path="/products/:id/edit"
-            element={<EditProduct />}
-          />
+              <Route
+                path="/categories"
+                element={
+                  <Categories />
+                }
+              />
 
-          <Route
-            path="/hot-selling"
-            element={<HotSelling />}
-          />
 
-          <Route
-  path="/home-content"
-  element={<HomeContent />}
-/>
+              <Route
+                path="/categories/new"
+                element={
+                  <AddCategory />
+                }
+              />
 
-<Route
-  path="/our-process"
-  element={<OurProcess />}
-/>
 
-<Route
-  path="/departments"
-  element={<Departments />}
-/>
+              <Route
+                path="/categories/:id/edit"
+                element={
+                  <EditCategory />
+                }
+              />
 
-<Route
-  path="/certifications"
-  element={<Certifications />}
-/>
 
-<Route
-  path="/contact"
-  element={<Contact />}
-/>
+              <Route
+                path="/products"
+                element={
+                  <Products />
+                }
+              />
 
-          <Route
-            path="/settings"
-            element={<Settings />}
-          />
 
-        </Route>
+              <Route
+                path="/products/new"
+                element={
+                  <AddProduct />
+                }
+              />
 
-      </Routes>
+
+              <Route
+                path="/products/:id/edit"
+                element={
+                  <EditProduct />
+                }
+              />
+
+
+              <Route
+                path="/hot-selling"
+                element={
+                  <HotSelling />
+                }
+              />
+
+
+              <Route
+                path="/home-content"
+                element={
+                  <HomeContent />
+                }
+              />
+
+
+              <Route
+                path="/our-process"
+                element={
+                  <OurProcess />
+                }
+              />
+
+
+              <Route
+                path="/departments"
+                element={
+                  <Departments />
+                }
+              />
+
+
+              <Route
+                path="/certifications"
+                element={
+                  <Certifications />
+                }
+              />
+
+
+              <Route
+                path="/contact"
+                element={
+                  <Contact />
+                }
+              />
+
+
+              <Route
+                path="/settings"
+                element={
+                  <Settings />
+                }
+              />
+
+            </Route>
+
+          </Route>
+
+        </Routes>
+
+      </AuthProvider>
+
     </BrowserRouter>
+
   )
+
 }
 
 

@@ -21,17 +21,21 @@
     "mysql:add-standards": "node src/scripts/addStandards.js",
     "mysql:add-contact-settings": "node src/scripts/addContactSettings.js",
     "images:optimize-existing": "node src/scripts/optimizeExistingImages.js",
-    "images:optimize-existing:dry-run": "node src/scripts/optimizeExistingImages.js --dry-run"
+    "images:optimize-existing:dry-run": "node src/scripts/optimizeExistingImages.js --dry-run",
+    "mysql:add-admin-users": "node src/scripts/addAdminUsers.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
     "mysql2": "^3.24.4",

@@ -222,8 +222,10 @@ const normalizeMediaUrls = (
 */
 
 api.interceptors
+api.interceptors
   .response
   .use(
+
     (
       response
     ) => {
@@ -236,7 +238,50 @@ api.interceptors
 
       return response
 
+    },
+
+
+    (
+      error
+    ) => {
+
+      const status =
+        error.response
+          ?.status
+
+
+      const requestUrl =
+        error.config
+          ?.url ||
+        ''
+
+
+      const isLoginRequest =
+        requestUrl.includes(
+          '/admin/auth/login'
+        )
+
+
+      if (
+        status === 401 &&
+        !isLoginRequest
+      ) {
+
+        window.dispatchEvent(
+          new Event(
+            'admin:unauthorized'
+          )
+        )
+
+      }
+
+
+      return Promise.reject(
+        error
+      )
+
     }
+
   )
 
 
