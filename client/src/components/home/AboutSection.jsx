@@ -1,5 +1,6 @@
 import aboutImageFallback
   from '../../assets/images/optimized/factory2.jpg'
+import { Link } from 'react-router-dom'
 
 
 const trustPoints = [
@@ -12,6 +13,7 @@ const trustPoints = [
 
 function AboutSection({
   homepageContent,
+  priority = false,
 }) {
 
   const managedImage =
@@ -42,8 +44,9 @@ function AboutSection({
             aboutImage
           }
           alt="AYOSONS apparel manufacturing facility"
-          loading="lazy"
-          decoding="async"
+          loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
+          fetchPriority={priority ? 'high' : 'low'}
         />
 
       </div>
@@ -106,12 +109,12 @@ function AboutSection({
         </div>
 
 
-        <a
+        <Link
           className="about-button"
-          href="#manufacturing"
+          to="/manufacturing"
         >
           Learn More About Us
-        </a>
+        </Link>
 
       </div>
 

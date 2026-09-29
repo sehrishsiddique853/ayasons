@@ -1,3 +1,8 @@
+import {
+  useEffect,
+  useRef,
+} from 'react'
+
 import factoryImage
   from '../../assets/images/optimized/ayosons-about-manufacturing.jpg'
 
@@ -32,6 +37,8 @@ function ManufacturingExcellence({
   homepageContent,
   priority = false,
 }) {
+  const videoRef = useRef(null)
+
 
   const manufacturingStats =
     Array.isArray(
@@ -58,6 +65,46 @@ function ManufacturingExcellence({
       manufacturingVideo
         ?.url
     )
+
+
+  useEffect(() => {
+    const video = videoRef.current
+
+    if (!video || !hasVideo) {
+      return undefined
+    }
+
+    const startPlayback = () => {
+      video.preload = 'auto'
+      video.play().catch(() => {})
+    }
+
+    if (priority || !('IntersectionObserver' in window)) {
+      startPlayback()
+      return undefined
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          startPlayback()
+        } else {
+          video.pause()
+        }
+      },
+      {
+        rootMargin: '900px 0px',
+        threshold: 0,
+      }
+    )
+
+    observer.observe(video)
+
+    return () => {
+      observer.disconnect()
+      video.pause()
+    }
+  }, [hasVideo, priority, manufacturingVideo?.url])
 
 
   return (
@@ -174,18 +221,7 @@ function ManufacturingExcellence({
           </div>
 
 
-          <a
-            href="#contact"
-            className="manufacturing-button"
-          >
-
-            Explore Our Manufacturing
-
-            <span aria-hidden="true">
-              →
-            </span>
-
-          </a>
+          
 
         </div>
 
@@ -195,6 +231,7 @@ function ManufacturingExcellence({
           {hasVideo ? (
 
             <video
+  ref={videoRef}
   className="manufacturing-video"
   src={
     manufacturingVideo
@@ -206,7 +243,7 @@ function ManufacturingExcellence({
   muted
   playsInline
   controls
-  preload={priority ? 'auto' : 'none'}
+  preload={priority ? 'auto' : 'metadata'}
 >
               Your browser does not
               support HTML5 video.

@@ -118,7 +118,7 @@ function Footer() {
 
           <Link to="/#home">Home</Link>
           <Link to="/products">Products</Link>
-          <Link to="/#about">About</Link>
+          <Link to="/about">About</Link>
           <Link to="/manufacturing">Manufacturing</Link>
           <Link to="/contact">Request A Quote</Link>
 

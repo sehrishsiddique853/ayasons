@@ -106,7 +106,7 @@ function BuyerTypesSection() {
           </p>
 
           <a
-            href="#contact"
+            href="/contact"
             className="buyer-types-button"
           >
             Start Your Project

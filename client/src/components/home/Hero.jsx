@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import sportswearHero from '../../assets/images/optimized/category-sports-teamwear.jpg'
 import { withImageWidth } from '../../utils/imageUrl'
+import heroLoadingFallback from '../../assets/images/optimized/hero-loading-fallback.webp'
 
 const CATEGORY_ORDER = [
   'sportswear',
@@ -54,7 +54,9 @@ const sortHeroCategories = (categories) => {
 function Hero({ categories = [] }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isChanging, setIsChanging] = useState(false)
-  const [displayedImage, setDisplayedImage] = useState(sportswearHero)
+  const [displayedImage, setDisplayedImage] = useState(
+    heroLoadingFallback
+  )
 
   const heroCategories = sortHeroCategories(categories)
 
@@ -144,7 +146,7 @@ function Hero({ categories = [] }) {
     )
 
   const backgroundImage =
-    activeImage || sportswearHero
+    activeImage
 
   /*
    * Keep the current background visible until the next one has fully
@@ -152,6 +154,10 @@ function Hero({ categories = [] }) {
    * arrives or the carousel advances.
    */
   useEffect(() => {
+    if (!backgroundImage) {
+      return undefined
+    }
+
     if (backgroundImage === displayedImage) {
       return undefined
     }
@@ -192,16 +198,18 @@ function Hero({ categories = [] }) {
       id="home"
     >
       {/* BACKGROUND IMAGE */}
-      <img
-        className={`hero-image ${
-          isChanging ? 'changing' : ''
-        }`}
-        src={displayedImage}
-        alt=""
-        aria-hidden="true"
-        decoding="async"
-        fetchPriority="high"
-      />
+      {displayedImage && (
+        <img
+          className={`hero-image ${
+            isChanging ? 'changing' : ''
+          }`}
+          src={displayedImage}
+          alt=""
+          aria-hidden="true"
+          decoding="sync"
+          fetchPriority="high"
+        />
+      )}
 
       {/* DARK OVERLAY */}
       <div className="hero-overlay" />
@@ -225,7 +233,17 @@ function Hero({ categories = [] }) {
 
         <h1>
           <span className="hero-category-title">
-            {activeCategory?.name || 'Sportswear'}
+            <span
+              className="hero-category-title-text"
+              key={
+                activeCategory?.id ||
+                activeCategory?._id ||
+                activeCategory?.slug ||
+                'sportswear'
+              }
+            >
+              {activeCategory?.name || 'Sportswear'}
+            </span>
           </span>
         </h1>
 

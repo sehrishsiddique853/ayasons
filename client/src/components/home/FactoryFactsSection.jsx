@@ -177,7 +177,7 @@ function FactoryFactsSection() {
           </p>
 
           <a
-            href="#contact"
+            href="/contact"
             className="factory-facts-button"
           >
             Talk To Our Team

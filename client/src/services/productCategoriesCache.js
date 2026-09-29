@@ -27,6 +27,27 @@ const preloadImage = (url) => {
   })
 }
 
+export const preloadFirstCategoryHero = (categories) =>
+  preloadImage(
+    categories[0]?.heroImage?.url ||
+    categories[0]?.collectionImage?.url
+  )
+
+export const preloadProductCategoryImages = (categories) => {
+  const imageUrls = categories
+    .flatMap(
+      (category) => [
+        category.heroImage?.url,
+        category.collectionImage?.url,
+      ]
+    )
+    .filter(Boolean)
+
+  return Promise.all(
+    [...new Set(imageUrls)].map(preloadImage)
+  )
+}
+
 export const getCachedProductCategories = () => {
   if (
     !cachedCategories ||
@@ -50,17 +71,7 @@ export const loadProductCategories = async () => {
     })
     .then(async (response) => {
       const categories = response.data.categories || []
-      const imageUrls = categories
-        .map(
-          (category) =>
-            category.collectionImage?.url ||
-            category.heroImage?.url
-        )
-        .filter(Boolean)
-
-      await Promise.all(
-        [...new Set(imageUrls)].map(preloadImage)
-      )
+      await preloadProductCategoryImages(categories)
 
       cachedCategories = categories
       cachedAt = Date.now()

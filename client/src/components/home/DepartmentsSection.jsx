@@ -323,18 +323,7 @@ function DepartmentsSection({
           </p>
 
 
-          <a
-            href="#manufacturing"
-            className="departments-button"
-          >
-
-            View Full Capabilities
-
-            <span aria-hidden="true">
-              →
-            </span>
-
-          </a>
+        
 
         </div>
 

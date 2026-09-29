@@ -186,6 +186,7 @@ const getCategoryImage = async (
 
         fallbackName:
           `category-${type}-${categoryId}`,
+
       }
     )
 

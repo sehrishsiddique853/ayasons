@@ -157,7 +157,7 @@ function FactoryDirectSection() {
 
               <p>{item.description}</p>
 
-              <a href="#contact">
+              <a href="/contact">
                 {item.link}
                 <span aria-hidden="true">→</span>
               </a>

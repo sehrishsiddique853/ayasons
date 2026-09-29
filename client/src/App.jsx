@@ -14,11 +14,13 @@ import Navbar from './components/layout/Navbar'
 import ImagePreloader from './components/common/ImagePreloader'
 import { ContactSettingsProvider } from './context/ContactSettingsContext'
 import { loadProductCategories } from './services/productCategoriesCache'
+import { loadHomepageContent } from './services/homepageContentCache'
 
 import Home from './pages/Home'
 
 import ProductCategoryPage from './components/products/shared/ProductCategoryPage'
-
+import About
+  from './pages/About'
 import Manufacturing
   from './pages/Manufacturing'
 import './App.css'
@@ -57,6 +59,11 @@ function ScrollManager() {
   }, [])
 
   useLayoutEffect(() => {
+    const root = document.documentElement
+    const previousScrollBehavior = root.style.scrollBehavior
+
+    root.style.scrollBehavior = 'auto'
+
     if (location.hash) {
       const section = document.querySelector(
         location.hash
@@ -67,6 +74,8 @@ function ScrollManager() {
           behavior: 'auto',
           block: 'start',
         })
+
+        root.style.scrollBehavior = previousScrollBehavior
         return
       }
     }
@@ -76,6 +85,8 @@ function ScrollManager() {
       top: 0,
       behavior: 'auto',
     })
+
+    root.style.scrollBehavior = previousScrollBehavior
   }, [
     location.pathname,
     location.hash,
@@ -133,6 +144,7 @@ function App() {
   useEffect(() => {
     const warmProductsPage = () => {
       loadProductCategories().catch(() => {})
+      loadHomepageContent().catch(() => {})
     }
 
     const idleId = window.requestIdleCallback
@@ -190,6 +202,12 @@ function App() {
   }
 />
 
+<Route
+  path="/about"
+  element={
+    <About />
+  }
+/>
           {/*
           |--------------------------------------------------------------------------
           | DYNAMIC PRODUCT CATEGORY PAGE
