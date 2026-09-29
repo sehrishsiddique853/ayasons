@@ -30,6 +30,7 @@ const capabilities = [
 
 function ManufacturingExcellence({
   homepageContent,
+  priority = false,
 }) {
 
   const manufacturingStats =
@@ -200,12 +201,12 @@ function ManufacturingExcellence({
       .url
   }
   
-  autoPlay
+  autoPlay={priority}
   loop
   muted
   playsInline
   controls
-  preload="auto"
+  preload={priority ? 'auto' : 'none'}
 >
               Your browser does not
               support HTML5 video.
@@ -218,8 +219,9 @@ function ManufacturingExcellence({
                 factoryImage
               }
               alt="AYOSONS apparel manufacturing facility"
-              loading="lazy"
-              decoding="async"
+              loading={priority ? 'eager' : 'lazy'}
+              decoding={priority ? 'sync' : 'async'}
+              fetchPriority={priority ? 'high' : 'low'}
             />
 
           )}

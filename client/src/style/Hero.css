@@ -50,7 +50,7 @@
 
   position: absolute;
 
-  top: 72px;
+  top: 72 px;
   right: 0;
   bottom: 0;
 
@@ -79,6 +79,8 @@
   width: 100%;
 
   max-width: 760px;
+  transform: translateY(-50px);
+
 }
 
 .hero-meta {
@@ -151,7 +153,7 @@
   display: block;
 }
 
-.hero-content h1 span:nth-child(2) {
+.hero-category-title {
   background:
     linear-gradient(
       90deg,
@@ -175,6 +177,8 @@
     4.5s
     ease-in-out
     infinite;
+
+  will-change: background-position;
 }
 
 .hero-image {
@@ -281,7 +285,7 @@
   margin:
     4px 0 0;
 
-  color: var(--brand-yellow);
+  color: white;
 
   font-family: var(--font-display);
 

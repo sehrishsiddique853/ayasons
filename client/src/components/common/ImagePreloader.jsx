@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const LOOK_AHEAD_DISTANCE = '1400px 0px'
+const LOOK_AHEAD_DISTANCE = '800px 0px'
 
 function ImagePreloader() {
   useEffect(() => {
@@ -20,7 +20,7 @@ function ImagePreloader() {
           const image = entry.target
 
           image.loading = 'eager'
-          image.fetchPriority = 'low'
+          image.fetchPriority = 'auto'
 
           if (typeof image.decode === 'function') {
             image.decode().catch(() => {})

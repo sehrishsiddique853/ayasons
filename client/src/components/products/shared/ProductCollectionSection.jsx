@@ -1,4 +1,5 @@
 import '../../../style/products/ProductCollectionSection.css'
+import { Link } from 'react-router-dom'
 
 function ProductCollectionSection({
   title,
@@ -98,16 +99,16 @@ function ProductCollectionSection({
 
         </div>
 
-        <a
+        <Link
           className="product-category-button"
-          href="/#contact"
+          to="/contact"
         >
           Enquire
 
           <span aria-hidden="true">
             →
           </span>
-        </a>
+        </Link>
 
       </div>
     </section>

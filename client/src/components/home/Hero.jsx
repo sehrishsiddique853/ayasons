@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import sportswearHero from '../../assets/images/optimized/category-sports-teamwear.jpg'
 import { withImageWidth } from '../../utils/imageUrl'
 
@@ -214,21 +215,21 @@ function Hero({ categories = [] }) {
           <span>Ships Worldwide</span>
         </p>
 
+        <p className="eyebrow">
+          Custom Sportswear and
+        </p>
+         <p className="eyebrow">
+           Streetwear Manufacturer
+        </p>
+        
+
         <h1>
-          <span>Custom</span>
-
-          <span>
-            Sportswear and Streetwear
-          </span>
-
-          <span>
-            Manufacturer
+          <span className="hero-category-title">
+            {activeCategory?.name || 'Sportswear'}
           </span>
         </h1>
 
-        <p className="eyebrow">
-          in Sialkot, Pakistan
-        </p>
+      
 
         <p className="hero-copy">
           Your manufacturing partner for sportswear,
@@ -239,28 +240,26 @@ function Hero({ categories = [] }) {
 
         <div className="hero-buttons">
 
-          <a
+          <Link
             className="primary-button"
-            href="#products"
+            to="/products"
           >
             Explore Products
-          </a>
+          </Link>
 
-          <a
+          <Link
             className="secondary-button"
-            href="#contact"
+            to="/contact"
           >
             Request a Quote
-          </a>
+          </Link>
 
         </div>
 
-        {/* CURRENT CATEGORY */}
-        {activeCategory && (
-          <p className="category-strip">
-            {activeCategory.name}
-          </p>
-        )}
+      
+         <p className="eyebrow">
+          in Sialkot, Pakistan
+        </p>
 
       </div>
 

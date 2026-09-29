@@ -1,6 +1,4 @@
 import '../../style/DepartmentsSection.css'
-import addImagePlaceholder
-  from '../../assets/images/optimized/add-image-placeholder.jpg'
 
 const defaultStats = [
   {
@@ -35,8 +33,7 @@ const defaultDepartments = [
     description:
       'From pattern development and size grading to precise cutting, every garment begins with accuracy and careful preparation.',
 
-    image:
-      addImagePlaceholder,
+    
   },
 
   {
@@ -48,8 +45,7 @@ const defaultDepartments = [
     description:
       'Performance apparel is produced with high-quality sublimation processes for vibrant colors, graphics and lasting finishes.',
 
-    image:
-      addImagePlaceholder,
+   
   },
 
   {
@@ -61,8 +57,7 @@ const defaultDepartments = [
     description:
       'Custom logos, names and branding are applied using embroidery and decoration techniques according to product requirements.',
 
-    image:
-      addImagePlaceholder,
+   
   },
 
   {
@@ -74,8 +69,7 @@ const defaultDepartments = [
     description:
       'Experienced production teams handle garment assembly with attention to construction, strength and finishing standards.',
 
-    image:
-      addImagePlaceholder,
+ 
   },
 
   {
@@ -87,8 +81,7 @@ const defaultDepartments = [
     description:
       'Custom kit bags, duffle bags and other accessories are developed with durable materials and reinforced construction.',
 
-    image:
-      addImagePlaceholder,
+   
   },
 
   {
@@ -100,8 +93,7 @@ const defaultDepartments = [
     description:
       'Finished products are inspected for workmanship, measurements and overall quality before final packing and dispatch.',
 
-    image:
-      addImagePlaceholder,
+   
   },
 ]
 

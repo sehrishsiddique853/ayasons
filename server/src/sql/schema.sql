@@ -211,6 +211,18 @@ CREATE TABLE IF NOT EXISTS contact_settings (
 
     recipient_email VARCHAR(255) NOT NULL,
 
+    public_email VARCHAR(255) NOT NULL DEFAULT '',
+
+    phone_number VARCHAR(50) NOT NULL DEFAULT '',
+
+    whatsapp_number VARCHAR(50) NOT NULL DEFAULT '',
+
+    linkedin_url VARCHAR(500) NOT NULL DEFAULT '',
+
+    instagram_url VARCHAR(500) NOT NULL DEFAULT '',
+
+    facebook_url VARCHAR(500) NOT NULL DEFAULT '',
+
     updated_at TIMESTAMP NOT NULL
         DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,

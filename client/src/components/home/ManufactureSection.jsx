@@ -1,8 +1,10 @@
 import {
   Link,
+  useNavigate,
 } from 'react-router-dom'
 
 import { withImageWidth } from '../../utils/imageUrl'
+import { loadProductCategory } from '../../services/productCategoryCache'
 import { ManufactureCardSkeletons } from '../common/LoadingSkeletons'
 
 const createCategoryPath = (category) => {
@@ -27,6 +29,37 @@ function ManufactureSection({
   loading = false,
   error = '',
 }) {
+  const navigate = useNavigate()
+
+  const prepareCategory = (category) => {
+    const path = createCategoryPath(category)
+    const slug = path.split('/').pop()
+
+    return loadProductCategory(slug)
+  }
+
+  const openCategory = async (event, category) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    event.preventDefault()
+
+    try {
+      await prepareCategory(category)
+    } catch {
+      // The destination page will show its normal error state if needed.
+    }
+
+    navigate(createCategoryPath(category))
+  }
+
   return (
     <section
       className="manufacture-section"
@@ -130,6 +163,20 @@ function ManufactureSection({
                     key={
                       category._id ||
                       category.slug
+                    }
+
+                    onPointerEnter={() =>
+                      prepareCategory(category)
+                        .catch(() => {})
+                    }
+
+                    onFocus={() =>
+                      prepareCategory(category)
+                        .catch(() => {})
+                    }
+
+                    onClick={(event) =>
+                      openCategory(event, category)
                     }
 
                   >

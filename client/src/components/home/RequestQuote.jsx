@@ -5,40 +5,70 @@ import whatsappIcon from '../../assets/icons/whatsapp.png'
 import emailIcon from '../../assets/icons/email.png'
 import instagramIcon from '../../assets/icons/instagram.png'
 import linkedinIcon from '../../assets/icons/linkedin.png'
+import facebookIcon from '../../assets/icons/communication.png'
+import { useContactSettings } from '../../context/contactSettings'
 
-const contactMethods = [
+const contactMethodConfig = [
   {
-    label: 'WhatsApp',
-    value: '+92 XXX XXXXXXX',
-    action: 'Chat With Us',
-    href: 'https://wa.me/92XXXXXXXXXX',
-    icon: whatsappIcon,
-  },
-  {
+    field: 'email',
     label: 'Email',
-    value: 'info@ayosons.com',
-    action: 'Send An Email',
-    href: 'mailto:info@ayosons.com',
     icon: emailIcon,
   },
   {
+    field: 'phone',
+    label: 'Phone',
+    icon: whatsappIcon,
+  },
+  {
+    field: 'instagram',
     label: 'Instagram',
-    value: '@ayosons',
-    action: 'Follow AYOSONS',
-    href: '#',
     icon: instagramIcon,
   },
   {
+    field: 'linkedin',
     label: 'LinkedIn',
-    value: 'AYOSONS Industries',
-    action: 'Connect With Us',
-    href: '#',
     icon: linkedinIcon,
+  },
+  {
+    field: 'facebook',
+    label: 'Facebook',
+    icon: facebookIcon,
   },
 ]
 
+const getContactHref = (field, value) => {
+  if (field === 'email') return `mailto:${value}`
+  if (field === 'phone') return `tel:${value.replace(/[^+\d]/g, '')}`
+  return value
+}
+
+const getContactDisplayValue = (field, value) => {
+  if (field === 'email' || field === 'phone') return value
+
+  return value
+    .replace(/^https?:\/\/(www\.)?/i, '')
+    .replace(/\/$/, '')
+}
+
 function RequestQuote() {
   const [status, setStatus] = useState('idle')
+  const contactSettings = useContactSettings()
+  const whatsappHref = contactSettings.whatsapp
+    ? `https://wa.me/${contactSettings.whatsapp.replace(/\D/g, '')}`
+    : ''
+  const contactMethods = contactMethodConfig
+    .filter((method) => contactSettings[method.field])
+    .map((method) => ({
+      ...method,
+      value: getContactDisplayValue(
+        method.field,
+        contactSettings[method.field]
+      ),
+      href: getContactHref(
+        method.field,
+        contactSettings[method.field]
+      ),
+    }))
 
   const handleSubmit = async (event) => {
     event.preventDefault()
@@ -330,7 +360,7 @@ function RequestQuote() {
 
             <a
               className="quote-whatsapp-card"
-              href="https://wa.me/92XXXXXXXXXX"
+              href={whatsappHref || '#contact'}
               target="_blank"
               rel="noreferrer"
             >
@@ -349,7 +379,7 @@ function RequestQuote() {
                 <strong>WhatsApp Us Now</strong>
 
                 <p>
-                  +92 XXX XXXXXXX
+                  {contactSettings.whatsapp || 'WhatsApp details coming soon'}
                 </p>
               </div>
 
@@ -360,7 +390,6 @@ function RequestQuote() {
 
             <div className="quote-contact-list">
               {contactMethods
-                .slice(1)
                 .map((method) => (
                   <a
                     className="quote-contact-card"

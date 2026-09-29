@@ -55,99 +55,72 @@ function Home() {
       new AbortController()
 
 
-    const loadHomeData =
-      async () => {
+    const requestOptions = {
+      signal: controller.signal,
+    }
 
-        try {
-          setCategoriesLoading(true)
-          setCategoriesError('')
+    const loadCategories = async () => {
+      try {
+        setCategoriesLoading(true)
+        setCategoriesError('')
 
-         const [
-  homepageResponse,
-  categoriesResponse,
-  departmentsResponse,
-] =
-  await Promise.all([
-    api.get(
-      '/home-content',
-      {
-        signal:
-          controller.signal,
-      }
-    ),
+        const response = await api.get(
+          '/categories',
+          requestOptions
+        )
 
-    api.get(
-      '/categories',
-      {
-        signal:
-          controller.signal,
-      }
-    ),
-
-    api.get(
-      '/departments',
-      {
-        signal:
-          controller.signal,
-      }
-    ),
-  ])
-
-
-          setHomepageContent(
-            homepageResponse.data.content
-          )
-
-          setDepartments(
-            departmentsResponse.data.departments ||
-              []
-          )
-
-
-          setCategories(
-            categoriesResponse.data.categories ||
-              []
-          )
-
-        } catch (error) {
-
-          if (
-            error.code ===
-            'ERR_CANCELED'
-          ) {
-            return
-          }
-
-
-          console.error(
-            'Home page data error:',
-            error
-          )
-
-
+        setCategories(
+          response.data.categories || []
+        )
+      } catch (error) {
+        if (error.code !== 'ERR_CANCELED') {
+          console.error('Categories load error:', error)
           setCategoriesError(
             'Unable to load collections right now.'
           )
-
-          /*
-          |--------------------------------------------------------------------------
-          | Existing hardcoded content stays as fallback
-          |--------------------------------------------------------------------------
-          */
-
         }
-        finally {
-          if (
-            !controller.signal.aborted
-          ) {
-            setCategoriesLoading(false)
-          }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCategoriesLoading(false)
         }
-
       }
+    }
 
+    const loadHomepageContent = async () => {
+      try {
+        const response = await api.get(
+          '/home-content',
+          requestOptions
+        )
 
-    loadHomeData()
+        setHomepageContent(response.data.content)
+      } catch (error) {
+        if (error.code !== 'ERR_CANCELED') {
+          console.error('Homepage content load error:', error)
+        }
+      }
+    }
+
+    const loadDepartments = async () => {
+      try {
+        const response = await api.get(
+          '/departments',
+          requestOptions
+        )
+
+        setDepartments(
+          response.data.departments || []
+        )
+      } catch (error) {
+        if (error.code !== 'ERR_CANCELED') {
+          console.error('Departments load error:', error)
+        }
+      }
+    }
+
+    loadCategories()
+    loadHomepageContent()
+    loadDepartments()
 
 
     return () => {

@@ -3,6 +3,17 @@ import { Resend } from 'resend'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const isValidPublicUrl = (value) => {
+  if (!value) return true
+
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' || url.protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
 const escapeHtml = (value) => value
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -12,13 +23,42 @@ const escapeHtml = (value) => value
 
 const getContactSettings = async () => {
   const [rows] = await pool.execute(`
-    SELECT recipient_email
+    SELECT
+      recipient_email,
+      public_email,
+      phone_number,
+      whatsapp_number,
+      linkedin_url,
+      instagram_url,
+      facebook_url
     FROM contact_settings
     WHERE id = 1
     LIMIT 1
   `)
 
   return rows[0] || null
+}
+
+const formatPublicSettings = (settings) => ({
+  email: settings?.public_email || '',
+  phone: settings?.phone_number || '',
+  whatsapp: settings?.whatsapp_number || '',
+  linkedin: settings?.linkedin_url || '',
+  instagram: settings?.instagram_url || '',
+  facebook: settings?.facebook_url || '',
+})
+
+export const getPublicContactSettings = async (req, res, next) => {
+  try {
+    const settings = await getContactSettings()
+
+    res.status(200).json({
+      success: true,
+      settings: formatPublicSettings(settings),
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const getAdminContactSettings = async (req, res, next) => {
@@ -29,6 +69,7 @@ export const getAdminContactSettings = async (req, res, next) => {
       success: true,
       settings: {
         recipientEmail: settings?.recipient_email || '',
+        ...formatPublicSettings(settings),
       },
     })
   } catch (error) {
@@ -41,24 +82,69 @@ export const updateAdminContactSettings = async (req, res, next) => {
     const recipientEmail = String(
       req.body?.recipientEmail || ''
     ).trim().toLowerCase()
+    const publicEmail = String(req.body?.email || '').trim().toLowerCase()
+    const phone = String(req.body?.phone || '').trim()
+    const whatsapp = String(req.body?.whatsapp || '').trim()
+    const linkedin = String(req.body?.linkedin || '').trim()
+    const instagram = String(req.body?.instagram || '').trim()
+    const facebook = String(req.body?.facebook || '').trim()
 
     if (!emailPattern.test(recipientEmail)) {
       res.status(400)
       throw new Error('Please enter a valid recipient email address.')
     }
 
+    if (publicEmail && !emailPattern.test(publicEmail)) {
+      res.status(400)
+      throw new Error('Please enter a valid public email address.')
+    }
+
+    if (![linkedin, instagram, facebook].every(isValidPublicUrl)) {
+      res.status(400)
+      throw new Error('Social links must be valid http or https URLs.')
+    }
+
     await pool.execute(`
-      INSERT INTO contact_settings (id, recipient_email)
-      VALUES (1, ?)
+      INSERT INTO contact_settings (
+        id,
+        recipient_email,
+        public_email,
+        phone_number,
+        whatsapp_number,
+        linkedin_url,
+        instagram_url,
+        facebook_url
+      )
+      VALUES (1, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        recipient_email = VALUES(recipient_email)
-    `, [recipientEmail])
+        recipient_email = VALUES(recipient_email),
+        public_email = VALUES(public_email),
+        phone_number = VALUES(phone_number),
+        whatsapp_number = VALUES(whatsapp_number),
+        linkedin_url = VALUES(linkedin_url),
+        instagram_url = VALUES(instagram_url),
+        facebook_url = VALUES(facebook_url)
+    `, [
+      recipientEmail,
+      publicEmail,
+      phone,
+      whatsapp,
+      linkedin,
+      instagram,
+      facebook,
+    ])
 
     res.status(200).json({
       success: true,
       message: 'Contact email updated successfully.',
       settings: {
         recipientEmail,
+        email: publicEmail,
+        phone,
+        whatsapp,
+        linkedin,
+        instagram,
+        facebook,
       },
     })
   } catch (error) {

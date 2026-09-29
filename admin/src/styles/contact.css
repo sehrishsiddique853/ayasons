@@ -43,7 +43,7 @@
 }
 
 .contact-admin-card-content {
-  width: min(100%, 620px);
+  width: 100%;
 }
 
 .contact-admin-card label {
@@ -54,11 +54,30 @@
   font-weight: 700;
 }
 
-.contact-admin-card p {
+.contact-admin-field > p,
+.contact-admin-section-heading p {
   margin: 0 0 18px;
   color: var(--admin-muted);
   font-size: 13px;
   line-height: 1.55;
+}
+
+.contact-admin-section-heading {
+  margin: 28px 0 16px;
+  padding-top: 24px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.contact-admin-section-heading h2 {
+  margin: 0 0 6px;
+  color: var(--admin-text);
+  font-size: 18px;
+}
+
+.contact-admin-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
 }
 
 .contact-admin-card input {
@@ -103,5 +122,9 @@
 @media (max-width: 620px) {
   .contact-admin-card {
     flex-direction: column;
+  }
+
+  .contact-admin-fields {
+    grid-template-columns: 1fr;
   }
 }

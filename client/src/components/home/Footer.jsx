@@ -9,33 +9,81 @@ import facebookIcon from '../../assets/icons/communication.png'
 import linkedinIcon from '../../assets/icons/linkedin.png'
 import whatsappIcon from '../../assets/icons/whatsapp.png'
 import instagramIcon from '../../assets/icons/instagram.png'
+import { useContactSettings } from '../../context/contactSettings'
+import { Link, useNavigate } from 'react-router-dom'
+import { loadProductCategory } from '../../services/productCategoryCache'
 
 
-const socialLinks = [
+const socialLinkConfig = [
   {
     name: 'Facebook',
     icon: facebookIcon,
-    href: 'https://facebook.com/',
+    field: 'facebook',
   },
   {
     name: 'LinkedIn',
     icon: linkedinIcon,
-    href: 'https://linkedin.com/',
+    field: 'linkedin',
   },
   {
     name: 'WhatsApp',
     icon: whatsappIcon,
-    href: 'https://wa.me/92XXXXXXXXXX',
+    field: 'whatsapp',
   },
   {
     name: 'Instagram',
     icon: instagramIcon,
-    href: 'https://instagram.com/',
+    field: 'instagram',
   },
 ]
 
 function Footer() {
+  const navigate = useNavigate()
   const currentYear = new Date().getFullYear()
+  const contactSettings = useContactSettings()
+  const whatsappHref = contactSettings.whatsapp
+    ? `https://wa.me/${contactSettings.whatsapp.replace(/\D/g, '')}`
+    : ''
+  const socialLinks = socialLinkConfig
+    .map((social) => ({
+      ...social,
+      href: social.field === 'whatsapp'
+        ? whatsappHref
+        : contactSettings[social.field],
+    }))
+    .filter((social) => social.href)
+
+  const prepareCategory = (slug) =>
+    loadProductCategory(slug)
+
+  const openCategory = async (event, slug) => {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    event.preventDefault()
+
+    try {
+      await prepareCategory(slug)
+    } catch {
+      // Let the destination render its standard error state.
+    }
+
+    navigate(`/products/${slug}`)
+  }
+
+  const productLinkProps = (slug) => ({
+    to: `/products/${slug}`,
+    onPointerEnter: () => prepareCategory(slug).catch(() => {}),
+    onFocus: () => prepareCategory(slug).catch(() => {}),
+    onClick: (event) => openCategory(event, slug),
+  })
 
   return (
     <footer className="site-footer">
@@ -44,14 +92,14 @@ function Footer() {
 
         <div className="footer-brand">
 
-          <a href="#home" className="footer-logo">
+          <Link to="/#home" className="footer-logo">
             <img
               src={ayosonsLogo}
               alt="AYOSONS Industries"
               loading="lazy"
               decoding="async"
             />
-          </a>
+          </Link>
 
           <p>
             Custom sportswear, streetwear, activewear,
@@ -68,11 +116,11 @@ function Footer() {
             Quick Links
           </p>
 
-          <a href="#home">Home</a>
-          <a href="#products">Products</a>
-          <a href="#about">About</a>
-          <a href="#manufacturing">Manufacturing</a>
-          <a href="#contact">Request A Quote</a>
+          <Link to="/#home">Home</Link>
+          <Link to="/products">Products</Link>
+          <Link to="/#about">About</Link>
+          <Link to="/manufacturing">Manufacturing</Link>
+          <Link to="/contact">Request A Quote</Link>
 
         </div>
 
@@ -83,13 +131,13 @@ function Footer() {
             Products
           </p>
 
-          <a href="#products">Sports Wear</a>
-          <a href="#products">Streetwear</a>
-          <a href="#products">Activewear</a>
-          <a href="#products">Varsity Jackets</a>
-          <a href="#products">Headwear</a>
-          <a href="#products">Workwear</a>
-          <a href="#products">Accessories</a>
+          <Link {...productLinkProps('sportswear')}>Sports Wear</Link>
+          <Link {...productLinkProps('streetwear')}>Streetwear</Link>
+          <Link {...productLinkProps('activewear')}>Activewear</Link>
+          <Link {...productLinkProps('varsity-jackets')}>Varsity Jackets</Link>
+          <Link {...productLinkProps('headwear')}>Headwear</Link>
+          <Link {...productLinkProps('workwear')}>Workwear</Link>
+          <Link {...productLinkProps('accessories')}>Accessories</Link>
 
         </div>
 
@@ -120,6 +168,20 @@ function Footer() {
               </a>
             ))}
 
+          </div>
+
+          <div className="footer-contact-details">
+            {contactSettings.phone ? (
+              <a href={`tel:${contactSettings.phone.replace(/[^+\d]/g, '')}`}>
+                {contactSettings.phone}
+              </a>
+            ) : null}
+
+            {contactSettings.email ? (
+              <a href={`mailto:${contactSettings.email}`}>
+                {contactSettings.email}
+              </a>
+            ) : null}
           </div>
 
         </div>

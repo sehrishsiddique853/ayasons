@@ -1,6 +1,6 @@
 import {
   useEffect,
-  useRef,
+  useLayoutEffect,
   useState,
 } from 'react'
 
@@ -8,29 +8,33 @@ import {
   Routes,
   Route,
   useLocation,
-  useNavigationType,
 } from 'react-router-dom'
 
 import Navbar from './components/layout/Navbar'
 import ImagePreloader from './components/common/ImagePreloader'
+import { ContactSettingsProvider } from './context/ContactSettingsContext'
+import { loadProductCategories } from './services/productCategoriesCache'
 
 import Home from './pages/Home'
 
 import ProductCategoryPage from './components/products/shared/ProductCategoryPage'
 
-
+import Manufacturing
+  from './pages/Manufacturing'
 import './App.css'
 import './style/Hero.css'
 import './style/AboutSection.css'
 import './style/ManufactureSection.css'
 import './style/ManufacturingExcellence.css'
 import './style/Footer.css'
+import Products
+  from './pages/Products'
 
+  import Contact
+  from './pages/Contact'
 
 function ScrollManager() {
   const location = useLocation()
-  const navigationType = useNavigationType()
-  const scrollPositions = useRef(new Map())
 
   useEffect(() => {
     if (
@@ -52,86 +56,29 @@ function ScrollManager() {
     return undefined
   }, [])
 
-  useEffect(() => {
-    return () => {
-      scrollPositions.current.set(
-        location.key,
-        {
-          x:
-            window.scrollX,
-
-          y:
-            window.scrollY,
-        }
+  useLayoutEffect(() => {
+    if (location.hash) {
+      const section = document.querySelector(
+        location.hash
       )
+
+      if (section) {
+        section.scrollIntoView({
+          behavior: 'auto',
+          block: 'start',
+        })
+        return
+      }
     }
+
+    window.scrollTo({
+      left: 0,
+      top: 0,
+      behavior: 'auto',
+    })
   }, [
-    location.key,
-  ])
-
-  useEffect(() => {
-    const scrollFrame =
-      window.requestAnimationFrame(
-        () => {
-          if (location.hash) {
-            const section =
-              document.querySelector(
-                location.hash
-              )
-
-            if (section) {
-              section.scrollIntoView({
-                behavior:
-                  'smooth',
-              })
-            }
-
-            return
-          }
-
-          if (
-            navigationType ===
-            'POP'
-          ) {
-            const position =
-              scrollPositions
-                .current
-                .get(location.key)
-
-            window.scrollTo({
-              left:
-                position?.x || 0,
-
-              top:
-                position?.y || 0,
-
-              behavior:
-                'auto',
-            })
-
-            return
-          }
-
-          window.scrollTo({
-            left: 0,
-
-            top: 0,
-
-            behavior:
-              'auto',
-          })
-        }
-      )
-
-    return () => {
-      window.cancelAnimationFrame(
-        scrollFrame
-      )
-    }
-  }, [
-    location.key,
+    location.pathname,
     location.hash,
-    navigationType,
   ])
 
 
@@ -183,8 +130,29 @@ function RouteLoadingBar() {
 
 
 function App() {
+  useEffect(() => {
+    const warmProductsPage = () => {
+      loadProductCategories().catch(() => {})
+    }
+
+    const idleId = window.requestIdleCallback
+      ? window.requestIdleCallback(warmProductsPage, {
+          timeout: 2500,
+        })
+      : window.setTimeout(warmProductsPage, 1200)
+
+    return () => {
+      if (window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId)
+      } else {
+        window.clearTimeout(idleId)
+      }
+    }
+  }, [])
+
   return (
-    <div className="site-shell">
+    <ContactSettingsProvider>
+      <div className="site-shell">
 
       <ImagePreloader />
 
@@ -208,6 +176,19 @@ function App() {
             }
           />
 
+          <Route
+  path="/manufacturing"
+  element={
+    <Manufacturing />
+  }
+/>
+
+<Route
+  path="/contact"
+  element={
+    <Contact />
+  }
+/>
 
           {/*
           |--------------------------------------------------------------------------
@@ -225,6 +206,13 @@ function App() {
           */}
 
           <Route
+  path="/products"
+  element={
+    <Products />
+  }
+/>
+
+          <Route
             path="/products/:categorySlug"
             element={
               <ProductCategoryPage />
@@ -234,7 +222,8 @@ function App() {
         </Routes>
       </main>
 
-    </div>
+      </div>
+    </ContactSettingsProvider>
   )
 }
 

@@ -1,4 +1,5 @@
 import '../../../style/products/ProductCard.css'
+import { Link } from 'react-router-dom'
 import { withImageWidth } from '../../../utils/imageUrl'
 
 function ProductCard({
@@ -49,16 +50,16 @@ function ProductCard({
 
         </div>
 
-        <a
+        <Link
           className="category-product-button"
-          href="/#contact"
+          to="/contact"
         >
           Request A Quote
 
           <span aria-hidden="true">
             →
           </span>
-        </a>
+        </Link>
 
       </div>
 

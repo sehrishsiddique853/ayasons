@@ -222,6 +222,25 @@
   object-fit: contain;
 }
 
+.footer-contact-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.footer-contact-details a {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 13px;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.footer-contact-details a:hover {
+  color: var(--brand-yellow);
+}
+
 
 /* =========================================
    REGISTRATION SECTION

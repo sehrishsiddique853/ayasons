@@ -14,7 +14,10 @@ import ProductCollectionSection from './ProductCollectionSection'
 import ProductGallery from './ProductGallery'
 import PageLoader from '../../common/PageLoader'
 
-import api from '../../../services/api'
+import {
+  getCachedProductCategory,
+  loadProductCategory,
+} from '../../../services/productCategoryCache'
 import { withImageWidth } from '../../../utils/imageUrl'
 
 import '../../../style/products/Activewear.css'
@@ -25,23 +28,30 @@ function ProductCategoryPage() {
     categorySlug,
   } = useParams()
 
+  const cachedPage =
+    getCachedProductCategory(categorySlug)
+
 
   const [
     category,
     setCategory,
-  ] = useState(null)
+  ] = useState(
+    cachedPage?.category || null
+  )
 
 
   const [
     products,
     setProducts,
-  ] = useState([])
+  ] = useState(
+    cachedPage?.products || []
+  )
 
 
   const [
     loading,
     setLoading,
-  ] = useState(true)
+  ] = useState(!cachedPage)
 
 
   const [
@@ -55,29 +65,40 @@ function ProductCategoryPage() {
       new AbortController()
 
 
-    const loadCategory = async () => {
+    const loadCategory = async (
+      {
+        background = false,
+      } = {}
+    ) => {
       try {
-        setLoading(true)
+        const cached =
+          getCachedProductCategory(categorySlug)
+
+        if (cached) {
+          setCategory(cached.category)
+          setProducts(cached.products || [])
+          setLoading(false)
+        } else if (!background) {
+          setLoading(true)
+        }
+
         setError('')
 
+        const data =
+          await loadProductCategory(categorySlug)
 
-        const response =
-          await api.get(
-            `/products/category/${categorySlug}`,
-            {
-              signal:
-                controller.signal,
-            }
-          )
+        if (controller.signal.aborted) {
+          return
+        }
 
 
         setCategory(
-          response.data.category
+          data.category
         )
 
 
         setProducts(
-          response.data.products ||
+          data.products ||
             []
         )
 
@@ -130,8 +151,31 @@ function ProductCategoryPage() {
     loadCategory()
 
 
+    const refreshWhenVisible = () => {
+      if (
+        document.visibilityState ===
+        'visible'
+      ) {
+        loadCategory({
+          background: true,
+        })
+      }
+    }
+
+
+    document.addEventListener(
+      'visibilitychange',
+      refreshWhenVisible
+    )
+
+
     return () => {
       controller.abort()
+
+      document.removeEventListener(
+        'visibilitychange',
+        refreshWhenVisible
+      )
     }
 
   }, [categorySlug])

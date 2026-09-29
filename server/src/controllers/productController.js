@@ -5,6 +5,19 @@ import {
 } from '../models/mysql/Product.js'
 
 
+const preventStaleProductData = (
+  res
+) => {
+  res.set({
+    'Cache-Control':
+      'no-store, no-cache, must-revalidate, proxy-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+    'Surrogate-Control': 'no-store',
+  })
+}
+
+
 /*
 |--------------------------------------------------------------------------
 | GET /api/products
@@ -24,6 +37,8 @@ export const getProducts =
     next
   ) => {
     try {
+      preventStaleProductData(res)
+
       const featured =
         req.query.featured ===
         'true'
@@ -66,6 +81,8 @@ export const getProductById =
     next
   ) => {
     try {
+      preventStaleProductData(res)
+
       const id =
         Number(req.params.id)
 
@@ -128,6 +145,8 @@ export const getProductsByCategory =
     next
   ) => {
     try {
+      preventStaleProductData(res)
+
       const result =
         await findActiveProductsByCategory(
           req.params.slug,

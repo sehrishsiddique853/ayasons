@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
 } from 'react'
+import { Link } from 'react-router-dom'
 
 import '../../style/BestSellersSection.css'
 
@@ -18,15 +19,21 @@ function BestSellersSection() {
   useEffect(() => {
     const controller = new AbortController()
 
-    const loadProducts = async () => {
+    const loadProducts = async ({ background = false } = {}) => {
       try {
-        setLoading(true)
-        setError('')
+        if (!background) {
+          setLoading(true)
+          setError('')
+        }
 
         const response = await api.get(
-          '/products?featured=true',
+          '/products',
           {
             signal: controller.signal,
+            params: {
+              featured: true,
+              updatedAt: Date.now(),
+            },
           }
         )
 
@@ -44,9 +51,11 @@ function BestSellersSection() {
           error
         )
 
-        setError(
-          'Hot Selling products could not be loaded right now.'
-        )
+        if (!background) {
+          setError(
+            'Hot Selling products could not be loaded right now.'
+          )
+        }
       } finally {
         if (!controller.signal.aborted) {
           setLoading(false)
@@ -56,8 +65,23 @@ function BestSellersSection() {
 
     loadProducts()
 
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadProducts({ background: true })
+      }
+    }
+
+    document.addEventListener(
+      'visibilitychange',
+      refreshWhenVisible
+    )
+
     return () => {
       controller.abort()
+      document.removeEventListener(
+        'visibilitychange',
+        refreshWhenVisible
+      )
     }
   }, [])
 
@@ -148,10 +172,10 @@ function BestSellersSection() {
                           <h3>{product.name}</h3>
                           <p>{product.description}</p>
 
-                          <a href="#contact" className="best-seller-link">
+                          <Link to="/contact" className="best-seller-link">
                             View
                             <span aria-hidden="true">→</span>
-                          </a>
+                          </Link>
                         </div>
                       </article>
                     ))}
@@ -167,10 +191,10 @@ function BestSellersSection() {
             Looking for something else? We also manufacture a wider range of custom apparel, accessories and performance products.
           </p>
 
-          <a href="#products" className="best-sellers-button">
+          <Link to="/products" className="best-sellers-button">
             Explore All Products
             <span aria-hidden="true">→</span>
-          </a>
+          </Link>
         </div>
       </div>
     </section>
