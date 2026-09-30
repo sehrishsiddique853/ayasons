@@ -242,7 +242,15 @@ function ManufacturingExcellence({
   loop
   muted
   playsInline
-  controls
+  disablePictureInPicture
+  controlsList="nodownload noplaybackrate noremoteplayback"
+  onContextMenu={(event) => event.preventDefault()}
+  onVolumeChange={(event) => {
+    const video = event.currentTarget
+
+    if (!video.muted) video.muted = true
+    if (video.volume !== 0) video.volume = 0
+  }}
   preload={priority ? 'auto' : 'metadata'}
 >
               Your browser does not

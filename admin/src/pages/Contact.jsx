@@ -83,7 +83,9 @@ function Contact() {
     try {
       const response = await api.put('/admin/contact', settings)
       setSettings(response.data.settings)
-      setSuccess('Contact details saved and published successfully.')
+      setSuccess(
+        `Contact details saved. New website enquiries will be sent to ${response.data.settings.recipientEmail}.`
+      )
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||

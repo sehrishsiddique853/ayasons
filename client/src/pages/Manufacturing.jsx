@@ -11,6 +11,9 @@ import DepartmentSection
 import ManufacturingExcellence
   from '../components/home/ManufacturingExcellence'
 
+import ManufacturingIntroSection
+  from '../components/manufacturing/ManufacturingIntroSection'
+
 import Footer
   from '../components/home/Footer'
 
@@ -166,7 +169,13 @@ function Manufacturing() {
 
     <>
 
- <ManufacturingExcellence
+      <ManufacturingIntroSection
+        homepageContent={
+          homepageContent
+        }
+      />
+
+      <ManufacturingExcellence
         homepageContent={
           homepageContent
         }

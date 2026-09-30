@@ -148,6 +148,9 @@ function Hero({ categories = [] }) {
   const backgroundImage =
     activeImage
 
+  const hasLoadedCarouselImage =
+    displayedImage !== heroLoadingFallback
+
   /*
    * Keep the current background visible until the next one has fully
    * downloaded and decoded. This prevents a blank frame when API data
@@ -194,7 +197,9 @@ function Hero({ categories = [] }) {
 
   return (
     <section
-      className="hero-section"
+      className={`hero-section ${
+        hasLoadedCarouselImage ? 'hero-section--ready' : ''
+      }`}
       id="home"
     >
       {/* BACKGROUND IMAGE */}

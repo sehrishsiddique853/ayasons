@@ -3,6 +3,20 @@ import { Resend } from 'resend'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
+
+const getInquiryRecipient = (settings) => {
+  const adminRecipient = normalizeEmail(settings?.recipient_email)
+  const fallbackRecipient = normalizeEmail(
+    process.env.CONTACT_RECIPIENT_EMAIL
+  )
+
+  if (emailPattern.test(adminRecipient)) return adminRecipient
+  if (emailPattern.test(fallbackRecipient)) return fallbackRecipient
+
+  return ''
+}
+
 const isValidPublicUrl = (value) => {
   if (!value) return true
 
@@ -79,10 +93,8 @@ export const getAdminContactSettings = async (req, res, next) => {
 
 export const updateAdminContactSettings = async (req, res, next) => {
   try {
-    const recipientEmail = String(
-      req.body?.recipientEmail || ''
-    ).trim().toLowerCase()
-    const publicEmail = String(req.body?.email || '').trim().toLowerCase()
+    const recipientEmail = normalizeEmail(req.body?.recipientEmail)
+    const publicEmail = normalizeEmail(req.body?.email)
     const phone = String(req.body?.phone || '').trim()
     const whatsapp = String(req.body?.whatsapp || '').trim()
     const linkedin = String(req.body?.linkedin || '').trim()
@@ -179,11 +191,13 @@ export const submitContactInquiry = async (req, res, next) => {
     }
 
     const settings = await getContactSettings()
-    const recipientEmail = settings?.recipient_email || process.env.CONTACT_RECIPIENT_EMAIL
+    const recipientEmail = getInquiryRecipient(settings)
 
     if (!recipientEmail) {
       res.status(503)
-      throw new Error('Contact email is not configured yet.')
+      throw new Error(
+        'A valid enquiry recipient email has not been configured in admin yet.'
+      )
     }
 
     if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) {
@@ -207,18 +221,39 @@ export const submitContactInquiry = async (req, res, next) => {
       .map(([label, value]) => `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`)
       .join('')
 
-    const { error } = await resend.emails.send({
+    const plainTextDetails = [
+      ['Name', fields.name],
+      ['Email', fields.email],
+      ['Phone / WhatsApp', fields.phone],
+      ['Country', fields.country],
+      ['Company / Brand', fields.company],
+      ['Product Category', fields.productCategory],
+      ['Estimated Quantity', fields.quantity],
+      ['Requirement', fields.requirement],
+    ]
+      .filter(([, value]) => value)
+      .map(([label, value]) => `${label}: ${value}`)
+      .join('\n')
+
+    const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
-      to: recipientEmail,
+      to: [recipientEmail],
       replyTo: fields.email,
       subject,
       html: `${details}<p><strong>Message:</strong></p><p>${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>`,
+      text: `${plainTextDetails}\n\nMessage:\n${fields.message}`,
     })
 
     if (error) {
       console.error('Resend inquiry error:', error)
       res.status(502)
       throw new Error('Unable to send your enquiry right now.')
+    }
+
+    if (!data?.id) {
+      console.error('Resend inquiry error: no delivery ID returned')
+      res.status(502)
+      throw new Error('Unable to confirm enquiry delivery right now.')
     }
 
     res.status(200).json({
