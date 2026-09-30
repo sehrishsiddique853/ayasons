@@ -252,7 +252,7 @@ function Login() {
                       event.target.value
                     )
                 }
-                placeholder="admin@ayosons.com"
+                placeholder="user@gmail.com"
                 autoComplete="username"
                 autoFocus
               />

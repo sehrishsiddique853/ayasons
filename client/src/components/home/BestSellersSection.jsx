@@ -11,6 +11,23 @@ import api from '../../services/api'
 import { withImageWidth } from '../../utils/imageUrl'
 import { ProductCardSkeletons } from '../common/LoadingSkeletons'
 
+const getCategoryPath = (product) => {
+  const categorySlug =
+    product.category?.slug ||
+    product.category?.name ||
+    ''
+
+  const normalizedSlug = categorySlug
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return normalizedSlug
+    ? `/products/${normalizedSlug}`
+    : '/products'
+}
+
 function BestSellersSection() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -107,7 +124,7 @@ function BestSellersSection() {
           </h2>
 
           <p className="best-sellers-intro">
-            Our most requested custom products, selected from the admin panel.
+            Our most requested custom products.
           </p>
         </div>
 
@@ -141,9 +158,13 @@ function BestSellersSection() {
                 >
                   <div className="best-sellers-track">
                     {[...rowProducts, ...rowProducts].map((product, index) => (
-                      <article
+                      <Link
                         className="best-seller-card"
+                        to={getCategoryPath(product)}
                         key={`${product.id}-${rowIndex}-${index}`}
+                        aria-label={`View ${product.category?.name || 'product'} category`}
+                        aria-hidden={index >= rowProducts.length}
+                        tabIndex={index >= rowProducts.length ? -1 : 0}
                       >
                         <div className="best-seller-image-wrap">
                       <img
@@ -172,12 +193,9 @@ function BestSellersSection() {
                           <h3>{product.name}</h3>
                           <p>{product.description}</p>
 
-                          <Link to="/contact" className="best-seller-link">
-                            View
-                            <span aria-hidden="true">→</span>
-                          </Link>
+                          
                         </div>
-                      </article>
+                      </Link>
                     ))}
                   </div>
                 </div>

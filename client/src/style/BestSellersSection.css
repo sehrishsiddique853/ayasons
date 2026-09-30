@@ -230,22 +230,31 @@
   box-shadow:
     0 16px 36px rgba(0, 0, 0, 0.18);
 
+  color: inherit;
+  text-decoration: none;
+
   transition:
     transform 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 }
 
-.best-seller-card:hover {
+.best-seller-card:hover,
+.best-seller-card:focus-visible {
   transform: translateY(-4px);
   border-color: rgba(240, 212, 79, 0.36);
   box-shadow:
     0 20px 46px rgba(0, 0, 0, 0.28);
 }
 
+.best-seller-card:focus-visible {
+  outline: 2px solid var(--brand-yellow);
+  outline-offset: 3px;
+}
+
 .best-seller-image-wrap {
   position: relative;
-  height: 180px;
+  height: 230px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: #111;
@@ -259,7 +268,8 @@
   transition: transform 400ms ease;
 }
 
-.best-seller-card:hover .best-seller-image {
+.best-seller-card:hover .best-seller-image,
+.best-seller-card:focus-visible .best-seller-image {
   transform: scale(1.05);
 }
 
