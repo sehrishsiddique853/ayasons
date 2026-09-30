@@ -6,7 +6,6 @@ import api from '../services/api'
 import '../styles/contact.css'
 
 const EMPTY_SETTINGS = {
-  recipientEmail: '',
   email: '',
   phone: '',
   whatsapp: '',
@@ -83,9 +82,7 @@ function Contact() {
     try {
       const response = await api.put('/admin/contact', settings)
       setSettings(response.data.settings)
-      setSuccess(
-        `Contact details saved. New website enquiries will be sent to ${response.data.settings.recipientEmail}.`
-      )
+      setSuccess('Contact details saved successfully.')
     } catch (requestError) {
       setError(
         requestError.response?.data?.message ||
@@ -102,7 +99,7 @@ function Contact() {
         <div>
           <span className="admin-page-eyebrow">COMMUNICATION</span>
           <h1>Contact</h1>
-          <p>Manage enquiry delivery and the contact details shown on the website.</p>
+          <p>Manage the contact details shown on the website.</p>
         </div>
       </div>
 
@@ -115,21 +112,6 @@ function Contact() {
         </div>
 
         <div className="contact-admin-card-content">
-          <div className="contact-admin-field">
-            <label htmlFor="recipientEmail">Enquiry recipient email</label>
-            <p>Quote requests are delivered privately to this address.</p>
-            <input
-              id="recipientEmail"
-              name="recipientEmail"
-              type="email"
-              value={settings.recipientEmail}
-              onChange={updateField}
-              placeholder="sales@ayosons.com"
-              required
-              disabled={loading || saving}
-            />
-          </div>
-
           <div className="contact-admin-section-heading">
             <h2>Public contact details</h2>
             <p>These details appear in the website contact section and footer.</p>

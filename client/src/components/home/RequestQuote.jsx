@@ -76,12 +76,10 @@ function RequestQuote() {
     setStatus('submitting')
 
     const form = event.currentTarget
-    const formData = new FormData(form)
-
     try {
       await api.post(
         '/contact',
-        Object.fromEntries(formData.entries())
+        Object.fromEntries(new FormData(form).entries())
       )
 
       setStatus('success')

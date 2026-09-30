@@ -58,7 +58,7 @@ try {
     INSERT INTO contact_settings (id, recipient_email)
     VALUES (1, ?)
     ON DUPLICATE KEY UPDATE id = id
-  `, [process.env.CONTACT_RECIPIENT_EMAIL || ''])
+  `, [''])
 
   console.log('Contact settings table is ready.')
 } finally {

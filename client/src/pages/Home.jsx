@@ -4,10 +4,6 @@ import {
 } from 'react'
 
 import api from '../services/api'
-import {
-  preloadFirstCategoryHero,
-  preloadProductCategoryImages,
-} from '../services/productCategoriesCache'
 
 import Hero from '../components/home/Hero'
 import AboutSection from '../components/home/AboutSection'
@@ -48,11 +44,6 @@ function Home() {
   ] = useState(true)
 
   const [
-    categoryCardsReady,
-    setCategoryCardsReady,
-  ] = useState(false)
-
-  const [
     categoriesError,
     setCategoriesError,
   ] = useState('')
@@ -81,10 +72,6 @@ function Home() {
         const loadedCategories =
           response.data.categories || []
 
-        await preloadFirstCategoryHero(
-          loadedCategories
-        )
-
         if (controller.signal.aborted) {
           return
         }
@@ -94,14 +81,6 @@ function Home() {
         )
 
         setCategoriesLoading(false)
-
-        await preloadProductCategoryImages(
-          loadedCategories
-        )
-
-        if (!controller.signal.aborted) {
-          setCategoryCardsReady(true)
-        }
       } catch (error) {
         if (error.code !== 'ERR_CANCELED') {
           console.error('Categories load error:', error)
@@ -173,8 +152,7 @@ function Home() {
           categories
         }
         loading={
-          categoriesLoading ||
-          !categoryCardsReady
+          categoriesLoading
         }
         error={
           categoriesError
