@@ -1,8 +1,17 @@
 import pool from '../config/mysql.js'
+import nodemailer from 'nodemailer'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const inquiryRecipient = 'sehrishsiddique3602@gmail.com'
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
+
+const escapeHtml = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;')
 
 const isValidPublicUrl = (value) => {
   if (!value) return true
@@ -159,36 +168,62 @@ export const submitContactInquiry = async (req, res, next) => {
       throw new Error('Please complete the required enquiry fields.')
     }
 
-    const formspreeEndpoint = String(
-      process.env.FORMSPREE_ENDPOINT || ''
+    const gmailUser = String(
+      process.env.GMAIL_USER || ''
+    ).trim()
+    const gmailAppPassword = String(
+      process.env.GMAIL_APP_PASSWORD || ''
     ).trim()
 
-    if (!formspreeEndpoint) {
+    if (!emailPattern.test(gmailUser) || !gmailAppPassword) {
       res.status(503)
       throw new Error('Email delivery is not configured yet.')
     }
 
-    const formspreeResponse = await fetch(formspreeEndpoint, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+    const details = [
+      ['Name', fields.name],
+      ['Email', fields.email],
+      ['Phone / WhatsApp', fields.phone],
+      ['Country', fields.country],
+      ['Company / Brand', fields.company],
+      ['Product Category', fields.productCategory],
+      ['Estimated Quantity', fields.quantity],
+      ['Requirement', fields.requirement],
+    ].filter(([, value]) => value)
+
+    const htmlDetails = details
+      .map(([label, value]) => (
+        `<p><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</p>`
+      ))
+      .join('')
+
+    const textDetails = details
+      .map(([label, value]) => `${label}: ${value}`)
+      .join('\n')
+
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: gmailUser,
+        pass: gmailAppPassword,
       },
-      body: JSON.stringify({
-        ...fields,
-        _subject: `New AYOSONS quote request from ${fields.name}`,
-      }),
     })
 
-    if (!formspreeResponse.ok) {
-      const formspreeError = await formspreeResponse.text()
-      console.error(
-        'Formspree inquiry error:',
-        formspreeResponse.status,
-        formspreeError
-      )
+    const delivery = await transporter.sendMail({
+      from: `AYOSONS Website <${gmailUser}>`,
+      to: inquiryRecipient,
+      replyTo: fields.email,
+      subject: `New AYOSONS quote request from ${fields.name}`,
+      html: `${htmlDetails}<p><strong>Message:</strong></p><p>${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>`,
+      text: `${textDetails}\n\nMessage:\n${fields.message}`,
+    })
+
+    if (!delivery?.messageId) {
+      console.error('Gmail SMTP error: no message ID returned')
       res.status(502)
-      throw new Error('Unable to send your enquiry right now.')
+      throw new Error('Unable to confirm enquiry delivery right now.')
     }
 
     res.status(200).json({

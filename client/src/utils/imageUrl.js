@@ -1,5 +1,9 @@
 export const withImageWidth = (
-  imageUrl
+  imageUrl,
+  width
 ) => {
-  return imageUrl || ''
+  if (!imageUrl || !width) return imageUrl || ''
+
+  const separator = imageUrl.includes('?') ? '&' : '?'
+  return `${imageUrl}${separator}w=${Math.round(width)}`
 }

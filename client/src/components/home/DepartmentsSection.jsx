@@ -1,4 +1,5 @@
 import '../../style/DepartmentsSection.css'
+import { withImageWidth } from '../../utils/imageUrl'
 
 const defaultStats = [
   {
@@ -257,9 +258,10 @@ function DepartmentsSection({
   <div className="department-card-image">
 
     <img
-      src={
-        department.image
-      }
+      src={withImageWidth(
+        department.image,
+        640
+      )}
       alt={
         department.title
       }

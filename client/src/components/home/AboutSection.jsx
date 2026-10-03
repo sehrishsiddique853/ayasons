@@ -1,5 +1,5 @@
-import aboutImageFallback
-  from '../../assets/images/optimized/factory2.jpg'
+import aboutImage
+  from '../../assets/images/optimized/ayosons-industries-factory.webp'
 import { Link } from 'react-router-dom'
 
 
@@ -12,24 +12,8 @@ const trustPoints = [
 
 
 function AboutSection({
-  homepageContent,
   priority = false,
 }) {
-
-  const managedImage =
-    homepageContent
-      ?.aboutImage
-
-
-  const aboutImage =
-    managedImage
-      ?.available &&
-    managedImage
-      ?.url
-      ? managedImage.url
-      : aboutImageFallback
-
-
   return (
     <section
       className="about-section"
@@ -40,9 +24,7 @@ function AboutSection({
 
         <img
           className="about-image"
-          src={
-            aboutImage
-          }
+          src={aboutImage}
           alt="AYOSONS apparel manufacturing facility"
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}

@@ -672,8 +672,8 @@
 
   .standards-section {
     padding:
-      66px
-      22px;
+      4.125rem
+      1.375rem;
   }
 
 
@@ -693,6 +693,11 @@
       96px;
 
     gap: 18px;
+  }
+
+  .standard-card {
+    min-height: 0;
+    padding: 1.35rem;
   }
 
 
@@ -719,8 +724,8 @@
 
   .standards-section {
     padding:
-      60px
-      18px;
+      3.75rem
+      1.125rem;
   }
 
 
@@ -728,53 +733,75 @@
     grid-template-columns:
       1fr;
 
-    gap: 14px;
+    gap: .85rem;
 
-    margin-top: 34px;
+    margin-top: 2.125rem;
   }
 
 
   .standard-card {
-    min-height: 285px;
-
-    padding: 22px;
+    min-height: 0;
+    padding: 1.2rem;
   }
 
 
   .standard-card-main {
     grid-template-columns:
-      minmax(0, 1fr)
-      92px;
+      5rem
+      minmax(0, 1fr);
 
-    gap: 16px;
+    gap: 1rem;
   }
 
 
   .standard-logo-area,
   .standard-logo-box {
-    width: 92px;
+    width: 5rem;
   }
 
 
   .standard-logo-box {
-    height: 92px;
+    height: 5rem;
 
-    padding: 10px;
+    padding: .55rem;
+  }
+
+  .standard-logo-area {
+    order: -1;
   }
 
 
   .standard-content h3 {
     font-size:
       clamp(
-        23px,
+        1.35rem,
         7vw,
-        29px
+        1.8rem
       );
+  }
+
+  .standard-index {
+    height: 1.45rem;
+    margin-bottom: .7rem;
+  }
+
+  .standard-rule {
+    margin: .8rem 0 .7rem;
+  }
+
+  .standard-content p {
+    font-size: .78rem;
+    line-height: 1.5;
   }
 
 
   .standard-card-footer {
-    padding-top: 24px;
+    padding-top: 1rem;
+    padding-left: 6rem;
+  }
+
+  .standard-certificate-link {
+    width: 100%;
   }
 
 }
@@ -811,36 +838,8 @@
   }
 
 
-  .standard-card-main {
-    grid-template-columns:
-      1fr;
-  }
-
-
-  .standard-logo-area {
-    width: 100%;
-
-    order: -1;
-  }
-
-
-  .standard-logo-box {
-    width: 100%;
-    height: 120px;
-
-    padding: 18px;
-  }
-
-
-  .standard-logo-box img {
-    max-width: 150px;
-
-    margin: 0 auto;
-  }
-
-
   .standard-index {
-    margin-bottom: 15px;
+    margin-bottom: .65rem;
   }
 
 
@@ -863,6 +862,10 @@
     width: 100%;
 
     justify-content: center;
+  }
+
+  .standard-card-footer {
+    padding-left: 0;
   }
 
 }

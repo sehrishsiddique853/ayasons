@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const LOOK_AHEAD_DISTANCE = '800px 0px'
+const LOOK_AHEAD_DISTANCE = '1200px 0px'
 
 function ImagePreloader() {
   useEffect(() => {
@@ -43,6 +43,19 @@ function ImagePreloader() {
           }
 
           observedImages.add(image)
+          image.classList.add('image-loading')
+
+          const markLoaded = () => {
+            image.classList.add('image-loaded')
+          }
+
+          if (image.complete) {
+            markLoaded()
+          } else {
+            image.addEventListener('load', markLoaded, { once: true })
+            image.addEventListener('error', markLoaded, { once: true })
+          }
+
           imageObserver.observe(image)
         })
     }

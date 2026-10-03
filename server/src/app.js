@@ -12,6 +12,7 @@ import {
   notFound,
   errorHandler,
 } from './middleware/errorMiddleware.js'
+import { cachePublicImage } from './middleware/publicImageCache.js'
 import homepageContentRoutes
   from './routes/homepageContentRoutes.js'
 
@@ -252,6 +253,8 @@ app.get(
 | API Routes
 |--------------------------------------------------------------------------
 */
+
+app.use(cachePublicImage)
 
 app.use(
   '/api/categories',

@@ -9,6 +9,7 @@ import addImagePlaceholder
   from '../../assets/images/optimized/add-image-placeholder.jpg'
 
 import '../../style/StandardsSection.css'
+import { withImageWidth } from '../../utils/imageUrl'
 
 
 const fallbackContent = {
@@ -269,7 +270,7 @@ function StandardsSection() {
       <div className="standard-logo-box">
 
         <img
-          src={logoUrl}
+          src={withImageWidth(logoUrl, 480)}
           alt={
             standard.logo
               ?.available

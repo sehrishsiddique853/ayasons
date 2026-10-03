@@ -1,4 +1,5 @@
 import pool from '../config/mysql.js'
+import { sendResponsiveImage } from '../utils/responsiveImage.js'
 
 
 const getBaseUrl = (
@@ -190,25 +191,13 @@ export const getDepartmentImage =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          image.image_mime ||
-          'application/octet-stream',
-
-        'Content-Length':
-          image.image_blob.length,
-
-        'Content-Disposition':
-          `inline; filename="${image.image_name || 'department-image'}"`,
-
-        'Cache-Control':
-          'public, max-age=604800, immutable',
+      await sendResponsiveImage(req, res, {
+        imageBlob: image.image_blob,
+        imageMime: image.image_mime,
+        imageName: image.image_name,
+        fallbackName: `department-${id}`,
+        cacheKey: `department-${id}-${image.image_name || 'image'}-${req.query.v || '1'}`,
       })
-
-
-      res.send(
-        image.image_blob
-      )
 
     } catch (error) {
       next(error)

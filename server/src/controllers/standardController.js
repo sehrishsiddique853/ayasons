@@ -1,4 +1,5 @@
 import pool from '../config/mysql.js'
+import { sendResponsiveImage } from '../utils/responsiveImage.js'
 
 
 const getBaseUrl = (
@@ -253,27 +254,13 @@ export const getStandardLogo =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          logo.logo_image_mime ||
-          'application/octet-stream',
-
-        'Content-Length':
-          logo
-            .logo_image_blob
-            .length,
-
-        'Content-Disposition':
-          `inline; filename="${logo.logo_image_name || 'certificate-logo'}"`,
-
-        'Cache-Control':
-          'public, max-age=604800, immutable',
+      await sendResponsiveImage(req, res, {
+        imageBlob: logo.logo_image_blob,
+        imageMime: logo.logo_image_mime,
+        imageName: logo.logo_image_name,
+        fallbackName: `standard-logo-${id}`,
+        cacheKey: `standard-logo-${id}-${logo.logo_image_name || 'image'}-${req.query.v || '1'}`,
       })
-
-
-      res.send(
-        logo.logo_image_blob
-      )
 
     } catch (error) {
       next(error)

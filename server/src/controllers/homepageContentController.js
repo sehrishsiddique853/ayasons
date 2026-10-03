@@ -1,4 +1,5 @@
 import pool from '../config/mysql.js'
+import { sendResponsiveImage } from '../utils/responsiveImage.js'
 
 
 const parseJson = (
@@ -327,27 +328,13 @@ export const getHomepageAboutImage =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          image.about_image_mime ||
-          'application/octet-stream',
-
-        'Content-Length':
-          image
-            .about_image_blob
-            .length,
-
-        'Content-Disposition':
-          `inline; filename="${image.about_image_name || 'about-image'}"`,
-
-        'Cache-Control':
-          'public, max-age=604800, immutable',
+      await sendResponsiveImage(req, res, {
+        imageBlob: image.about_image_blob,
+        imageMime: image.about_image_mime,
+        imageName: image.about_image_name,
+        fallbackName: 'about-image',
+        cacheKey: `about-${image.about_image_name || 'image'}-${req.query.v || '1'}`,
       })
-
-
-      res.send(
-        image.about_image_blob
-      )
 
     } catch (error) {
       next(error)
@@ -626,25 +613,13 @@ export const getHomepageProcessImage =
         rows[0]
 
 
-      res.set({
-        'Content-Type':
-          image.image_mime ||
-          'application/octet-stream',
-
-        'Content-Length':
-          image.image_blob.length,
-
-        'Content-Disposition':
-          `inline; filename="${image.image_name || 'process-image'}"`,
-
-        'Cache-Control':
-  'public, max-age=604800, immutable',
+      await sendResponsiveImage(req, res, {
+        imageBlob: image.image_blob,
+        imageMime: image.image_mime,
+        imageName: image.image_name,
+        fallbackName: `process-${id}`,
+        cacheKey: `process-${id}-${image.image_name || 'image'}-${req.query.v || '1'}`,
       })
-
-
-      res.send(
-        image.image_blob
-      )
 
     } catch (error) {
       next(error)

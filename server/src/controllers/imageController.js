@@ -1,4 +1,5 @@
 import pool from '../config/mysql.js'
+import { sendResponsiveImage } from '../utils/responsiveImage.js'
 
 
 /*
@@ -14,61 +15,6 @@ import pool from '../config/mysql.js'
 | No temporary files.
 |
 */
-
-const sendImageResponse = (
-  res,
-  {
-    imageBlob,
-    imageMime,
-    imageName,
-    fallbackName,
-  }
-) => {
-
-  if (!imageBlob?.length) {
-    res.status(404)
-
-    throw new Error(
-      'Image not found'
-    )
-  }
-
-
-  const responseMime =
-    imageMime ||
-    'application/octet-stream'
-
-
-  const responseName =
-    imageName ||
-    fallbackName
-
-
-  res.set({
-    'Content-Type':
-      responseMime,
-
-    'Content-Length':
-      imageBlob.length,
-
-    'Content-Disposition':
-      `inline; filename="${
-        responseName ||
-        fallbackName
-      }"`,
-
-   'Cache-Control':
-  'public, max-age=604800, immutable',
-
-   
-  })
-
-
-  res.send(
-    imageBlob
-  )
-}
-
 
 /*
 |--------------------------------------------------------------------------
@@ -172,7 +118,8 @@ const getCategoryImage = async (
       rows[0]
 
 
-    sendImageResponse(
+    await sendResponsiveImage(
+      req,
       res,
       {
         imageBlob:
@@ -186,6 +133,9 @@ const getCategoryImage = async (
 
         fallbackName:
           `category-${type}-${categoryId}`,
+
+        cacheKey:
+          `category-${type}-${categoryId}-${image.image_name || 'image'}-${req.query.v || '1'}`,
 
       }
     )
@@ -322,7 +272,8 @@ export const getProductImage =
         rows[0]
 
 
-      sendImageResponse(
+      await sendResponsiveImage(
+        req,
         res,
         {
           imageBlob:
@@ -336,6 +287,9 @@ export const getProductImage =
 
           fallbackName:
             `product-${productId}`,
+
+          cacheKey:
+            `product-${productId}-${image.image_name || 'image'}-${req.query.v || '1'}`,
         }
       )
 

@@ -22,6 +22,15 @@
   box-sizing: border-box;
 }
 
+img.image-loading {
+  opacity: 0;
+  transition: opacity 280ms ease, transform 400ms ease;
+}
+
+img.image-loading.image-loaded {
+  opacity: 1;
+}
+
 html {
   scroll-behavior: auto;
 }

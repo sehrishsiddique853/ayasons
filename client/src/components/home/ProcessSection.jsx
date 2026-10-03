@@ -1,4 +1,5 @@
 import '../../style/ProcessSection.css'
+import { withImageWidth } from '../../utils/imageUrl'
 
 
 import sportsImage
@@ -300,9 +301,10 @@ function ProcessSection({
                     <div className="process-card-image">
 
                       <img
-                        src={
-                          step.image
-                        }
+                        src={withImageWidth(
+                          step.image,
+                          640
+                        )}
                         alt={
                           step.title
                         }
