@@ -163,6 +163,24 @@ export const submitCartQuote = async (req, res, next) => {
       )
     `)
 
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS quote_request_files (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        quote_id BIGINT UNSIGNED NOT NULL,
+        item_name VARCHAR(180) NOT NULL DEFAULT '',
+        file_name VARCHAR(255) NOT NULL,
+        file_mime VARCHAR(100) NOT NULL,
+        file_blob LONGBLOB NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY idx_quote_request_files_quote (quote_id),
+        CONSTRAINT fk_quote_request_files_quote
+          FOREIGN KEY (quote_id)
+          REFERENCES quote_requests(id)
+          ON DELETE CASCADE
+      )
+    `)
+
     const [insertResult] = await pool.execute(
       `
       INSERT INTO quote_requests (
@@ -186,6 +204,39 @@ export const submitCartQuote = async (req, res, next) => {
         JSON.stringify(items),
       ]
     )
+
+    const logoFiles = Array.isArray(req.files) ? req.files : []
+
+    for (const item of items) {
+      if (
+        item.logoUploadIndex === null ||
+        !logoFiles[item.logoUploadIndex]
+      ) {
+        continue
+      }
+
+      const file = logoFiles[item.logoUploadIndex]
+
+      await pool.execute(
+        `
+        INSERT INTO quote_request_files (
+          quote_id,
+          item_name,
+          file_name,
+          file_mime,
+          file_blob
+        )
+        VALUES (?, ?, ?, ?, ?)
+        `,
+        [
+          insertResult.insertId,
+          item.itemName,
+          file.originalname,
+          file.mimetype,
+          file.buffer,
+        ]
+      )
+    }
 
     const [settingsRows] = await pool.execute(`
       SELECT recipient_email
@@ -258,8 +309,6 @@ export const submitCartQuote = async (req, res, next) => {
       ...items.map(itemText),
       customer.message ? `\nCustomer Message:\n${customer.message}` : '',
     ].filter(Boolean).join('\n')
-
-    const logoFiles = Array.isArray(req.files) ? req.files : []
 
     const emailAttachments = items
       .map((item) => {
