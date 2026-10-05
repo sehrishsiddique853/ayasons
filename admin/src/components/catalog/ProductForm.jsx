@@ -7,6 +7,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save } from 'lucide-react'
 
 import api from '../../services/api'
+import ProductCustomizerManager from './ProductCustomizerManager'
 
 import '../../styles/category-form.css'
 
@@ -401,6 +402,10 @@ function ProductForm({
           </button>
         </div>
       </form>
+
+      {isEdit && (
+        <ProductCustomizerManager productId={productId} />
+      )}
     </div>
   )
 }
