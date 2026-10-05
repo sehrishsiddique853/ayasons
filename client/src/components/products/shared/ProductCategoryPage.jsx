@@ -332,14 +332,15 @@ const galleryProducts =
           product.features ||
           [],
 
-        to:
-          `/products/${categorySlug}/${productSlug}`,
-
         buttonText:
-          productSlug ===
-          'soccer-uniform'
-            ? 'Customize Uniform'
-            : 'View Product',
+          product.customizable
+            ? 'Customize Product'
+            : 'Request A Quote',
+
+        to:
+          product.customizable
+            ? `/products/${categorySlug}/${productSlug}`
+            : '/contact',
       }
     }
   )
