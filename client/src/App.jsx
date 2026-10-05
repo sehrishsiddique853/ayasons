@@ -10,6 +10,8 @@ import {
   useLocation,
 } from 'react-router-dom'
 
+
+
 import Navbar from './components/layout/Navbar'
 import ImagePreloader from './components/common/ImagePreloader'
 import { ContactSettingsProvider } from './context/ContactSettingsContext'
@@ -17,6 +19,13 @@ import { loadProductCategories } from './services/productCategoriesCache'
 import { loadHomepageContent } from './services/homepageContentCache'
 
 import Home from './pages/Home'
+
+import {
+  CartProvider,
+} from './context/CartContext'
+
+import ProductCustomizer
+  from './pages/ProductCustomizer'
 
 import ProductCategoryPage from './components/products/shared/ProductCategoryPage'
 import About
@@ -163,8 +172,10 @@ function App() {
   }, [])
 
   return (
-    <ContactSettingsProvider>
-      <div className="site-shell">
+   <ContactSettingsProvider>
+  <CartProvider>
+
+    <div className="site-shell">
 
       <ImagePreloader />
 
@@ -236,12 +247,19 @@ function App() {
               <ProductCategoryPage />
             }
           />
-
+<Route
+  path="/products/:categorySlug/:productSlug"
+  element={
+    <ProductCustomizer />
+  }
+/>
         </Routes>
       </main>
 
-      </div>
-    </ContactSettingsProvider>
+          </div>
+
+  </CartProvider>
+</ContactSettingsProvider>
   )
 }
 

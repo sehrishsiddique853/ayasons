@@ -291,9 +291,33 @@ function ProductCategoryPage() {
   |
   */
 
-  const galleryProducts =
-    products.map(
-      (product) => ({
+  const slugify = (
+  value = ''
+) =>
+  value
+    .toLowerCase()
+    .trim()
+    .replace(
+      /[^a-z0-9]+/g,
+      '-'
+    )
+    .replace(
+      /^-+|-+$/g,
+      ''
+    )
+
+
+const galleryProducts =
+  products.map(
+    (product) => {
+
+      const productSlug =
+        product.slug ||
+        slugify(
+          product.name
+        )
+
+      return {
         title:
           product.name,
 
@@ -305,9 +329,20 @@ function ProductCategoryPage() {
           cardImage,
 
         features:
-          product.features || [],
-      })
-    )
+          product.features ||
+          [],
+
+        to:
+          `/products/${categorySlug}/${productSlug}`,
+
+        buttonText:
+          productSlug ===
+          'soccer-uniform'
+            ? 'Customize Uniform'
+            : 'View Product',
+      }
+    }
+  )
 
 
   return (

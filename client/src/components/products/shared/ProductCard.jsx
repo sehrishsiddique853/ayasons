@@ -1,12 +1,21 @@
 import '../../../style/products/ProductCard.css'
-import { Link } from 'react-router-dom'
-import { withImageWidth } from '../../../utils/imageUrl'
+
+import {
+  Link,
+} from 'react-router-dom'
+
+import {
+  withImageWidth,
+} from '../../../utils/imageUrl'
+
 
 function ProductCard({
   title,
   description,
   image,
-  features,
+  features = [],
+  to = '/contact',
+  buttonText = 'Request A Quote',
 }) {
   return (
     <article className="category-product-card">
@@ -28,35 +37,53 @@ function ProductCard({
 
       </div>
 
+
       <div className="category-product-content">
 
-        <h3>{title}</h3>
+        <h3>
+          {title}
+        </h3>
 
-        <p>{description}</p>
+        <p>
+          {description}
+        </p>
+
 
         <div className="category-product-features">
 
-          {features.map((feature, index) => (
-            <span key={feature}>
+          {features.map(
+            (
+              feature,
+              index
+            ) => (
+              <span
+                key={feature}
+              >
+                {feature}
 
-              {feature}
-
-              {index < features.length - 1 && (
-                <i>•</i>
-              )}
-
-            </span>
-          ))}
+                {index <
+                  features.length -
+                    1 && (
+                  <i>
+                    •
+                  </i>
+                )}
+              </span>
+            )
+          )}
 
         </div>
 
+
         <Link
           className="category-product-button"
-          to="/contact"
+          to={to}
         >
-          Request A Quote
+          {buttonText}
 
-          <span aria-hidden="true">
+          <span
+            aria-hidden="true"
+          >
             →
           </span>
         </Link>
@@ -66,5 +93,6 @@ function ProductCard({
     </article>
   )
 }
+
 
 export default ProductCard
