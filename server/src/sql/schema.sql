@@ -346,6 +346,8 @@ CREATE TABLE IF NOT EXISTS product_customizer_items (
 
     colors_json JSON NULL,
 
+    color_zones_json JSON NULL,
+
     option_groups_json JSON NULL,
 
     allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
@@ -386,5 +388,68 @@ CREATE TABLE IF NOT EXISTS product_customizer_items (
         FOREIGN KEY (product_id)
         REFERENCES products(id)
         ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS quote_requests (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    customer_name VARCHAR(160) NOT NULL,
+
+    customer_email VARCHAR(255) NOT NULL,
+
+    customer_phone VARCHAR(80) NOT NULL DEFAULT '',
+
+    company VARCHAR(180) NOT NULL DEFAULT '',
+
+    country VARCHAR(120) NOT NULL DEFAULT '',
+
+    message TEXT NULL,
+
+    items_json JSON NOT NULL,
+
+    status VARCHAR(40) NOT NULL DEFAULT 'new',
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    KEY idx_quote_requests_created_at (
+        created_at
+    ),
+
+    KEY idx_quote_requests_status (
+        status
+    )
+);
+
+
+CREATE TABLE IF NOT EXISTS quote_request_files (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    quote_id BIGINT UNSIGNED NOT NULL,
+
+    item_name VARCHAR(180) NOT NULL DEFAULT '',
+
+    file_name VARCHAR(255) NOT NULL,
+
+    file_mime VARCHAR(100) NOT NULL,
+
+    file_blob LONGBLOB NOT NULL,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    KEY idx_quote_request_files_quote (
+        quote_id
+    ),
+
+    CONSTRAINT fk_quote_request_files_quote
+        FOREIGN KEY (quote_id)
+        REFERENCES quote_requests(id)
         ON DELETE CASCADE
 );
