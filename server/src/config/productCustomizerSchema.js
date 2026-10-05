@@ -176,8 +176,6 @@ export const ensureProductCustomizerSchema = async () => {
     [productId]
   )
 
-  if (Number(existing[0].total) > 0) return
-
   for (const item of defaultItems) {
     await pool.execute(`
       INSERT INTO product_customizer_items (
@@ -187,11 +185,24 @@ export const ensureProductCustomizerSchema = async () => {
         allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
+      ON DUPLICATE KEY UPDATE
+        color_zones_json =
+          CASE
+            WHEN color_zones_json IS NULL OR JSON_LENGTH(color_zones_json) = 0
+            THEN VALUES(color_zones_json)
+            ELSE color_zones_json
+          END,
+        option_groups_json =
+          CASE
+            WHEN option_groups_json IS NULL OR JSON_LENGTH(option_groups_json) <= 1
+            THEN VALUES(option_groups_json)
+            ELSE option_groups_json
+          END
     `, [
       productId, item.name, item.slug, item.description,
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
-      JSON.stringify(item.colorZones || ['Primary Color']), JSON.stringify(item.optionGroups), item.allowLogoUpload,
-      item.allowPlayerName, item.allowPlayerNumber, item.order,
+      JSON.stringify(item.colorZones || ['Primary Color']), JSON.stringify(item.optionGroups),
+      item.allowLogoUpload, item.allowPlayerName, item.allowPlayerNumber, item.order,
     ])
   }
 }
