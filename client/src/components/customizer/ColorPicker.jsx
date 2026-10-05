@@ -1,4 +1,5 @@
 function ColorPicker({
+  label = 'Color',
   colors = [],
   value,
   onChange,
@@ -13,7 +14,7 @@ function ColorPicker({
   return (
     <div className="customizer-color-area">
       <div className="customizer-field-heading">
-        <span>Color</span>
+        <span>{label}</span>
         <strong>{String(value || '').toUpperCase()}</strong>
       </div>
 
@@ -22,7 +23,11 @@ function ColorPicker({
           <button
             key={color.value}
             type="button"
-            className={value === color.value ? 'customizer-swatch active' : 'customizer-swatch'}
+            className={
+              value === color.value
+                ? 'customizer-swatch active'
+                : 'customizer-swatch'
+            }
             style={{ backgroundColor: color.value }}
             title={color.name || color.value}
             aria-label={`Select ${color.name || color.value}`}
