@@ -1,13 +1,7 @@
 import '../../../style/products/ProductCard.css'
-
-import {
-  Link,
-} from 'react-router-dom'
-
-import {
-  withImageWidth,
-} from '../../../utils/imageUrl'
-
+import { Link } from 'react-router-dom'
+import { ArrowRight, ShoppingBag } from 'lucide-react'
+import { withImageWidth } from '../../../utils/imageUrl'
 
 function ProductCard({
   title,
@@ -19,80 +13,48 @@ function ProductCard({
 }) {
   return (
     <article className="category-product-card">
-
-      <div className="category-product-image">
-
+      <Link className="category-product-image" to={to} aria-label={title}>
         <img
-          src={withImageWidth(
-            image,
-            520
-          )}
+          src={withImageWidth(image, 520)}
           alt={title}
           loading="lazy"
           decoding="async"
           fetchPriority="low"
         />
-
-        <div className="category-product-image-overlay" />
-
-      </div>
-
+      </Link>
 
       <div className="category-product-content">
-
-        <h3>
-          {title}
-        </h3>
-
-        <p>
-          {description}
-        </p>
-
-
-        <div className="category-product-features">
-
-          {features.map(
-            (
-              feature,
-              index
-            ) => (
-              <span
-                key={feature}
-              >
-                {feature}
-
-                {index <
-                  features.length -
-                    1 && (
-                  <i>
-                    •
-                  </i>
-                )}
-              </span>
-            )
-          )}
-
+        <div className="category-product-topline">
+          <span>AYOSONS</span>
+          <span>Custom Manufacturing</span>
         </div>
 
+        <h3>
+          <Link to={to}>{title}</Link>
+        </h3>
 
-        <Link
-          className="category-product-button"
-          to={to}
-        >
-          {buttonText}
+        <p>{description}</p>
 
-          <span
-            aria-hidden="true"
-          >
-            →
-          </span>
-        </Link>
+        {features.length > 0 && (
+          <div className="category-product-features">
+            {features.slice(0, 3).map((feature) => (
+              <span key={feature}>{feature}</span>
+            ))}
+          </div>
+        )}
 
+        <div className="category-product-footer">
+          <span className="category-product-price">Price on request</span>
+
+          <Link className="category-product-button" to={to}>
+            <ShoppingBag size={16} />
+            {buttonText}
+            <ArrowRight size={15} />
+          </Link>
+        </div>
       </div>
-
     </article>
   )
 }
-
 
 export default ProductCard
