@@ -8,6 +8,7 @@ import categoryRoutes from './routes/categoryRoutes.js'
 import productRoutes from './routes/productRoutes.js'
 import imageRoutes from './routes/imageRoutes.js'
 import productCustomizerRoutes from './routes/productCustomizerRoutes.js'
+import quoteRoutes from './routes/quoteRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import {
   notFound,
@@ -277,6 +278,11 @@ app.use(
 app.use(
   '/api/product-customizer',
   productCustomizerRoutes
+)
+
+app.use(
+  '/api/quotes',
+  quoteRoutes
 )
 
 
