@@ -211,6 +211,7 @@ function ProductCustomizer() {
     })
 
     updateItem(activeItem.id, 'logoName', file.name)
+    updateItem(activeItem.id, 'logoFile', file)
   }
 
   const handleAddToCart = () => {
