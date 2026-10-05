@@ -767,11 +767,11 @@ export const categoryData = [
   */
 
   {
-    name: 'Workwear',
+    name: 'Safety and Workwear',
 
     slug: 'workwear',
 
-    eyebrow: 'Workwear',
+    eyebrow: 'Safety and Workwear',
 
     showcaseLabel: 'Professional Apparel',
 
@@ -782,12 +782,12 @@ export const categoryData = [
       'Custom suits, jackets and pants manufactured for companies, staff teams and professional uniform programs.',
 
     collectionDescription:
-      'Professional workwear manufactured for companies, teams and organizations requiring reliable branded apparel.',
+      'Safety and workwear manufactured for companies, teams and organizations requiring reliable branded apparel.',
 
     groups: [
       {
         title:
-          'Workwear Collection',
+          'Safety and Workwear Collection',
 
         items: [
           'Suits',

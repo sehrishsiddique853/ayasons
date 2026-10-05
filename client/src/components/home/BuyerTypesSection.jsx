@@ -38,9 +38,9 @@ const buyerTypes = [
   },
   {
     number: '06',
-    title: 'Corporate & Workwear Buyers',
+    title: 'Corporate Safety and Workwear Buyers',
     description:
-      'Custom workwear, jackets, uniforms and branded apparel created for companies, organizations and professional teams.',
+      'Custom safety and workwear, jackets, uniforms and branded apparel created for companies, organizations and professional teams.',
     link: 'For Corporate Buyers',
   },
 ]

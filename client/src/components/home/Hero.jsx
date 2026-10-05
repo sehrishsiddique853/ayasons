@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { withImageWidth } from '../../utils/imageUrl'
-import heroLoadingFallback from '../../assets/images/optimized/hero-loading-fallback.webp'
+import workwearHeroImage from '../../assets/images/optimized/workwear.jpg'
 
 const CATEGORY_ORDER = [
   'sportswear',
@@ -54,9 +54,7 @@ const sortHeroCategories = (categories) => {
 function Hero({ categories = [] }) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isChanging, setIsChanging] = useState(false)
-  const [displayedImage, setDisplayedImage] = useState(
-    heroLoadingFallback
-  )
+  const [displayedImage, setDisplayedImage] = useState('')
 
   const heroCategories = sortHeroCategories(categories)
 
@@ -138,18 +136,19 @@ function Hero({ categories = [] }) {
    * Current background image
    */
   const activeImage =
-    withImageWidth(
-      activeCategory?.heroImage?.url ||
-      activeCategory?.collectionImage?.url ||
-      '',
-      1600
-    )
+    activeCategory?.slug === 'workwear'
+      ? workwearHeroImage
+      : withImageWidth(
+          activeCategory?.heroImage?.url ||
+          activeCategory?.collectionImage?.url ||
+          '',
+          1600
+        )
 
   const backgroundImage =
     activeImage
 
-  const hasLoadedCarouselImage =
-    displayedImage !== heroLoadingFallback
+  const hasLoadedCarouselImage = Boolean(displayedImage)
 
   /*
    * Keep the current background visible until the next one has fully
@@ -227,36 +226,31 @@ function Hero({ categories = [] }) {
           <span>Sialkot, Pakistan</span>
           <span>Ships Worldwide</span>
         </p>
-
-        <p className="eyebrow">
-          Custom Sportswear and
-        </p>
-         <p className="eyebrow">
-           Streetwear Manufacturer
-        </p>
-        
+ 
 
         <h1>
+          <span>Custom</span>
           <span className="hero-category-title">
+          <span
+              className="hero-category-title-text"
+            >
+             Sportswear and 
+            </span>
             <span
               className="hero-category-title-text"
-              key={
-                activeCategory?.id ||
-                activeCategory?._id ||
-                activeCategory?.slug ||
-                'sportswear'
-              }
             >
-              {activeCategory?.name || 'Sportswear'}
+            Streetwear
             </span>
+            
           </span>
+          <span>Manufacturer</span>
         </h1>
 
       
 
         <p className="hero-copy">
           Your manufacturing partner for sportswear,
-          streetwear, activewear, workwear and
+          streetwear, activewear, safety and workwear, and
           private-label apparel — built for brands,
           teams and businesses.
         </p>
@@ -284,6 +278,21 @@ function Hero({ categories = [] }) {
           in Sialkot, Pakistan
         </p>
 
+      </div>
+
+      <div className="hero-active-category" aria-live="polite">
+        <span className="hero-active-category-label">Explore</span>
+        <span
+          className="hero-active-category-name"
+          key={
+            activeCategory?.id ||
+            activeCategory?._id ||
+            activeCategory?.slug ||
+            'sportswear'
+          }
+        >
+          {activeCategory?.name || 'Sportswear'}
+        </span>
       </div>
 
       {/* MANUAL CAROUSEL CONTROLS */}

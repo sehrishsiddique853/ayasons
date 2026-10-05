@@ -20,19 +20,6 @@
   color: var(--text-primary);
 }
 
-.manufacturing-excellence::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: repeating-linear-gradient(
-    105deg,
-    rgba(255, 255, 255, 0.025) 0 1px,
-    transparent 1px 42px
-  );
-  opacity: 0.45;
-}
-
 .manufacturing-excellence-inner {
   position: relative;
   z-index: 1;

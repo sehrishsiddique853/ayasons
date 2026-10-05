@@ -38,21 +38,6 @@
     #060606;
 }
 
-.quote-hero::before {
-  content: '';
-
-  position: absolute;
-  inset: 0;
-
-  background-image: repeating-linear-gradient(
-    105deg,
-    rgba(255, 255, 255, 0.025) 0 1px,
-    transparent 1px 40px
-  );
-
-  pointer-events: none;
-}
-
 .quote-hero-inner {
   position: relative;
   z-index: 1;

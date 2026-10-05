@@ -5,16 +5,16 @@ import workwearImage from '../../assets/images/optimized/workwear.jpg'
 
 const collections = [
   {
-    title: 'Workwear',
+    title: 'Safety and Workwear',
 
     description:
-      'Professional workwear manufactured for companies, teams and organizations requiring reliable branded apparel.',
+      'Safety and workwear manufactured for companies, teams and organizations requiring reliable branded apparel.',
 
     image: workwearImage,
 
     groups: [
       {
-        title: 'Workwear Collection',
+        title: 'Safety and Workwear Collection',
 
         items: [
           'Suits',
@@ -78,12 +78,12 @@ const products = [
 function Workwear() {
   return (
     <ProductCategoryPage
-      eyebrow="Workwear"
+      eyebrow="Safety and Workwear"
       title="Professional Apparel Built To Last"
       description="Custom suits, jackets and pants manufactured for companies, staff teams and professional uniform programs."
       image={workwearImage}
       collections={collections}
-      galleryEyebrow="Workwear Showcase"
+      galleryEyebrow="Safety and Workwear Showcase"
       galleryTitle="Explore The Collection"
       products={products}
     />

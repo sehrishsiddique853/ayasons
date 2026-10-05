@@ -249,7 +249,7 @@ function RequestQuote() {
                     </option>
                     <option>Varsity Jackets</option>
                     <option>Headwear</option>
-                    <option>Workwear</option>
+                    <option>Safety and Workwear</option>
                     <option>Accessories</option>
                   </select>
                 </div>

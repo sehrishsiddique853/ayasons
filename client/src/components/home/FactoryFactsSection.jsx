@@ -20,7 +20,7 @@ const factoryFacts = [
   {
     label: 'Product Range',
     value:
-      'Sportswear, activewear, streetwear, varsity jackets, headwear, workwear and accessories',
+      'Sportswear, activewear, streetwear, varsity jackets, headwear, safety and workwear, and accessories',
   },
   {
     label: 'Who We Manufacture For',

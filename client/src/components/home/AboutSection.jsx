@@ -59,7 +59,7 @@ function AboutSection({
           and sportswear manufacturer
           producing sportswear,
           activewear, streetwear,
-          jackets, headwear, workwear
+          jackets, headwear, safety and workwear
           and accessories for brands,
           teams and businesses.
         </p>

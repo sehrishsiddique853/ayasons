@@ -50,32 +50,46 @@ const getMediaVersion = (
     : 1
 }
 
+const formatCategoryText = (value, isWorkwearCategory) => {
+  if (!isWorkwearCategory || typeof value !== 'string') {
+    return value
+  }
+
+  return value.replace(/workwear/gi, (match) =>
+    match[0] === match[0].toUpperCase()
+      ? 'Safety and Workwear'
+      : 'safety and workwear'
+  )
+}
+
 
 const formatCategory = (
   row,
   req
 ) => {
+  const isWorkwearCategory = row.slug === 'workwear'
+  const groups = parseJson(row.groups_json, []).map((group) => ({
+    ...group,
+    title: formatCategoryText(group.title, isWorkwearCategory),
+  }))
+
   return {
     id: row.id,
 
-    name: row.name,
+    name: isWorkwearCategory ? 'Safety and Workwear' : row.name,
 
     slug: row.slug,
 
-    eyebrow:
-      row.eyebrow || '',
+    eyebrow: formatCategoryText(row.eyebrow || '', isWorkwearCategory),
 
-    showcaseLabel:
-      row.showcase_label || '',
+    showcaseLabel: formatCategoryText(row.showcase_label || '', isWorkwearCategory),
 
     heroTitle:
       row.hero_title || '',
 
-    description:
-      row.description || '',
+    description: formatCategoryText(row.description || '', isWorkwearCategory),
 
-    collectionDescription:
-      row.collection_description || '',
+    collectionDescription: formatCategoryText(row.collection_description || '', isWorkwearCategory),
 
     heroImage: {
       url:
@@ -95,11 +109,7 @@ const formatCategory = (
       publicId: '',
     },
 
-    groups:
-      parseJson(
-        row.groups_json,
-        []
-      ),
+    groups,
 
     active:
       Boolean(row.active),

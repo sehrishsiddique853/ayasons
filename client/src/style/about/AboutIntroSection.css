@@ -14,14 +14,6 @@
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
 
-.about-intro-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: repeating-linear-gradient(105deg, rgba(255,255,255,.025) 0 1px, transparent 1px 42px);
-}
-
 .about-intro-copy { max-width: 860px; animation: aboutIntroIn 700ms cubic-bezier(.22,1,.36,1) both; }
 .about-intro-kicker { display: flex; align-items: center; gap: 14px; margin: 0 0 25px; color: var(--brand-yellow); font: 900 12px/1 var(--font-display); letter-spacing: .28em; text-transform: uppercase; }
 .about-intro-kicker span { width: 10px; height: 10px; background: var(--brand-yellow); transform: rotate(45deg); }

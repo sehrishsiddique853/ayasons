@@ -1,25 +1,17 @@
 .product-category-hero {
   position: relative;
   isolation: isolate;
+  min-height: 100vh;
   min-height: 100svh;
+  height: 100vh;
+  height: 100svh;
   overflow: hidden;
   display: flex;
   align-items: center;
-  padding: clamp(108px, 12vh, 150px) clamp(20px, 5vw, 76px) 92px;
+  padding: clamp(88px, 12vh, 132px) clamp(20px, 5vw, 76px) clamp(72px, 9vh, 92px);
   background: var(--category-hero-image) center top / cover no-repeat, #08090b;
   color: var(--text-primary);
-    transform: translateY(10px);
-}
-
-.product-category-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    repeating-linear-gradient(105deg, rgba(255,255,255,.035) 0 1px, transparent 1px 36px),
-    radial-gradient(circle at 82% 35%, rgba(240,212,79,.1), transparent 34%);
+  transform: translateY(10px);
 }
 
 .product-category-hero-overlay {
@@ -50,7 +42,7 @@
 .product-category-eyebrow {
   width: fit-content;
   max-width: 100%;
-  margin: 0 0 22px;
+  margin: 0 0 clamp(10px, 2.2vh, 22px);
   padding: 8px 13px;
   border: 1px solid rgba(240,212,79,.48);
   background: rgba(7,8,10,.64);
@@ -72,7 +64,7 @@
   -webkit-background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  font: 900 clamp(54px,7.2vw,108px)/.86 var(--font-display);
+  font: 900 clamp(48px, min(7.2vw, 11.5vh), 108px)/.86 var(--font-display);
   letter-spacing: -.025em;
   text-transform: uppercase;
   animation: categoryGoldShift 6s ease-in-out infinite;
@@ -82,7 +74,7 @@
   display: block;
   width: 88px;
   height: 3px;
-  margin: 28px 0 24px;
+  margin: clamp(16px, 3vh, 28px) 0 clamp(14px, 2.6vh, 24px);
   background: linear-gradient(90deg,#fff18a,var(--brand-yellow),transparent);
 }
 
@@ -106,7 +98,14 @@
 }
 
 @media (max-width: 900px) {
-  .product-category-hero { padding: 112px 28px 92px; }
+  .product-category-hero {
+    height: 100vh;
+    height: 100svh;
+    min-height: 620px;
+    padding: clamp(6rem, 12vh, 7rem) 28px clamp(5.5rem, 10vh, 6.5rem);
+  }
+  .product-category-hero h1 { font-size: clamp(3rem, min(10vw, 10.5vh), 5.75rem); }
+  .product-category-description { max-width: 34rem; }
   .product-category-hero-overlay {
     background:
       linear-gradient(90deg,rgba(4,5,7,.9),rgba(4,5,7,.58) 55%,rgba(4,5,7,.18)),
@@ -116,8 +115,11 @@
 
 @media (max-width: 620px) {
   .product-category-hero {
-    align-items: flex-start;
-    padding: 104px 18px 88px;
+    align-items: center;
+    height: 100vh;
+    height: 100svh;
+    min-height: 600px;
+    padding: clamp(5.4rem, 11vh, 6.5rem) 18px clamp(4.7rem, 9vh, 5.4rem);
     background-position: 62% top;
   }
   .product-category-hero-overlay {
@@ -125,10 +127,25 @@
       linear-gradient(90deg,rgba(4,5,7,.84),rgba(4,5,7,.5)),
       linear-gradient(180deg,rgba(4,5,7,.12) 22%,rgba(4,5,7,.8));
   }
-  .product-category-eyebrow { margin-bottom: 18px; font-size: 9px; letter-spacing: .12em; }
-  .product-category-hero h1 { font-size: clamp(44px,15vw,68px); }
-  .product-category-accent { margin: 23px 0 20px; }
-  .product-category-description { font-size: 14px; line-height: 1.55; }
+  .product-category-eyebrow { margin-bottom: .8rem; padding: .45rem .6rem; font-size: clamp(.5rem, 2.2vw, .58rem); letter-spacing: .12em; }
+  .product-category-hero h1 { font-size: clamp(2.45rem, min(13vw, 9.6vh), 4.25rem); }
+  .product-category-accent { margin: clamp(.9rem, 2.4vh, 1.4rem) 0 clamp(.75rem, 2vh, 1.25rem); }
+  .product-category-description { font-size: clamp(.78rem, 3.4vw, .9rem); line-height: 1.45; }
+}
+
+@media (max-height: 720px) and (min-width: 621px) {
+  .product-category-hero { padding-top: 72px; padding-bottom: 64px; }
+  .product-category-hero h1 { font-size: clamp(44px, min(6.4vw, 10vh), 82px); }
+  .product-category-accent { margin-block: 14px; }
+  .product-category-description { line-height: 1.42; }
+}
+
+@media (max-height: 700px) and (max-width: 620px) {
+  .product-category-hero { min-height: 540px; padding-top: 4.8rem; padding-bottom: 4.1rem; }
+  .product-category-eyebrow { margin-bottom: .5rem; }
+  .product-category-hero h1 { font-size: clamp(2.3rem, 11vw, 3.5rem); }
+  .product-category-accent { margin: .7rem 0; }
+  .product-category-description { font-size: .74rem; line-height: 1.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {

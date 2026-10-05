@@ -103,7 +103,7 @@ function Footer() {
 
           <p>
             Custom sportswear, streetwear, activewear,
-            workwear and private-label manufacturing
+            safety and workwear, and private-label manufacturing
             for brands, teams and businesses worldwide.
           </p>
 
@@ -136,7 +136,7 @@ function Footer() {
           <Link {...productLinkProps('activewear')}>Activewear</Link>
           <Link {...productLinkProps('varsity-jackets')}>Varsity Jackets</Link>
           <Link {...productLinkProps('headwear')}>Headwear</Link>
-          <Link {...productLinkProps('workwear')}>Workwear</Link>
+          <Link {...productLinkProps('workwear')}>Safety and Workwear</Link>
           <Link {...productLinkProps('accessories')}>Accessories</Link>
 
         </div>
