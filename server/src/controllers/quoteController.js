@@ -12,6 +12,14 @@ const escapeHtml = (value) =>
     .replace(/'/g, '&#039;')
 
 const normalizeItems = (items) => {
+  if (typeof items === 'string') {
+    try {
+      items = JSON.parse(items)
+    } catch {
+      return []
+    }
+  }
+
   if (!Array.isArray(items)) return []
 
   return items
@@ -34,6 +42,10 @@ const normalizeItems = (items) => {
         item.options && typeof item.options === 'object'
           ? item.options
           : {},
+      logoUploadIndex:
+        Number.isInteger(Number(item.logoUploadIndex))
+          ? Number(item.logoUploadIndex)
+          : null,
     }))
     .filter((item) => item.itemName)
 }
@@ -247,6 +259,27 @@ export const submitCartQuote = async (req, res, next) => {
       customer.message ? `\nCustomer Message:\n${customer.message}` : '',
     ].filter(Boolean).join('\n')
 
+    const logoFiles = Array.isArray(req.files) ? req.files : []
+
+    const emailAttachments = items
+      .map((item) => {
+        if (
+          item.logoUploadIndex === null ||
+          !logoFiles[item.logoUploadIndex]
+        ) {
+          return null
+        }
+
+        const file = logoFiles[item.logoUploadIndex]
+
+        return {
+          filename: file.originalname,
+          content: file.buffer,
+          contentType: file.mimetype,
+        }
+      })
+      .filter(Boolean)
+
     const adminDelivery = await transporter.sendMail({
       from: `AYOSONS Website <${gmailUser}>`,
       to: recipient,
@@ -254,6 +287,7 @@ export const submitCartQuote = async (req, res, next) => {
       subject: `New custom order #${insertResult.insertId} from ${customer.name}`,
       html: customerHtml,
       text: customerText,
+      attachments: emailAttachments,
     })
 
     const confirmationDelivery = await transporter.sendMail({
@@ -271,6 +305,7 @@ export const submitCartQuote = async (req, res, next) => {
         </div>
       `,
       text: `Thank you, ${customer.name}.\n\nWe received your AYOSONS custom product request #${insertResult.insertId}.\n\n${items.map(itemText).join('\n\n')}\n\nOur team can reply with pricing and next steps.`,
+      attachments: emailAttachments,
     })
 
     if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
