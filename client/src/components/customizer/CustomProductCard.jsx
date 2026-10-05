@@ -1,407 +1,203 @@
-import {
-  useState,
-} from 'react'
-
-import {
-  Check,
-  Upload,
-} from 'lucide-react'
-
-import ColorPicker
-  from './ColorPicker'
-
-import QuantitySelector
-  from './QuantitySelector'
-
+import { useState } from 'react'
+import { Check, ChevronDown, ChevronUp, Upload } from 'lucide-react'
+import ColorPicker from './ColorPicker'
+import QuantitySelector from './QuantitySelector'
 
 function CustomProductCard({
   item,
   selected,
+  expanded,
+  onExpand,
   onToggle,
   onChange,
 }) {
-  const [
-    logoPreview,
-    setLogoPreview,
-  ] = useState('')
+  const [logoPreview, setLogoPreview] = useState('')
 
-  const update = (
-    key,
-    value
-  ) => {
-    onChange(
-      item.id,
-      key,
-      value
-    )
+  const update = (key, value) => onChange(item.id, key, value)
+
+  const handleLogo = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (logoPreview) URL.revokeObjectURL(logoPreview)
+    setLogoPreview(URL.createObjectURL(file))
+    update('logoName', file.name)
   }
 
-  const handleLogo = (
-    event
-  ) => {
-    const file =
-      event.target.files?.[0]
-
-    if (!file) {
-      return
-    }
-
-    const preview =
-      URL.createObjectURL(file)
-
-    setLogoPreview(preview)
-
-    update(
-      'logoName',
-      file.name
+  const optionValues = (group) =>
+    (group.values || []).map((value) =>
+      typeof value === 'string'
+        ? { label: value, value }
+        : value
     )
-  }
 
   return (
-    <article
-      className={
-        selected.enabled
-          ? 'custom-product-card selected'
-          : 'custom-product-card'
-      }
-    >
-
-      <button
-        type="button"
-        className="custom-product-select"
-        onClick={() =>
-          onToggle(item.id)
-        }
-      >
-        <span
-          className="custom-product-checkbox"
-        >
+    <article className={selected.enabled ? 'compact-product-card selected' : 'compact-product-card'}>
+      <div className="compact-product-main">
+        <div className="compact-product-image">
+          <img src={item.image?.url} alt={item.name} loading="lazy" />
           {selected.enabled && (
-            <Check size={16} />
+            <span className="compact-product-check"><Check size={14} /></span>
           )}
-        </span>
-
-        <span>
-          Add this item
-        </span>
-      </button>
-
-
-      <div className="custom-product-card-head">
-
-        <div>
-          <span className="custom-product-kicker">
-            Soccer Kit
-          </span>
-
-          <h2>
-            {item.name}
-          </h2>
-
-          <p>
-            {item.description}
-          </p>
         </div>
 
+        <div className="compact-product-info">
+          <span className="compact-product-label">Custom Item</span>
+          <h3>{item.name}</h3>
+          <p>{item.description}</p>
+
+          {selected.enabled && (
+            <div className="compact-product-summary">
+              {selected.size && <span>Size: <strong>{selected.size}</strong></span>}
+              <span>Color: <i style={{ background: selected.color }} /></span>
+              <span>Qty: <strong>{selected.quantity}</strong></span>
+            </div>
+          )}
+        </div>
+
+        <div className="compact-product-actions">
+          <button
+            type="button"
+            className={selected.enabled ? 'compact-select-button active' : 'compact-select-button'}
+            onClick={() => onToggle(item.id)}
+          >
+            {selected.enabled ? 'Selected' : 'Select'}
+          </button>
+
+          {selected.enabled && (
+            <button
+              type="button"
+              className="compact-customize-button"
+              onClick={() => onExpand(item.id)}
+            >
+              Customize
+              {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
+          )}
+        </div>
       </div>
 
-
-      {selected.enabled && (
-        <div className="custom-product-options">
-
-          <div className="customizer-block">
-
-            <div className="customizer-field-heading">
-              <span>
-                Choose size
-              </span>
-
-              <strong>
-                {selected.size ||
-                  'Not selected'}
-              </strong>
-            </div>
-
+      {selected.enabled && expanded && (
+        <div className="compact-product-options">
+          <div className="compact-option-section">
+            <div className="compact-option-title">Size</div>
             <div className="customizer-size-grid">
+              {(item.sizes || []).map((size) => (
+                <button
+                  type="button"
+                  key={size}
+                  className={selected.size === size ? 'active' : ''}
+                  onClick={() => update('size', size)}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {item.sizes.map(
-                (size) => (
+          <div className="compact-option-section">
+            <ColorPicker
+              colors={item.colors || []}
+              value={selected.color}
+              allowCustomColor={item.allowCustomColor}
+              onChange={(color) => update('color', color)}
+            />
+          </div>
+
+          {(item.optionGroups || []).map((group) => (
+            <div className="compact-option-section" key={group.slug || group.name}>
+              <div className="compact-option-title">{group.name}</div>
+              <div className="customizer-choice-grid">
+                {optionValues(group).map((option) => (
                   <button
                     type="button"
-                    key={size}
-                    className={
-                      selected.size ===
-                      size
-                        ? 'active'
-                        : ''
-                    }
+                    key={option.value}
+                    className={selected.options?.[group.slug] === option.value ? 'active' : ''}
                     onClick={() =>
-                      update(
-                        'size',
-                        size
-                      )
+                      update('options', {
+                        ...(selected.options || {}),
+                        [group.slug]: option.value,
+                      })
                     }
                   >
-                    {size}
+                    {option.label}
                   </button>
-                )
-              )}
-
-            </div>
-
-          </div>
-
-
-          <ColorPicker
-            colors={item.colors}
-            value={
-              selected.color
-            }
-            onChange={(color) =>
-              update(
-                'color',
-                color
-              )
-            }
-          />
-
-
-          {item.options
-            ?.sleeve && (
-            <div className="customizer-block">
-
-              <div className="customizer-field-heading">
-                <span>
-                  Sleeve
-                </span>
+                ))}
               </div>
-
-              <div className="customizer-choice-grid">
-
-                {item.options.sleeve.map(
-                  (option) => (
-                    <button
-                      type="button"
-                      key={option}
-                      className={
-                        selected.sleeve ===
-                        option
-                          ? 'active'
-                          : ''
-                      }
-                      onClick={() =>
-                        update(
-                          'sleeve',
-                          option
-                        )
-                      }
-                    >
-                      {option}
-                    </button>
-                  )
-                )}
-
-              </div>
-
             </div>
-          )}
+          ))}
 
-
-          {item.playerDetails && (
-            <div className="customizer-two-columns">
-
-              <label>
-                Player name
-
-                <input
-                  type="text"
-                  value={
-                    selected.playerName
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    update(
-                      'playerName',
-                      event.target.value
-                    )
-                  }
-                  placeholder="e.g. JOHN"
-                  maxLength={30}
-                />
-              </label>
-
-
-              <label>
-                Player number
-
-                <input
-                  type="text"
-                  value={
-                    selected.playerNumber
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    update(
-                      'playerNumber',
-                      event.target.value
-                    )
-                  }
-                  placeholder="e.g. 10"
-                  maxLength={3}
-                />
-              </label>
-
-            </div>
-          )}
-
-
-          {!item.playerDetails &&
-            item.playerNumber && (
-            <label className="customizer-input-label">
-
-              Player number
-
-              <input
-                type="text"
-                value={
-                  selected.playerNumber
-                }
-                onChange={(
-                  event
-                ) =>
-                  update(
-                    'playerNumber',
-                    event.target.value
-                  )
-                }
-                placeholder="Optional"
-                maxLength={3}
-              />
-
-            </label>
-          )}
-
-
-          {item.logoUpload && (
-            <div className="customizer-block">
-
-              <div className="customizer-field-heading">
-                <span>
-                  Team logo
-                </span>
-              </div>
-
-              <label className="customizer-upload">
-
-                <Upload size={20} />
-
-                <span>
-                  {selected.logoName ||
-                    'Upload team logo'}
-                </span>
-
-                <small>
-                  PNG, JPG or WEBP
-                </small>
-
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={
-                    handleLogo
-                  }
-                />
-
-              </label>
-
-
-              {logoPreview && (
-                <div className="customizer-logo-preview">
-                  <img
-                    src={logoPreview}
-                    alt="Team logo preview"
+          {(item.allowPlayerName || item.allowPlayerNumber) && (
+            <div className="compact-two-fields">
+              {item.allowPlayerName && (
+                <label>
+                  Player Name
+                  <input
+                    value={selected.playerName}
+                    onChange={(event) => update('playerName', event.target.value)}
+                    placeholder="e.g. JOHN"
+                    maxLength={30}
                   />
-                </div>
+                </label>
               )}
 
+              {item.allowPlayerNumber && (
+                <label>
+                  Player Number
+                  <input
+                    value={selected.playerNumber}
+                    onChange={(event) => update('playerNumber', event.target.value)}
+                    placeholder="e.g. 10"
+                    maxLength={3}
+                  />
+                </label>
+              )}
             </div>
           )}
 
+          {item.allowLogoUpload && (
+            <div className="compact-option-section">
+              <div className="compact-option-title">Team Logo</div>
+              <div className="compact-upload-row">
+                <label className="compact-upload-button">
+                  <Upload size={17} />
+                  <span>{selected.logoName || 'Upload Logo'}</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={handleLogo}
+                  />
+                </label>
+                {logoPreview && (
+                  <img className="compact-logo-preview" src={logoPreview} alt="Logo preview" />
+                )}
+              </div>
+            </div>
+          )}
 
-          <label className="customizer-input-label">
+          <div className="compact-bottom-options">
+            {item.allowCustomNotes && (
+              <label className="compact-notes">
+                Custom Instructions
+                <textarea
+                  value={selected.notes}
+                  onChange={(event) => update('notes', event.target.value)}
+                  placeholder="Patterns, collar, stripes, branding position..."
+                  rows="3"
+                />
+              </label>
+            )}
 
-            Custom instructions
-
-            <textarea
-              value={
-                selected.notes
-              }
-              onChange={(
-                event
-              ) =>
-                update(
-                  'notes',
-                  event.target.value
-                )
-              }
-              placeholder="Tell us about stripes, patterns, logo position, collar style, special stitching or any other customization..."
-              rows="4"
-            />
-
-          </label>
-
-
-          <div className="customizer-bottom-row">
-
-            <div>
-              <span className="customizer-bottom-label">
-                Quantity
-              </span>
-
+            <div className="compact-quantity-area">
+              <span>Quantity</span>
               <QuantitySelector
-                value={
-                  selected.quantity
-                }
-                onChange={(
-                  quantity
-                ) =>
-                  update(
-                    'quantity',
-                    quantity
-                  )
-                }
+                value={selected.quantity}
+                onChange={(quantity) => update('quantity', quantity)}
               />
             </div>
-
-
-            <div className="customizer-selection-summary">
-
-              <span>
-                Selected configuration
-              </span>
-
-              <strong>
-                {selected.size ||
-                  'Choose size'}
-                {' · '}
-                <i
-                  style={{
-                    background:
-                      selected.color,
-                  }}
-                />
-                {selected.color}
-              </strong>
-
-            </div>
-
           </div>
-
         </div>
       )}
-
     </article>
   )
 }
