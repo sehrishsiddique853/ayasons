@@ -738,3 +738,191 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Dark ecommerce theme */
+.product-customizer-page {
+  background: #050607;
+  color: #f4f4f2;
+}
+
+.ecom-breadcrumb,
+.ecom-breadcrumb a,
+.ecom-title-row p,
+.ecom-section-heading strong,
+.ecom-option-head p,
+.ecom-option-label strong,
+.customizer-field-heading strong,
+.ecom-visual-caption,
+.ecom-item-copy p {
+  color: rgba(255,255,255,.48);
+}
+
+.ecom-breadcrumb strong,
+.ecom-title-row h1,
+.ecom-section-heading h2,
+.ecom-option-head h2,
+.ecom-item-copy h3,
+.ecom-visual-caption strong,
+.ecom-back-link {
+  color: #f5f5f3;
+}
+
+.ecom-title-row > div > span,
+.ecom-section-heading span,
+.ecom-option-head > div > span {
+  color: var(--brand-yellow);
+}
+
+.ecom-item-card,
+.ecom-product-visual,
+.ecom-product-options,
+.ecom-cart-preview {
+  border-color: rgba(255,255,255,.09);
+  background: #0c0e11;
+  color: #f5f5f3;
+}
+
+.ecom-item-card:hover {
+  border-color: rgba(240,212,79,.32);
+  box-shadow: 0 12px 30px rgba(0,0,0,.32);
+}
+
+.ecom-item-card.active {
+  border-color: var(--brand-yellow);
+  box-shadow: 0 0 0 2px rgba(240,212,79,.14);
+}
+
+.ecom-item-image,
+.ecom-main-image,
+.ecom-cart-preview-item img {
+  background: #12151a;
+}
+
+.ecom-option-head,
+.ecom-option-block,
+.ecom-cart-preview-head {
+  border-color: rgba(255,255,255,.08);
+}
+
+.ecom-item-toggle {
+  border-color: rgba(255,255,255,.14);
+  background: #111318;
+  color: #e6e6e3;
+}
+
+.ecom-item-toggle.active {
+  border-color: rgba(240,212,79,.65);
+  background: rgba(240,212,79,.12);
+  color: var(--brand-yellow);
+}
+
+.ecom-option-label span,
+.customizer-field-heading span,
+.ecom-notes > span,
+.ecom-quantity-wrap > span {
+  color: rgba(255,255,255,.72);
+}
+
+.customizer-size-grid button,
+.customizer-choice-grid button {
+  border-color: rgba(255,255,255,.12);
+  background: #111318;
+  color: rgba(255,255,255,.78);
+}
+
+.customizer-size-grid button:hover,
+.customizer-choice-grid button:hover {
+  border-color: rgba(240,212,79,.45);
+}
+
+.customizer-size-grid button.active,
+.customizer-choice-grid button.active {
+  border-color: var(--brand-yellow);
+  background: var(--brand-yellow);
+  color: #090909;
+}
+
+.customizer-swatch,
+.customizer-custom-color {
+  border-color: #0c0e11;
+  outline-color: rgba(255,255,255,.25);
+}
+
+.customizer-swatch.active {
+  outline-color: var(--brand-yellow);
+}
+
+.customizer-color-picker-row {
+  color: rgba(255,255,255,.45);
+}
+
+.customizer-color-picker-row input[type='color'],
+.customizer-color-picker-row input[type='text'],
+.ecom-personalize-grid input,
+.ecom-notes textarea {
+  border-color: rgba(255,255,255,.12);
+  background: #101216;
+  color: #f5f5f3;
+}
+
+.ecom-personalize-box {
+  border-color: rgba(255,255,255,.09);
+  background: #101216;
+}
+
+.ecom-personalize-box h3 {
+  color: #f5f5f3;
+}
+
+.ecom-personalize-grid label span {
+  color: rgba(255,255,255,.42);
+}
+
+.ecom-logo-upload {
+  border-color: rgba(255,255,255,.22);
+  color: rgba(255,255,255,.74);
+  background: #101216;
+}
+
+.ecom-logo-preview {
+  border-color: rgba(255,255,255,.12);
+  background: #101216;
+}
+
+.customizer-quantity button,
+.customizer-quantity input {
+  border-color: rgba(255,255,255,.12);
+  background: #101216;
+  color: #f4f4f2;
+}
+
+.ecom-add-cart {
+  background: var(--brand-yellow);
+  color: #090909;
+}
+
+.ecom-add-cart:hover {
+  background: #ffe45d;
+}
+
+.ecom-message {
+  background: rgba(240,212,79,.1);
+  color: var(--brand-yellow);
+}
+
+.ecom-cart-preview-item {
+  border-color: rgba(255,255,255,.08);
+}
+
+.ecom-cart-preview-head a {
+  color: var(--brand-yellow);
+}
+
+.customizer-empty {
+  color: #f5f5f3;
+}
+
+.customizer-empty a {
+  color: var(--brand-yellow);
+}
