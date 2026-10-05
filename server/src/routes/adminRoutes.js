@@ -47,6 +47,13 @@ import {
   updateAdminContactSettings,
 } from '../controllers/contactController.js'
 
+import {
+  getAdminProductCustomizer,
+  createAdminCustomizerItem,
+  updateAdminCustomizerItem,
+  deleteAdminCustomizerItem,
+} from '../controllers/productCustomizerController.js'
+
 const router = express.Router()
 
 router.get('/dashboard', getAdminDashboard)
@@ -88,6 +95,22 @@ router.put(
   updateAdminProduct
 )
 router.delete('/products/:id', deleteAdminProduct)
+
+router.get('/products/:productId/customizer', getAdminProductCustomizer)
+router.post(
+  '/products/:productId/customizer/items',
+  uploadProductImage.single('image'),
+  createAdminCustomizerItem
+)
+router.put(
+  '/products/:productId/customizer/items/:itemId',
+  uploadProductImage.single('image'),
+  updateAdminCustomizerItem
+)
+router.delete(
+  '/products/:productId/customizer/items/:itemId',
+  deleteAdminCustomizerItem
+)
 router.get(
   '/hot-selling',
   getAdminHotSelling
