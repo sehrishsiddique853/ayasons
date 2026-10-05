@@ -323,3 +323,68 @@ CREATE TABLE IF NOT EXISTS admin_users (
         email
     )
 );
+
+
+CREATE TABLE IF NOT EXISTS product_customizer_items (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+
+    product_id BIGINT UNSIGNED NOT NULL,
+
+    name VARCHAR(150) NOT NULL,
+
+    slug VARCHAR(180) NOT NULL,
+
+    description TEXT NULL,
+
+    image_blob LONGBLOB NULL,
+
+    image_mime VARCHAR(100) NULL,
+
+    image_name VARCHAR(255) NULL,
+
+    sizes_json JSON NULL,
+
+    colors_json JSON NULL,
+
+    option_groups_json JSON NULL,
+
+    allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
+
+    allow_logo_upload BOOLEAN NOT NULL DEFAULT FALSE,
+
+    allow_player_name BOOLEAN NOT NULL DEFAULT FALSE,
+
+    allow_player_number BOOLEAN NOT NULL DEFAULT FALSE,
+
+    allow_custom_notes BOOLEAN NOT NULL DEFAULT TRUE,
+
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    display_order INT UNSIGNED NOT NULL DEFAULT 0,
+
+    created_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id),
+
+    UNIQUE KEY uq_customizer_product_slug (
+        product_id,
+        slug
+    ),
+
+    KEY idx_customizer_product_active_order (
+        product_id,
+        active,
+        display_order
+    ),
+
+    CONSTRAINT fk_customizer_product
+        FOREIGN KEY (product_id)
+        REFERENCES products(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
+);
