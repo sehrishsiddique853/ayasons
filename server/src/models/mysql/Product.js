@@ -93,6 +93,9 @@ const formatProduct = (
     description:
       row.description || '',
 
+    customizable:
+      Boolean(row.customizable),
+
     image: {
       url:
         `${getBaseUrl(req)}/api/images/products/${row.id}?v=${encodeURIComponent(
@@ -218,6 +221,12 @@ export const findActiveProducts =
         p.slug,
         p.group_name,
         p.description,
+        (EXISTS (
+          SELECT 1
+          FROM product_customizer_items pci
+          WHERE pci.product_id = p.id
+            AND pci.active = 1
+        )) AS customizable,
         p.image,
         p.image_name,
         p.features_json,
