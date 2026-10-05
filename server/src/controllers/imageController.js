@@ -299,3 +299,102 @@ export const getProductImage =
 
     }
   }
+
+
+/*
+|--------------------------------------------------------------------------
+| GET Product Customizer Item Image
+|--------------------------------------------------------------------------
+*/
+
+export const getCustomizerItemImage =
+  async (
+    req,
+    res,
+    next
+  ) => {
+
+    try {
+
+      const itemId =
+        Number(
+          req.params.id
+        )
+
+
+      if (
+        !Number.isInteger(
+          itemId
+        ) ||
+        itemId <= 0
+      ) {
+
+        res.status(400)
+
+        throw new Error(
+          'Invalid customizer item ID'
+        )
+      }
+
+
+      const [rows] =
+        await pool.execute(
+          `
+            SELECT
+              image_blob,
+              image_mime,
+              image_name
+            FROM product_customizer_items
+            WHERE id = ?
+            LIMIT 1
+          `,
+          [
+            itemId,
+          ]
+        )
+
+
+      if (
+        rows.length === 0 ||
+        !rows[0].image_blob
+      ) {
+
+        res.status(404)
+
+        throw new Error(
+          'Customizer item image not found'
+        )
+      }
+
+
+      const image =
+        rows[0]
+
+
+      await sendResponsiveImage(
+        req,
+        res,
+        {
+          imageBlob:
+            image.image_blob,
+
+          imageMime:
+            image.image_mime,
+
+          imageName:
+            image.image_name,
+
+          fallbackName:
+            `customizer-item-${itemId}`,
+
+          cacheKey:
+            `customizer-item-${itemId}-${image.image_name || 'image'}-${req.query.v || '1'}`,
+        }
+      )
+
+    } catch (error) {
+
+      next(error)
+
+    }
+  }
