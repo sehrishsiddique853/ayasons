@@ -299,6 +299,12 @@ export const findActiveProductById =
           p.slug,
           p.group_name,
           p.description,
+          (EXISTS (
+            SELECT 1
+            FROM product_customizer_items pci
+            WHERE pci.product_id = p.id
+              AND pci.active = 1
+          )) AS customizable,
           p.image,
           p.image_name,
           p.features_json,
@@ -411,6 +417,12 @@ export const findActiveProductsByCategory =
           p.slug,
           p.group_name,
           p.description,
+          (EXISTS (
+            SELECT 1
+            FROM product_customizer_items pci
+            WHERE pci.product_id = p.id
+              AND pci.active = 1
+          )) AS customizable,
           p.image,
           p.image_name,
           p.features_json,
