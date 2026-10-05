@@ -20,7 +20,7 @@ const formatItem = (row, admin = false) => ({
   slug: row.slug,
   description: row.description || '',
   image: {
-    url: `${admin ? '/api/admin' : '/api'}/images/customizer/${row.id}?v=${encodeURIComponent(row.image_name || row.updated_at || '1')}`,
+    url: `/api/images/customizer/${row.id}?v=${encodeURIComponent(row.image_name || row.updated_at || '1')}`,
   },
   sizes: parseJson(row.sizes_json, []),
   colors: parseJson(row.colors_json, []),
