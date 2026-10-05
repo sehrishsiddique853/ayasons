@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
   Check,
+  ChevronDown,
+  ChevronUp,
+  Settings2,
   ShoppingBag,
   Trash2,
   Upload,
@@ -16,8 +19,17 @@ import Footer from '../components/home/Footer'
 import PageLoader from '../components/common/PageLoader'
 import '../style/products/ProductCustomizer.css'
 
+const BASIC_OPTION_SLUGS = new Set([
+  'sleeve-style',
+  'fit',
+  'surface',
+  'sock-length',
+  'shell-type',
+])
+
 const firstColorValue = (item) => {
   const firstColor = item.colors?.[0]
+
   return (
     (typeof firstColor === 'string' ? firstColor : firstColor?.value) ||
     '#080808'
@@ -27,6 +39,7 @@ const firstColorValue = (item) => {
 const createInitialState = (items) =>
   items.reduce((result, item) => {
     const baseColor = firstColorValue(item)
+
     const zones =
       item.colorZones?.length
         ? item.colorZones
@@ -44,6 +57,7 @@ const createInitialState = (items) =>
       playerName: '',
       playerNumber: '',
       logoName: '',
+      logoFile: null,
       notes: '',
       options: {},
     }
@@ -58,8 +72,48 @@ const optionValues = (group) =>
       : value
   )
 
+function OptionGroup({
+  group,
+  selection,
+  onChange,
+}) {
+  return (
+    <div className="ecom-option-block">
+      <div className="ecom-option-label">
+        <span>{group.name}</span>
+        <strong>
+          {selection.options?.[group.slug] || 'Choose option'}
+        </strong>
+      </div>
+
+      <div className="customizer-choice-grid">
+        {optionValues(group).map((option) => (
+          <button
+            type="button"
+            key={option.value}
+            className={
+              selection.options?.[group.slug] === option.value
+                ? 'active'
+                : ''
+            }
+            onClick={() =>
+              onChange({
+                ...(selection.options || {}),
+                [group.slug]: option.value,
+              })
+            }
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function ProductCustomizer() {
   const { categorySlug, productSlug } = useParams()
+
   const {
     cartItems,
     addToCart,
@@ -71,6 +125,7 @@ function ProductCustomizer() {
   const [configuration, setConfiguration] = useState({})
   const [activeItemId, setActiveItemId] = useState(null)
   const [logoPreviews, setLogoPreviews] = useState({})
+  const [advancedOpen, setAdvancedOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -95,6 +150,7 @@ function ProductCustomizer() {
         setProduct(loadedProduct)
         setConfiguration(createInitialState(items))
         setActiveItemId(items[0]?.id || null)
+        setAdvancedOpen(false)
       } catch (requestError) {
         if (!active) return
 
@@ -113,14 +169,6 @@ function ProductCustomizer() {
       active = false
     }
   }, [categorySlug, productSlug])
-
-  useEffect(() => {
-    return () => {
-      Object.values(logoPreviews).forEach((preview) => {
-        if (preview) URL.revokeObjectURL(preview)
-      })
-    }
-  }, [logoPreviews])
 
   const selectedCount = useMemo(
     () =>
@@ -150,6 +198,7 @@ function ProductCustomizer() {
 
   const chooseItem = (itemId) => {
     setActiveItemId(itemId)
+    setAdvancedOpen(false)
 
     setConfiguration((current) => ({
       ...current,
@@ -183,7 +232,7 @@ function ProductCustomizer() {
       ...current,
       [activeItem.id]: {
         ...current[activeItem.id],
-        color: color,
+        color,
         colorSelections: {
           ...(current[activeItem.id].colorSelections || {}),
           [zone]: color,
@@ -275,7 +324,9 @@ function ProductCustomizer() {
           <div className="customizer-empty">
             <h1>Product unavailable</h1>
             <p>{error || 'No customizable items found.'}</p>
-            <Link to={`/products/${categorySlug}`}>Back to collection</Link>
+            <Link to={`/products/${categorySlug}`}>
+              Back to collection
+            </Link>
           </div>
         </main>
         <Footer />
@@ -287,6 +338,25 @@ function ProductCustomizer() {
     activeItem.colorZones?.length
       ? activeItem.colorZones
       : ['Primary Color']
+
+  const basicColorZone = colorZones[0]
+  const advancedColorZones = colorZones.slice(1)
+
+  const basicOptionGroups =
+    (activeItem.optionGroups || []).filter((group) =>
+      BASIC_OPTION_SLUGS.has(group.slug)
+    )
+
+  const advancedOptionGroups =
+    (activeItem.optionGroups || []).filter(
+      (group) => !BASIC_OPTION_SLUGS.has(group.slug)
+    )
+
+  const hasAdvancedOptions =
+    advancedColorZones.length > 0 ||
+    advancedOptionGroups.length > 0 ||
+    activeItem.allowLogoUpload ||
+    activeItem.allowCustomNotes
 
   return (
     <>
@@ -304,15 +374,18 @@ function ProductCustomizer() {
 
           <div className="ecom-title-row">
             <div>
-              <span>Highly Customizable Manufacturing</span>
+              <span>Custom Manufacturing</span>
               <h1>{product.name}</h1>
               <p>
-                {product.description} Configure colors, fabric, fit, branding,
-                player details and production options before adding the item to your cart.
+                Start with the essentials. If you want full control,
+                open Advanced Customization for detailed manufacturing options.
               </p>
             </div>
 
-            <Link className="ecom-back-link" to={`/products/${categorySlug}`}>
+            <Link
+              className="ecom-back-link"
+              to={`/products/${categorySlug}`}
+            >
               <ArrowLeft size={16} />
               Back to collection
             </Link>
@@ -321,9 +394,10 @@ function ProductCustomizer() {
           <section className="ecom-kit-selector">
             <div className="ecom-section-heading">
               <div>
-                <span>Choose items</span>
-                <h2>Build your set</h2>
+                <span>Step 1</span>
+                <h2>Choose what you need</h2>
               </div>
+
               <strong>{selectedCount} selected</strong>
             </div>
 
@@ -343,7 +417,10 @@ function ProductCustomizer() {
           <section className="ecom-configurator">
             <div className="ecom-product-visual">
               <div className="ecom-main-image">
-                <img src={activeItem.image?.url} alt={activeItem.name} />
+                <img
+                  src={activeItem.image?.url}
+                  alt={activeItem.name}
+                />
               </div>
 
               <div className="ecom-visual-caption">
@@ -355,9 +432,12 @@ function ProductCustomizer() {
             <div className="ecom-product-options">
               <div className="ecom-option-head">
                 <div>
-                  <span>Configure product</span>
+                  <span>Step 2</span>
                   <h2>{activeItem.name}</h2>
-                  <p>{activeItem.description}</p>
+                  <p>
+                    Choose the basic options below. These are enough
+                    for customers who do not need detailed customization.
+                  </p>
                 </div>
 
                 <button
@@ -374,173 +454,284 @@ function ProductCustomizer() {
                 </button>
               </div>
 
-              {(activeItem.sizes || []).length > 0 && (
-                <div className="ecom-option-block">
-                  <div className="ecom-option-label">
-                    <span>Size</span>
-                    <strong>{activeSelection.size || 'Select a size'}</strong>
+              <div className="ecom-basic-customization">
+                <div className="ecom-mode-heading">
+                  <div>
+                    <span>Basic Customization</span>
+                    <strong>Quick and simple</strong>
                   </div>
 
-                  <div className="customizer-size-grid">
-                    {activeItem.sizes.map((size) => (
-                      <button
-                        type="button"
-                        key={size}
-                        className={activeSelection.size === size ? 'active' : ''}
-                        onClick={() => updateItem(activeItem.id, 'size', size)}
-                      >
-                        {size}
-                      </button>
-                    ))}
-                  </div>
+                  <p>
+                    Size, main color, essential style and personalization.
+                  </p>
                 </div>
-              )}
 
-              {colorZones.map((zone) => (
-                <div className="ecom-option-block" key={zone}>
+                {(activeItem.sizes || []).length > 0 && (
+                  <div className="ecom-option-block">
+                    <div className="ecom-option-label">
+                      <span>Size</span>
+                      <strong>
+                        {activeSelection.size || 'Select a size'}
+                      </strong>
+                    </div>
+
+                    <div className="customizer-size-grid">
+                      {activeItem.sizes.map((size) => (
+                        <button
+                          type="button"
+                          key={size}
+                          className={
+                            activeSelection.size === size
+                              ? 'active'
+                              : ''
+                          }
+                          onClick={() =>
+                            updateItem(activeItem.id, 'size', size)
+                          }
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="ecom-option-block">
                   <ColorPicker
-                    label={zone}
+                    label={basicColorZone}
                     colors={activeItem.colors || []}
                     value={
-                      activeSelection.colorSelections?.[zone] ||
+                      activeSelection.colorSelections?.[basicColorZone] ||
                       activeSelection.color
                     }
                     allowCustomColor={activeItem.allowCustomColor}
-                    onChange={(color) => updateColorZone(zone, color)}
-                  />
-                </div>
-              ))}
-
-              {(activeItem.optionGroups || []).map((group) => (
-                <div className="ecom-option-block" key={group.slug || group.name}>
-                  <div className="ecom-option-label">
-                    <span>{group.name}</span>
-                    <strong>
-                      {activeSelection.options?.[group.slug] || 'Choose option'}
-                    </strong>
-                  </div>
-
-                  <div className="customizer-choice-grid">
-                    {optionValues(group).map((option) => (
-                      <button
-                        type="button"
-                        key={option.value}
-                        className={
-                          activeSelection.options?.[group.slug] === option.value
-                            ? 'active'
-                            : ''
-                        }
-                        onClick={() =>
-                          updateItem(activeItem.id, 'options', {
-                            ...(activeSelection.options || {}),
-                            [group.slug]: option.value,
-                          })
-                        }
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {(activeItem.allowPlayerName || activeItem.allowPlayerNumber) && (
-                <div className="ecom-personalize-box">
-                  <h3>Personalization</h3>
-
-                  <div className="ecom-personalize-grid">
-                    {activeItem.allowPlayerName && (
-                      <label>
-                        <span>Name on item</span>
-                        <input
-                          type="text"
-                          value={activeSelection.playerName}
-                          onChange={(event) =>
-                            updateItem(
-                              activeItem.id,
-                              'playerName',
-                              event.target.value
-                            )
-                          }
-                          placeholder="Enter name"
-                          maxLength={30}
-                        />
-                      </label>
-                    )}
-
-                    {activeItem.allowPlayerNumber && (
-                      <label>
-                        <span>Number</span>
-                        <input
-                          type="text"
-                          value={activeSelection.playerNumber}
-                          onChange={(event) =>
-                            updateItem(
-                              activeItem.id,
-                              'playerNumber',
-                              event.target.value
-                            )
-                          }
-                          placeholder="00"
-                          maxLength={3}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeItem.allowLogoUpload && (
-                <div className="ecom-option-block">
-                  <div className="ecom-option-label">
-                    <span>Team / Brand Logo</span>
-                  </div>
-
-                  <div className="ecom-logo-row">
-                    <label className="ecom-logo-upload">
-                      <Upload size={17} />
-                      <span>{activeSelection.logoName || 'Upload logo'}</span>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        onChange={handleLogo}
-                      />
-                    </label>
-
-                    {logoPreviews[activeItem.id] && (
-                      <img
-                        className="ecom-logo-preview"
-                        src={logoPreviews[activeItem.id]}
-                        alt="Team logo preview"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {activeItem.allowCustomNotes && (
-                <label className="ecom-notes">
-                  <span>Special manufacturing instructions</span>
-                  <textarea
-                    rows="3"
-                    value={activeSelection.notes}
-                    onChange={(event) =>
-                      updateItem(activeItem.id, 'notes', event.target.value)
-                    }
-                    placeholder="Patterns, panel placement, stitching, branding position, packaging or any other request..."
-                  />
-                </label>
-              )}
-
-              <div className="ecom-purchase-row">
-                <div className="ecom-quantity-wrap">
-                  <span>Quantity</span>
-                  <QuantitySelector
-                    value={activeSelection.quantity}
-                    onChange={(quantity) =>
-                      updateItem(activeItem.id, 'quantity', quantity)
+                    onChange={(color) =>
+                      updateColorZone(basicColorZone, color)
                     }
                   />
+                </div>
+
+                {basicOptionGroups.map((group) => (
+                  <OptionGroup
+                    key={group.slug || group.name}
+                    group={group}
+                    selection={activeSelection}
+                    onChange={(options) =>
+                      updateItem(activeItem.id, 'options', options)
+                    }
+                  />
+                ))}
+
+                {(activeItem.allowPlayerName ||
+                  activeItem.allowPlayerNumber) && (
+                  <div className="ecom-personalize-box">
+                    <h3>Personalization</h3>
+
+                    <div className="ecom-personalize-grid">
+                      {activeItem.allowPlayerName && (
+                        <label>
+                          <span>Name on item</span>
+                          <input
+                            type="text"
+                            value={activeSelection.playerName}
+                            onChange={(event) =>
+                              updateItem(
+                                activeItem.id,
+                                'playerName',
+                                event.target.value
+                              )
+                            }
+                            placeholder="Enter name"
+                            maxLength={30}
+                          />
+                        </label>
+                      )}
+
+                      {activeItem.allowPlayerNumber && (
+                        <label>
+                          <span>Number</span>
+                          <input
+                            type="text"
+                            value={activeSelection.playerNumber}
+                            onChange={(event) =>
+                              updateItem(
+                                activeItem.id,
+                                'playerNumber',
+                                event.target.value
+                              )
+                            }
+                            placeholder="00"
+                            maxLength={3}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="ecom-basic-quantity">
+                  <div className="ecom-quantity-wrap">
+                    <span>Quantity</span>
+
+                    <QuantitySelector
+                      value={activeSelection.quantity}
+                      onChange={(quantity) =>
+                        updateItem(
+                          activeItem.id,
+                          'quantity',
+                          quantity
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {hasAdvancedOptions && (
+                <div className="ecom-advanced-wrap">
+                  <button
+                    type="button"
+                    className="ecom-advanced-toggle"
+                    onClick={() =>
+                      setAdvancedOpen((current) => !current)
+                    }
+                    aria-expanded={advancedOpen}
+                  >
+                    <div>
+                      <Settings2 size={18} />
+
+                      <span>
+                        <strong>Advanced Customization</strong>
+                        <small>
+                          For customers who want full manufacturing control
+                        </small>
+                      </span>
+                    </div>
+
+                    {advancedOpen
+                      ? <ChevronUp size={19} />
+                      : <ChevronDown size={19} />}
+                  </button>
+
+                  {advancedOpen && (
+                    <div className="ecom-advanced-panel">
+                      <div className="ecom-advanced-intro">
+                        <strong>
+                          Detailed manufacturing options
+                        </strong>
+
+                        <p>
+                          Optional. Configure additional colors, materials,
+                          construction, branding and special requirements.
+                        </p>
+                      </div>
+
+                      {advancedColorZones.map((zone) => (
+                        <div
+                          className="ecom-option-block"
+                          key={zone}
+                        >
+                          <ColorPicker
+                            label={zone}
+                            colors={activeItem.colors || []}
+                            value={
+                              activeSelection.colorSelections?.[zone] ||
+                              activeSelection.color
+                            }
+                            allowCustomColor={
+                              activeItem.allowCustomColor
+                            }
+                            onChange={(color) =>
+                              updateColorZone(zone, color)
+                            }
+                          />
+                        </div>
+                      ))}
+
+                      {advancedOptionGroups.map((group) => (
+                        <OptionGroup
+                          key={group.slug || group.name}
+                          group={group}
+                          selection={activeSelection}
+                          onChange={(options) =>
+                            updateItem(
+                              activeItem.id,
+                              'options',
+                              options
+                            )
+                          }
+                        />
+                      ))}
+
+                      {activeItem.allowLogoUpload && (
+                        <div className="ecom-option-block">
+                          <div className="ecom-option-label">
+                            <span>Team / Brand Logo</span>
+                          </div>
+
+                          <div className="ecom-logo-row">
+                            <label className="ecom-logo-upload">
+                              <Upload size={17} />
+
+                              <span>
+                                {activeSelection.logoName ||
+                                  'Upload logo'}
+                              </span>
+
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp"
+                                onChange={handleLogo}
+                              />
+                            </label>
+
+                            {logoPreviews[activeItem.id] && (
+                              <img
+                                className="ecom-logo-preview"
+                                src={logoPreviews[activeItem.id]}
+                                alt="Team logo preview"
+                              />
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {activeItem.allowCustomNotes && (
+                        <label className="ecom-notes">
+                          <span>
+                            Special manufacturing instructions
+                          </span>
+
+                          <textarea
+                            rows="3"
+                            value={activeSelection.notes}
+                            onChange={(event) =>
+                              updateItem(
+                                activeItem.id,
+                                'notes',
+                                event.target.value
+                              )
+                            }
+                            placeholder="Patterns, panel placement, stitching, branding position, packaging or any other request..."
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="ecom-checkout-actions">
+                <div>
+                  <strong>
+                    {advancedOpen
+                      ? 'Detailed customization enabled'
+                      : 'Basic customization is enough to continue'}
+                  </strong>
+
+                  <span>
+                    You can add this item now or open advanced options.
+                  </span>
                 </div>
 
                 <button
@@ -554,7 +745,9 @@ function ProductCustomizer() {
               </div>
 
               {message && (
-                <div className="ecom-message">{message}</div>
+                <div className="ecom-message">
+                  {message}
+                </div>
               )}
             </div>
           </section>
@@ -573,20 +766,30 @@ function ProductCustomizer() {
 
               <div className="ecom-cart-preview-list">
                 {cartItems.slice(-4).map((cartItem) => (
-                  <div className="ecom-cart-preview-item" key={cartItem.cartId}>
-                    <img src={cartItem.itemImage} alt="" />
+                  <div
+                    className="ecom-cart-preview-item"
+                    key={cartItem.cartId}
+                  >
+                    <img
+                      src={cartItem.itemImage}
+                      alt=""
+                    />
 
                     <div>
                       <strong>{cartItem.itemName}</strong>
+
                       <span>
-                        {cartItem.size || 'Custom'} · Qty {cartItem.quantity}
+                        {cartItem.size || 'Custom'} · Qty{' '}
+                        {cartItem.quantity}
                       </span>
                     </div>
 
                     <button
                       type="button"
                       aria-label="Remove item"
-                      onClick={() => removeFromCart(cartItem.cartId)}
+                      onClick={() =>
+                        removeFromCart(cartItem.cartId)
+                      }
                     >
                       <Trash2 size={16} />
                     </button>
