@@ -14,8 +14,14 @@ const defaultItems = [
       { name: 'Green', value: '#00a651' },
       { name: 'Gold', value: '#f5d000' }
     ],
+    colorZones: ['Primary Color','Secondary Color','Trim / Accent Color'],
     optionGroups: [
-      { name: 'Sleeve Style', slug: 'sleeve-style', values: ['Short Sleeve','Long Sleeve'] }
+      { name: 'Sleeve Style', slug: 'sleeve-style', values: ['Short Sleeve','Long Sleeve'] },
+      { name: 'Fabric', slug: 'fabric', values: ['Polyester Interlock','Bird Eye Mesh','Dry Fit','Micro Mesh'] },
+      { name: 'Fit', slug: 'fit', values: ['Regular','Athletic','Slim'] },
+      { name: 'Collar Style', slug: 'collar-style', values: ['V Neck','Round Neck','Polo Collar'] },
+      { name: 'Branding Method', slug: 'branding-method', values: ['Sublimation','Embroidery','Screen Print','Heat Transfer'] },
+      { name: 'Logo Position', slug: 'logo-position', values: ['Left Chest','Right Chest','Center Chest','Sleeve'] }
     ],
     allowLogoUpload: 1,
     allowPlayerName: 1,
@@ -33,7 +39,13 @@ const defaultItems = [
       { name: 'Red', value: '#e10600' },
       { name: 'Royal Blue', value: '#0047ab' }
     ],
-    optionGroups: [],
+    colorZones: ['Primary Color','Secondary Color','Trim / Accent Color'],
+    optionGroups: [
+      { name: 'Fabric', slug: 'fabric', values: ['Polyester Interlock','Bird Eye Mesh','Dry Fit','Micro Mesh'] },
+      { name: 'Fit', slug: 'fit', values: ['Regular','Athletic','Slim'] },
+      { name: 'Waistband', slug: 'waistband', values: ['Elastic','Elastic + Drawcord'] },
+      { name: 'Branding Method', slug: 'branding-method', values: ['Sublimation','Embroidery','Screen Print','Heat Transfer'] }
+    ],
     allowLogoUpload: 1,
     allowPlayerName: 0,
     allowPlayerNumber: 1,
@@ -50,7 +62,11 @@ const defaultItems = [
       { name: 'Red', value: '#e10600' },
       { name: 'Royal Blue', value: '#0047ab' }
     ],
-    optionGroups: [],
+    colorZones: ['Main Color','Stripe / Accent Color'],
+    optionGroups: [
+      { name: 'Sock Length', slug: 'sock-length', values: ['Crew','Knee High','Over Knee'] },
+      { name: 'Cushioning', slug: 'cushioning', values: ['Light','Medium','Full'] }
+    ],
     allowLogoUpload: 0,
     allowPlayerName: 0,
     allowPlayerNumber: 0,
@@ -67,7 +83,11 @@ const defaultItems = [
       { name: 'Red', value: '#e10600' },
       { name: 'Royal Blue', value: '#0047ab' }
     ],
-    optionGroups: [],
+    colorZones: ['Shell Color','Trim Color'],
+    optionGroups: [
+      { name: 'Shell Type', slug: 'shell-type', values: ['Flexible','Hard Shell'] },
+      { name: 'Strap Style', slug: 'strap-style', values: ['Slip In','Single Strap','Double Strap'] }
+    ],
     allowLogoUpload: 0,
     allowPlayerName: 0,
     allowPlayerNumber: 0,
@@ -84,7 +104,12 @@ const defaultItems = [
       { name: 'Red', value: '#e10600' },
       { name: 'Royal Blue', value: '#0047ab' }
     ],
-    optionGroups: [],
+    colorZones: ['Upper Color','Sole Color','Accent Color'],
+    optionGroups: [
+      { name: 'Surface', slug: 'surface', values: ['Firm Ground','Artificial Grass','Indoor'] },
+      { name: 'Upper Material', slug: 'upper-material', values: ['Synthetic','Microfiber','Mesh'] },
+      { name: 'Lace Style', slug: 'lace-style', values: ['Centered','Offset','Laceless'] }
+    ],
     allowLogoUpload: 0,
     allowPlayerName: 0,
     allowPlayerNumber: 0,
@@ -105,6 +130,7 @@ export const ensureProductCustomizerSchema = async () => {
       image_name VARCHAR(255) NULL,
       sizes_json JSON NULL,
       colors_json JSON NULL,
+      color_zones_json JSON NULL,
       option_groups_json JSON NULL,
       allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
       allow_logo_upload BOOLEAN NOT NULL DEFAULT FALSE,
@@ -123,6 +149,16 @@ export const ensureProductCustomizerSchema = async () => {
         ON UPDATE CASCADE ON DELETE CASCADE
     )
   `)
+
+  const [colorZoneColumns] = await pool.execute(
+    "SHOW COLUMNS FROM product_customizer_items LIKE 'color_zones_json'"
+  )
+
+  if (!colorZoneColumns.length) {
+    await pool.execute(
+      'ALTER TABLE product_customizer_items ADD COLUMN color_zones_json JSON NULL AFTER colors_json'
+    )
+  }
 
   const [products] = await pool.execute(`
     SELECT p.id
@@ -146,15 +182,15 @@ export const ensureProductCustomizerSchema = async () => {
     await pool.execute(`
       INSERT INTO product_customizer_items (
         product_id, name, slug, description,
-        sizes_json, colors_json, option_groups_json,
+        sizes_json, colors_json, color_zones_json, option_groups_json,
         allow_custom_color, allow_logo_upload,
         allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
     `, [
       productId, item.name, item.slug, item.description,
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
-      JSON.stringify(item.optionGroups), item.allowLogoUpload,
+      JSON.stringify(item.colorZones || ['Primary Color']), JSON.stringify(item.optionGroups), item.allowLogoUpload,
       item.allowPlayerName, item.allowPlayerNumber, item.order,
     ])
   }
