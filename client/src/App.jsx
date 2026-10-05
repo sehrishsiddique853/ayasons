@@ -26,6 +26,8 @@ import {
 
 import ProductCustomizer
   from './pages/ProductCustomizer'
+import Cart
+  from './pages/Cart'
 
 import ProductCategoryPage from './components/products/shared/ProductCategoryPage'
 import About
@@ -210,6 +212,13 @@ function App() {
   path="/contact"
   element={
     <Contact />
+  }
+/>
+
+<Route
+  path="/cart"
+  element={
+    <Cart />
   }
 />
 
