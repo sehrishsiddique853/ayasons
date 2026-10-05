@@ -193,13 +193,13 @@ export const ensureProductCustomizerSchema = async () => {
       ON DUPLICATE KEY UPDATE
         color_zones_json =
           CASE
-            WHEN color_zones_json IS NULL OR JSON_LENGTH(color_zones_json) = 0
+            WHEN color_zones_json IS NULL OR JSON_LENGTH(color_zones_json) < ?
             THEN VALUES(color_zones_json)
             ELSE color_zones_json
           END,
         option_groups_json =
           CASE
-            WHEN option_groups_json IS NULL OR JSON_LENGTH(option_groups_json) <= 1
+            WHEN option_groups_json IS NULL OR JSON_LENGTH(option_groups_json) < ?
             THEN VALUES(option_groups_json)
             ELSE option_groups_json
           END
@@ -208,6 +208,8 @@ export const ensureProductCustomizerSchema = async () => {
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
       JSON.stringify(item.colorZones || ['Primary Color']), JSON.stringify(item.optionGroups),
       item.allowLogoUpload, item.allowPlayerName, item.allowPlayerNumber, item.order,
+      (item.colorZones || ['Primary Color']).length,
+      item.optionGroups.length,
     ])
   }
 }
