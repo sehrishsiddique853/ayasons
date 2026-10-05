@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronDown, Menu, X } from 'lucide-react'
+import { Menu, ShoppingBag, X } from 'lucide-react'
 import ayosonsLogo from '../../assets/logo/ayosons-logo-navbar-removebg-preview.png'
 import { loadProductCategories } from '../../services/productCategoriesCache'
 import { loadHomepageContent } from '../../services/homepageContentCache'
+import { useCart } from '../../context/CartContext'
 
 const navLinks = [
   { label: 'Home', to: '/#home' },
@@ -16,9 +17,9 @@ const navLinks = [
 function Navbar() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { totalQuantity } = useCart()
 
-  const prepareProducts = () =>
-    loadProductCategories()
+  const prepareProducts = () => loadProductCategories()
 
   const openProducts = async (event) => {
     if (
@@ -27,30 +28,21 @@ function Navbar() {
       event.ctrlKey ||
       event.shiftKey ||
       event.altKey
-    ) {
-      return
-    }
+    ) return
 
     event.preventDefault()
 
     try {
       await prepareProducts()
     } catch {
-      // The products page will render its normal error state.
+      // Products page handles its own error state.
     }
 
     setIsMenuOpen(false)
     navigate('/products')
   }
 
-  const productsPreloadProps = {
-    onPointerEnter: () => prepareProducts().catch(() => {}),
-    onFocus: () => prepareProducts().catch(() => {}),
-    onClick: openProducts,
-  }
-
-  const prepareAbout = () =>
-    loadHomepageContent()
+  const prepareAbout = () => loadHomepageContent()
 
   const openAbout = async (event) => {
     if (
@@ -59,31 +51,37 @@ function Navbar() {
       event.ctrlKey ||
       event.shiftKey ||
       event.altKey
-    ) {
-      return
-    }
+    ) return
 
     event.preventDefault()
 
     try {
       await prepareAbout()
     } catch {
-      // The About page has local fallback content.
+      // About page handles its own fallback state.
     }
 
     setIsMenuOpen(false)
     navigate('/about')
   }
 
-  const aboutPreloadProps = {
-    onPointerEnter: () => prepareAbout().catch(() => {}),
-    onFocus: () => prepareAbout().catch(() => {}),
-    onClick: openAbout,
-  }
-
   const getPreloadProps = (path) => {
-    if (path === '/products') return productsPreloadProps
-    if (path === '/about') return aboutPreloadProps
+    if (path === '/products') {
+      return {
+        onPointerEnter: () => prepareProducts().catch(() => {}),
+        onFocus: () => prepareProducts().catch(() => {}),
+        onClick: openProducts,
+      }
+    }
+
+    if (path === '/about') {
+      return {
+        onPointerEnter: () => prepareAbout().catch(() => {}),
+        onFocus: () => prepareAbout().catch(() => {}),
+        onClick: openAbout,
+      }
+    }
+
     return {}
   }
 
@@ -108,15 +106,27 @@ function Navbar() {
             {...getPreloadProps(link.to)}
           >
             {link.label}
-            {link.hasDropdown && <ChevronDown size={14} strokeWidth={2.5} />}
           </Link>
         ))}
       </nav>
 
       <div className="nav-actions">
+        <Link
+          className="nav-cart-button"
+          to="/cart"
+          aria-label={`Shopping cart with ${totalQuantity} items`}
+        >
+          <ShoppingBag size={20} />
+          <span className="nav-cart-label">Cart</span>
+          {totalQuantity > 0 && (
+            <span className="nav-cart-count">{totalQuantity}</span>
+          )}
+        </Link>
+
         <Link className="quote-button" to="/contact">
           Request a Quote
         </Link>
+
         <button
           className="menu-button"
           type="button"
@@ -124,11 +134,7 @@ function Navbar() {
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((open) => !open)}
         >
-          {isMenuOpen ? (
-            <X size={24} strokeWidth={2.2} />
-          ) : (
-            <Menu size={24} strokeWidth={2.2} />
-          )}
+          {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
@@ -147,16 +153,25 @@ function Navbar() {
               }
               {...(link.to === '/products' || link.to === '/about'
                 ? {
-                    onPointerEnter:
-                      getPreloadProps(link.to).onPointerEnter,
-                    onFocus:
-                      getPreloadProps(link.to).onFocus,
+                    onPointerEnter: getPreloadProps(link.to).onPointerEnter,
+                    onFocus: getPreloadProps(link.to).onFocus,
                   }
                 : {})}
             >
               {link.label}
             </Link>
           ))}
+
+          <Link
+            className="mobile-cart"
+            to="/cart"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <ShoppingBag size={18} />
+            Cart
+            {totalQuantity > 0 && <span>{totalQuantity}</span>}
+          </Link>
+
           <Link
             className="mobile-quote"
             to="/contact"
