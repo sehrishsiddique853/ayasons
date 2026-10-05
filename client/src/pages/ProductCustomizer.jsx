@@ -16,16 +16,30 @@ import Footer from '../components/home/Footer'
 import PageLoader from '../components/common/PageLoader'
 import '../style/products/ProductCustomizer.css'
 
+const firstColorValue = (item) => {
+  const firstColor = item.colors?.[0]
+  return (
+    (typeof firstColor === 'string' ? firstColor : firstColor?.value) ||
+    '#080808'
+  )
+}
+
 const createInitialState = (items) =>
   items.reduce((result, item) => {
-    const firstColor = item.colors?.[0]
+    const baseColor = firstColorValue(item)
+    const zones =
+      item.colorZones?.length
+        ? item.colorZones
+        : ['Primary Color']
 
     result[item.id] = {
       enabled: false,
       size: '',
-      color:
-        (typeof firstColor === 'string' ? firstColor : firstColor?.value) ||
-        '#080808',
+      color: baseColor,
+      colorSelections: zones.reduce((colors, zone) => {
+        colors[zone] = baseColor
+        return colors
+      }, {}),
       quantity: 1,
       playerName: '',
       playerNumber: '',
@@ -97,12 +111,16 @@ function ProductCustomizer() {
 
     return () => {
       active = false
+    }
+  }, [categorySlug, productSlug])
 
+  useEffect(() => {
+    return () => {
       Object.values(logoPreviews).forEach((preview) => {
         if (preview) URL.revokeObjectURL(preview)
       })
     }
-  }, [categorySlug, productSlug])
+  }, [logoPreviews])
 
   const selectedCount = useMemo(
     () =>
@@ -158,6 +176,24 @@ function ProductCustomizer() {
     setMessage('')
   }
 
+  const updateColorZone = (zone, color) => {
+    if (!activeItem) return
+
+    setConfiguration((current) => ({
+      ...current,
+      [activeItem.id]: {
+        ...current[activeItem.id],
+        color: color,
+        colorSelections: {
+          ...(current[activeItem.id].colorSelections || {}),
+          [zone]: color,
+        },
+      },
+    }))
+
+    setMessage('')
+  }
+
   const handleLogo = (event) => {
     const file = event.target.files?.[0]
 
@@ -188,7 +224,9 @@ function ProductCustomizer() {
     }
 
     const missingSize = selectedItems.find(
-      (item) => (item.sizes || []).length && !configuration[item.id].size
+      (item) =>
+        (item.sizes || []).length &&
+        !configuration[item.id].size
     )
 
     if (missingSize) {
@@ -229,7 +267,7 @@ function ProductCustomizer() {
     )
   }
 
-  if (error || !product || !activeItem) {
+  if (error || !product || !activeItem || !activeSelection) {
     return (
       <>
         <main className="product-customizer-page">
@@ -243,6 +281,11 @@ function ProductCustomizer() {
       </>
     )
   }
+
+  const colorZones =
+    activeItem.colorZones?.length
+      ? activeItem.colorZones
+      : ['Primary Color']
 
   return (
     <>
@@ -260,9 +303,12 @@ function ProductCustomizer() {
 
           <div className="ecom-title-row">
             <div>
-              <span>Custom Manufacturing</span>
+              <span>Highly Customizable Manufacturing</span>
               <h1>{product.name}</h1>
-              <p>{product.description}</p>
+              <p>
+                {product.description} Configure colors, fabric, fit, branding,
+                player details and production options before adding the item to your cart.
+              </p>
             </div>
 
             <Link className="ecom-back-link" to={`/products/${categorySlug}`}>
@@ -308,7 +354,7 @@ function ProductCustomizer() {
             <div className="ecom-product-options">
               <div className="ecom-option-head">
                 <div>
-                  <span>Customize item</span>
+                  <span>Configure product</span>
                   <h2>{activeItem.name}</h2>
                   <p>{activeItem.description}</p>
                 </div>
@@ -349,21 +395,28 @@ function ProductCustomizer() {
                 </div>
               )}
 
-              <div className="ecom-option-block">
-                <ColorPicker
-                  colors={activeItem.colors || []}
-                  value={activeSelection.color}
-                  allowCustomColor={activeItem.allowCustomColor}
-                  onChange={(color) =>
-                    updateItem(activeItem.id, 'color', color)
-                  }
-                />
-              </div>
+              {colorZones.map((zone) => (
+                <div className="ecom-option-block" key={zone}>
+                  <ColorPicker
+                    label={zone}
+                    colors={activeItem.colors || []}
+                    value={
+                      activeSelection.colorSelections?.[zone] ||
+                      activeSelection.color
+                    }
+                    allowCustomColor={activeItem.allowCustomColor}
+                    onChange={(color) => updateColorZone(zone, color)}
+                  />
+                </div>
+              ))}
 
               {(activeItem.optionGroups || []).map((group) => (
                 <div className="ecom-option-block" key={group.slug || group.name}>
                   <div className="ecom-option-label">
                     <span>{group.name}</span>
+                    <strong>
+                      {activeSelection.options?.[group.slug] || 'Choose option'}
+                    </strong>
                   </div>
 
                   <div className="customizer-choice-grid">
@@ -439,7 +492,7 @@ function ProductCustomizer() {
               {activeItem.allowLogoUpload && (
                 <div className="ecom-option-block">
                   <div className="ecom-option-label">
-                    <span>Team logo</span>
+                    <span>Team / Brand Logo</span>
                   </div>
 
                   <div className="ecom-logo-row">
@@ -466,14 +519,14 @@ function ProductCustomizer() {
 
               {activeItem.allowCustomNotes && (
                 <label className="ecom-notes">
-                  <span>Special instructions</span>
+                  <span>Special manufacturing instructions</span>
                   <textarea
                     rows="3"
                     value={activeSelection.notes}
                     onChange={(event) =>
                       updateItem(activeItem.id, 'notes', event.target.value)
                     }
-                    placeholder="Add any extra manufacturing or branding instructions..."
+                    placeholder="Patterns, panel placement, stitching, branding position, packaging or any other request..."
                   />
                 </label>
               )}
