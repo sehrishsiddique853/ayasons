@@ -9,6 +9,7 @@ const emptyForm = {
   description: '',
   sizesText: '',
   colorsText: 'Black | #080808\nWhite | #ffffff',
+  colorZonesText: 'Primary Color\nSecondary Color\nTrim / Accent Color',
   optionsText: '',
   allowCustomColor: true,
   allowLogoUpload: false,
@@ -123,6 +124,7 @@ function ProductCustomizerManager({ productId }) {
       description: item.description || '',
       sizesText: (item.sizes || []).join('\n'),
       colorsText: toColorsText(item.colors),
+      colorZonesText: (item.colorZones || ['Primary Color']).join('\n'),
       optionsText: toOptionsText(item.optionGroups),
       allowCustomColor: Boolean(item.allowCustomColor),
       allowLogoUpload: Boolean(item.allowLogoUpload),
@@ -160,6 +162,10 @@ function ProductCustomizerManager({ productId }) {
         )
       )
       data.append('colors', JSON.stringify(parseColors(form.colorsText)))
+      data.append(
+        'colorZones',
+        JSON.stringify(form.colorZonesText.split('\n').map((item) => item.trim()).filter(Boolean))
+      )
       data.append('optionGroups', JSON.stringify(parseOptionGroups(form.optionsText)))
       data.append('allowCustomColor', String(form.allowCustomColor))
       data.append('allowLogoUpload', String(form.allowLogoUpload))
@@ -339,6 +345,16 @@ function ProductCustomizerManager({ productId }) {
                 placeholder={'Black | #080808\nRed | #e10600'}
               />
               <small>One per line: Color name | #hex.</small>
+            </label>
+
+            <label>
+              <span>Color zones</span>
+              <textarea
+                value={form.colorZonesText}
+                onChange={(event) => updateField('colorZonesText', event.target.value)}
+                placeholder={'Primary Color\nSecondary Color\nTrim / Accent Color'}
+              />
+              <small>One customizable color area per line.</small>
             </label>
 
             <label className="pcm-wide">
