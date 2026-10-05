@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, ShoppingBag, Trash2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Check,
+  ShoppingBag,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import api from '../services/api'
 import CustomProductCard from '../components/customizer/CustomProductCard'
+import ColorPicker from '../components/customizer/ColorPicker'
+import QuantitySelector from '../components/customizer/QuantitySelector'
 import { useCart } from '../context/CartContext'
 import Footer from '../components/home/Footer'
 import PageLoader from '../components/common/PageLoader'
@@ -11,6 +19,7 @@ import '../style/products/ProductCustomizer.css'
 const createInitialState = (items) =>
   items.reduce((result, item) => {
     const firstColor = item.colors?.[0]
+
     result[item.id] = {
       enabled: false,
       size: '',
@@ -24,16 +33,30 @@ const createInitialState = (items) =>
       notes: '',
       options: {},
     }
+
     return result
   }, {})
 
+const optionValues = (group) =>
+  (group.values || []).map((value) =>
+    typeof value === 'string'
+      ? { label: value, value }
+      : value
+  )
+
 function ProductCustomizer() {
   const { categorySlug, productSlug } = useParams()
-  const { cartItems, addToCart, removeFromCart, totalQuantity } = useCart()
+  const {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    totalQuantity,
+  } = useCart()
 
   const [product, setProduct] = useState(null)
   const [configuration, setConfiguration] = useState({})
-  const [expandedItem, setExpandedItem] = useState(null)
+  const [activeItemId, setActiveItemId] = useState(null)
+  const [logoPreviews, setLogoPreviews] = useState({})
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -45,15 +68,22 @@ function ProductCustomizer() {
       try {
         setLoading(true)
         setError('')
+
         const response = await api.get(
           `/product-customizer/${categorySlug}/${productSlug}`
         )
+
         if (!active) return
+
         const loadedProduct = response.data.product
+        const items = loadedProduct.items || []
+
         setProduct(loadedProduct)
-        setConfiguration(createInitialState(loadedProduct.items || []))
+        setConfiguration(createInitialState(items))
+        setActiveItemId(items[0]?.id || null)
       } catch (requestError) {
         if (!active) return
+
         setError(
           requestError.response?.data?.message ||
           'This product customizer is not available yet.'
@@ -64,62 +94,87 @@ function ProductCustomizer() {
     }
 
     load()
-    return () => { active = false }
+
+    return () => {
+      active = false
+
+      Object.values(logoPreviews).forEach((preview) => {
+        if (preview) URL.revokeObjectURL(preview)
+      })
+    }
   }, [categorySlug, productSlug])
 
   const selectedCount = useMemo(
-    () => Object.values(configuration).filter((item) => item.enabled).length,
+    () =>
+      Object.values(configuration).filter((item) => item.enabled).length,
     [configuration]
   )
 
-  if (loading) {
-    return (
-      <>
-        <main className="product-customizer-page">
-          <div className="customizer-empty">
-            <PageLoader label="Loading customizer" variant="inline" />
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
+  const activeItem =
+    product?.items?.find((item) => item.id === activeItemId) ||
+    product?.items?.[0] ||
+    null
+
+  const activeSelection =
+    activeItem ? configuration[activeItem.id] : null
+
+  const updateItem = (itemId, key, value) => {
+    setConfiguration((current) => ({
+      ...current,
+      [itemId]: {
+        ...current[itemId],
+        [key]: value,
+      },
+    }))
+
+    setMessage('')
   }
 
-  if (error || !product) {
-    return (
-      <>
-        <main className="product-customizer-page">
-          <div className="customizer-empty">
-            <h1>Customizer unavailable</h1>
-            <p>{error}</p>
-            <Link to={`/products/${categorySlug}`}>Back to collection</Link>
-          </div>
-        </main>
-        <Footer />
-      </>
-    )
+  const chooseItem = (itemId) => {
+    setActiveItemId(itemId)
+
+    setConfiguration((current) => ({
+      ...current,
+      [itemId]: {
+        ...current[itemId],
+        enabled: true,
+      },
+    }))
+
+    setMessage('')
   }
 
-  const toggleItem = (itemId) => {
-    setConfiguration((current) => {
-      const nextEnabled = !current[itemId].enabled
-      if (nextEnabled) setExpandedItem(itemId)
-      else if (expandedItem === itemId) setExpandedItem(null)
+  const toggleActiveItem = () => {
+    if (!activeItem) return
+
+    setConfiguration((current) => ({
+      ...current,
+      [activeItem.id]: {
+        ...current[activeItem.id],
+        enabled: !current[activeItem.id].enabled,
+      },
+    }))
+
+    setMessage('')
+  }
+
+  const handleLogo = (event) => {
+    const file = event.target.files?.[0]
+
+    if (!file || !activeItem) return
+
+    setLogoPreviews((current) => {
+      if (current[activeItem.id]) {
+        URL.revokeObjectURL(current[activeItem.id])
+      }
 
       return {
         ...current,
-        [itemId]: { ...current[itemId], enabled: nextEnabled },
+        [activeItem.id]: URL.createObjectURL(file),
       }
     })
-    setMessage('')
-  }
 
-  const changeItem = (itemId, key, value) => {
-    setConfiguration((current) => ({
-      ...current,
-      [itemId]: { ...current[itemId], [key]: value },
-    }))
-    setMessage('')
+    updateItem(activeItem.id, 'logoName', file.name)
   }
 
   const handleAddToCart = () => {
@@ -137,6 +192,7 @@ function ProductCustomizer() {
     )
 
     if (missingSize) {
+      setActiveItemId(missingSize.id)
       setMessage(`Please select a size for ${missingSize.name}.`)
       return
     }
@@ -160,109 +216,334 @@ function ProductCustomizer() {
     )
   }
 
+  if (loading) {
+    return (
+      <>
+        <main className="product-customizer-page">
+          <div className="customizer-empty">
+            <PageLoader label="Loading product" variant="inline" />
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
+  if (error || !product || !activeItem) {
+    return (
+      <>
+        <main className="product-customizer-page">
+          <div className="customizer-empty">
+            <h1>Product unavailable</h1>
+            <p>{error || 'No customizable items found.'}</p>
+            <Link to={`/products/${categorySlug}`}>Back to collection</Link>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
   return (
     <>
       <main className="product-customizer-page">
-        <section className="product-customizer-hero">
-          <div className="product-customizer-hero-inner">
-            <Link className="customizer-back" to={`/products/${categorySlug}`}>
-              <ArrowLeft size={18} />
-              Back to {product.category?.name || 'collection'}
+        <div className="ecom-product-shell">
+          <div className="ecom-breadcrumb">
+            <Link to="/products">Products</Link>
+            <span>/</span>
+            <Link to={`/products/${categorySlug}`}>
+              {product.category?.name || 'Collection'}
             </Link>
-
-            <span className="customizer-eyebrow">Custom Product Builder</span>
-            <h1>Build Your {product.name}</h1>
-            <p>{product.description}</p>
-
-            <div className="customizer-steps">
-              <span><b>01</b>Select items</span>
-              <span><b>02</b>Choose size</span>
-              <span><b>03</b>Pick colors</span>
-              <span><b>04</b>Customize</span>
-              <span><b>05</b>Add to cart</span>
-            </div>
+            <span>/</span>
+            <strong>{product.name}</strong>
           </div>
-        </section>
 
-        <div className="product-customizer-layout">
-          <section className="customizer-products">
-            <div className="customizer-section-heading">
-              <div>
-                <span>BUILD YOUR ORDER</span>
-                <h2>Choose what you need</h2>
-                <p>Select only the products you need. Open one item at a time to customize it.</p>
-              </div>
-              <strong>{selectedCount} / {product.items.length} selected</strong>
+          <div className="ecom-title-row">
+            <div>
+              <span>Custom Manufacturing</span>
+              <h1>{product.name}</h1>
+              <p>{product.description}</p>
             </div>
 
-            <div className="customizer-product-list">
+            <Link className="ecom-back-link" to={`/products/${categorySlug}`}>
+              <ArrowLeft size={16} />
+              Back to collection
+            </Link>
+          </div>
+
+          <section className="ecom-kit-selector">
+            <div className="ecom-section-heading">
+              <div>
+                <span>Choose items</span>
+                <h2>Build your set</h2>
+              </div>
+              <strong>{selectedCount} selected</strong>
+            </div>
+
+            <div className="ecom-item-grid">
               {product.items.map((item) => (
                 <CustomProductCard
                   key={item.id}
                   item={item}
                   selected={configuration[item.id]}
-                  expanded={expandedItem === item.id}
-                  onExpand={(itemId) =>
-                    setExpandedItem((current) => current === itemId ? null : itemId)
-                  }
-                  onToggle={toggleItem}
-                  onChange={changeItem}
+                  active={activeItem.id === item.id}
+                  onSelect={chooseItem}
                 />
               ))}
             </div>
           </section>
 
-          <aside className="customizer-cart-panel">
-            <div className="customizer-cart-sticky">
-              <div className="customizer-cart-heading">
-                <div><ShoppingBag size={22} /><h3>Your Cart</h3></div>
-                <span>{totalQuantity}</span>
+          <section className="ecom-configurator">
+            <div className="ecom-product-visual">
+              <div className="ecom-main-image">
+                <img src={activeItem.image?.url} alt={activeItem.name} />
               </div>
 
-              <div className="customizer-current-selection">
-                <span>Current selection</span>
-                <strong>{selectedCount} products</strong>
+              <div className="ecom-visual-caption">
+                <span>{product.name}</span>
+                <strong>{activeItem.name}</strong>
+              </div>
+            </div>
+
+            <div className="ecom-product-options">
+              <div className="ecom-option-head">
+                <div>
+                  <span>Customize item</span>
+                  <h2>{activeItem.name}</h2>
+                  <p>{activeItem.description}</p>
+                </div>
+
+                <button
+                  type="button"
+                  className={
+                    activeSelection.enabled
+                      ? 'ecom-item-toggle active'
+                      : 'ecom-item-toggle'
+                  }
+                  onClick={toggleActiveItem}
+                >
+                  {activeSelection.enabled && <Check size={15} />}
+                  {activeSelection.enabled ? 'Selected' : 'Select item'}
+                </button>
+              </div>
+
+              {(activeItem.sizes || []).length > 0 && (
+                <div className="ecom-option-block">
+                  <div className="ecom-option-label">
+                    <span>Size</span>
+                    <strong>{activeSelection.size || 'Select a size'}</strong>
+                  </div>
+
+                  <div className="customizer-size-grid">
+                    {activeItem.sizes.map((size) => (
+                      <button
+                        type="button"
+                        key={size}
+                        className={activeSelection.size === size ? 'active' : ''}
+                        onClick={() => updateItem(activeItem.id, 'size', size)}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="ecom-option-block">
+                <ColorPicker
+                  colors={activeItem.colors || []}
+                  value={activeSelection.color}
+                  allowCustomColor={activeItem.allowCustomColor}
+                  onChange={(color) =>
+                    updateItem(activeItem.id, 'color', color)
+                  }
+                />
+              </div>
+
+              {(activeItem.optionGroups || []).map((group) => (
+                <div className="ecom-option-block" key={group.slug || group.name}>
+                  <div className="ecom-option-label">
+                    <span>{group.name}</span>
+                  </div>
+
+                  <div className="customizer-choice-grid">
+                    {optionValues(group).map((option) => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        className={
+                          activeSelection.options?.[group.slug] === option.value
+                            ? 'active'
+                            : ''
+                        }
+                        onClick={() =>
+                          updateItem(activeItem.id, 'options', {
+                            ...(activeSelection.options || {}),
+                            [group.slug]: option.value,
+                          })
+                        }
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {(activeItem.allowPlayerName || activeItem.allowPlayerNumber) && (
+                <div className="ecom-personalize-box">
+                  <h3>Personalization</h3>
+
+                  <div className="ecom-personalize-grid">
+                    {activeItem.allowPlayerName && (
+                      <label>
+                        <span>Name on item</span>
+                        <input
+                          type="text"
+                          value={activeSelection.playerName}
+                          onChange={(event) =>
+                            updateItem(
+                              activeItem.id,
+                              'playerName',
+                              event.target.value
+                            )
+                          }
+                          placeholder="Enter name"
+                          maxLength={30}
+                        />
+                      </label>
+                    )}
+
+                    {activeItem.allowPlayerNumber && (
+                      <label>
+                        <span>Number</span>
+                        <input
+                          type="text"
+                          value={activeSelection.playerNumber}
+                          onChange={(event) =>
+                            updateItem(
+                              activeItem.id,
+                              'playerNumber',
+                              event.target.value
+                            )
+                          }
+                          placeholder="00"
+                          maxLength={3}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeItem.allowLogoUpload && (
+                <div className="ecom-option-block">
+                  <div className="ecom-option-label">
+                    <span>Team logo</span>
+                  </div>
+
+                  <div className="ecom-logo-row">
+                    <label className="ecom-logo-upload">
+                      <Upload size={17} />
+                      <span>{activeSelection.logoName || 'Upload logo'}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={handleLogo}
+                      />
+                    </label>
+
+                    {logoPreviews[activeItem.id] && (
+                      <img
+                        className="ecom-logo-preview"
+                        src={logoPreviews[activeItem.id]}
+                        alt="Team logo preview"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeItem.allowCustomNotes && (
+                <label className="ecom-notes">
+                  <span>Special instructions</span>
+                  <textarea
+                    rows="3"
+                    value={activeSelection.notes}
+                    onChange={(event) =>
+                      updateItem(activeItem.id, 'notes', event.target.value)
+                    }
+                    placeholder="Add any extra manufacturing or branding instructions..."
+                  />
+                </label>
+              )}
+
+              <div className="ecom-purchase-row">
+                <div className="ecom-quantity-wrap">
+                  <span>Quantity</span>
+                  <QuantitySelector
+                    value={activeSelection.quantity}
+                    onChange={(quantity) =>
+                      updateItem(activeItem.id, 'quantity', quantity)
+                    }
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className="ecom-add-cart"
+                  onClick={handleAddToCart}
+                >
+                  <ShoppingBag size={18} />
+                  Add selected items to cart
+                </button>
               </div>
 
               {message && (
-                <div className="customizer-message">
-                  <CheckCircle2 size={18} /><span>{message}</span>
-                </div>
-              )}
-
-              <button type="button" className="customizer-add-cart" onClick={handleAddToCart}>
-                <ShoppingBag size={18} />
-                Add Selected To Cart
-              </button>
-
-              <p className="customizer-cart-help">
-                Final pricing is confirmed according to quantity, fabric, branding and customization requirements.
-              </p>
-
-              {cartItems.length > 0 && (
-                <div className="customizer-cart-items">
-                  <h4>Cart items</h4>
-                  {cartItems.map((cartItem) => (
-                    <div className="customizer-mini-cart-item" key={cartItem.cartId}>
-                      <div>
-                        <strong>{cartItem.itemName}</strong>
-                        <span>{cartItem.size || 'Custom'} · Qty {cartItem.quantity}</span>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Remove from cart"
-                        onClick={() => removeFromCart(cartItem.cartId)}
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                <div className="ecom-message">{message}</div>
               )}
             </div>
-          </aside>
+          </section>
+
+          {cartItems.length > 0 && (
+            <section className="ecom-cart-preview">
+              <div className="ecom-cart-preview-head">
+                <div>
+                  <ShoppingBag size={19} />
+                  <h2>Cart</h2>
+                  <span>{totalQuantity} total qty</span>
+                </div>
+
+                <Link to="/cart">View full cart</Link>
+              </div>
+
+              <div className="ecom-cart-preview-list">
+                {cartItems.slice(-4).map((cartItem) => (
+                  <div className="ecom-cart-preview-item" key={cartItem.cartId}>
+                    <img src={cartItem.itemImage} alt="" />
+
+                    <div>
+                      <strong>{cartItem.itemName}</strong>
+                      <span>
+                        {cartItem.size || 'Custom'} · Qty {cartItem.quantity}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      aria-label="Remove item"
+                      onClick={() => removeFromCart(cartItem.cartId)}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </main>
+
       <Footer />
     </>
   )
