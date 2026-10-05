@@ -21,7 +21,12 @@ const defaultItems = [
       { name: 'Fit', slug: 'fit', values: ['Regular','Athletic','Slim'] },
       { name: 'Collar Style', slug: 'collar-style', values: ['V Neck','Round Neck','Polo Collar'] },
       { name: 'Branding Method', slug: 'branding-method', values: ['Sublimation','Embroidery','Screen Print','Heat Transfer'] },
-      { name: 'Logo Position', slug: 'logo-position', values: ['Left Chest','Right Chest','Center Chest','Sleeve'] }
+      { name: 'Logo Position', slug: 'logo-position', values: ['Left Chest','Right Chest','Center Chest','Sleeve'] },
+      { name: 'Fabric Pattern', slug: 'fabric-pattern', values: ['Solid','Carbon','Camo','Dots','Geometric','Custom Pattern'] },
+      { name: 'Material Finish', slug: 'material-finish', values: ['Matte','Gloss','Metallic'] },
+      { name: 'Stitching', slug: 'stitching', values: ['Standard','Flatlock','Reinforced'] },
+      { name: 'Hem Style', slug: 'hem-style', values: ['Straight','Drop Tail','Side Slit'] },
+      { name: 'Ventilation', slug: 'ventilation', values: ['Standard','Mesh Panels','Laser Vent'] }
     ],
     allowLogoUpload: 1,
     allowPlayerName: 1,
