@@ -4,6 +4,7 @@ import {
   getCategoryHeroImage,
   getCategoryCollectionImage,
   getProductImage,
+  getCustomizerItemImage,
 } from '../controllers/imageController.js'
 
 
@@ -25,6 +26,11 @@ router.get(
 router.get(
   '/products/:id',
   getProductImage
+)
+
+router.get(
+  '/customizer/:id',
+  getCustomizerItemImage
 )
 
 
