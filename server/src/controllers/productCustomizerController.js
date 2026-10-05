@@ -145,7 +145,7 @@ export const createAdminCustomizerItem = async (req, res, next) => {
         sizes_json, colors_json, color_zones_json, option_groups_json, allow_custom_color,
         allow_logo_upload, allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         productId, data.name, data.slug, data.description,
