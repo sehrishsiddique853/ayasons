@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { withImageWidth } from '../../utils/imageUrl'
-import workwearHeroImage from '../../assets/images/optimized/workwear.jpg'
 
 const CATEGORY_ORDER = [
   'sportswear',
@@ -135,15 +134,12 @@ function Hero({ categories = [] }) {
   /*
    * Current background image
    */
-  const activeImage =
-    activeCategory?.slug === 'workwear'
-      ? workwearHeroImage
-      : withImageWidth(
-          activeCategory?.heroImage?.url ||
-          activeCategory?.collectionImage?.url ||
-          '',
-          1600
-        )
+  const activeImage = withImageWidth(
+    activeCategory?.heroImage?.url ||
+    activeCategory?.collectionImage?.url ||
+    '',
+    1600
+  )
 
   const backgroundImage =
     activeImage

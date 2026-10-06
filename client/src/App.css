@@ -204,8 +204,9 @@ min-height: 44px;
 
 .navbar {
   min-height: 76px;
-  background: rgba(9, 10, 12, 0.96);
-  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: transparent;
+  border-bottom: 0;
+  backdrop-filter: none;
 }
 
 .nav-links a {

@@ -1,5 +1,3 @@
-import aboutImage
-  from '../../assets/images/optimized/ayosons-industries-factory.webp'
 import { Link } from 'react-router-dom'
 
 
@@ -12,8 +10,13 @@ const trustPoints = [
 
 
 function AboutSection({
+  homepageContent,
   priority = false,
 }) {
+  const aboutImage = homepageContent?.aboutImage?.available
+    ? homepageContent.aboutImage.url
+    : '/assets/images/optimized/ayosons-industries-factory.webp'
+
   return (
     <section
       className="about-section"
