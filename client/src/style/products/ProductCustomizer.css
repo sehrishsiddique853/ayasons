@@ -1226,3 +1226,24 @@
     padding: 10px;
   }
 }
+
+
+/* Simple product purchase controls */
+.ecom-product-options .ecom-basic-customization {
+  padding-top: 4px;
+}
+.ecom-product-options .ecom-basic-customization > .ecom-option-block:first-child {
+  padding-top: 14px;
+}
+.ecom-product-options .ecom-option-head {
+  align-items: flex-start;
+}
+.ecom-product-options .ecom-checkout-actions {
+  display: block;
+  margin-top: 18px;
+  padding-top: 18px;
+}
+.ecom-product-options .ecom-checkout-actions .ecom-add-cart {
+  width: 100%;
+  min-height: 48px;
+}
