@@ -29,7 +29,9 @@ function CustomProductCard({
 
       <div className="ecom-item-copy">
         <h3>{item.name}</h3>
-        <p>{item.description}</p>
+        {!/^soccer-uniform-[1-4]$/.test(item.slug || '') && (
+          <p>{item.description}</p>
+        )}
       </div>
     </button>
   )
