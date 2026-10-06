@@ -17,6 +17,8 @@ export const getCachedProductCategories = () => {
   return cachedCategories
 }
 
+export const getLastProductCategories = () => cachedCategories
+
 export const loadProductCategories = async () => {
   const cached = getCachedProductCategories()
 

@@ -1,4 +1,5 @@
 import '../../style/FactoryDirectSection.css'
+import { Link } from 'react-router-dom'
 
 const comparisonRows = [
   {
@@ -157,10 +158,10 @@ function FactoryDirectSection() {
 
               <p>{item.description}</p>
 
-              <a href="/contact">
+              <Link to="/contact">
                 {item.link}
                 <span aria-hidden="true">→</span>
-              </a>
+              </Link>
             </article>
           ))}
         </div>

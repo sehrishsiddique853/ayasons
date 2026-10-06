@@ -1,4 +1,5 @@
 import '../../style/BuyerTypesSection.css'
+import { Link } from 'react-router-dom'
 
 const buyerTypes = [
   {
@@ -90,10 +91,10 @@ function BuyerTypesSection() {
 
                 <p>{buyer.description}</p>
 
-                <a href="#contact">
+                <Link to="/#contact">
                   {buyer.link}
                   <span aria-hidden="true">→</span>
-                </a>
+                </Link>
               </div>
             </article>
           ))}
@@ -105,13 +106,13 @@ function BuyerTypesSection() {
             quantity and customization requirements.
           </p>
 
-          <a
-            href="/contact"
+          <Link
+            to="/contact"
             className="buyer-types-button"
           >
             Start Your Project
             <span aria-hidden="true">→</span>
-          </a>
+          </Link>
         </div>
 
       </div>

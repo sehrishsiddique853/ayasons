@@ -4,6 +4,10 @@ import {
 } from 'react'
 
 import api from '../services/api'
+import {
+  getLastProductCategories,
+  loadProductCategories,
+} from '../services/productCategoriesCache'
 
 import Hero from '../components/home/Hero'
 import AboutSection from '../components/home/AboutSection'
@@ -36,12 +40,12 @@ function Home() {
   const [
     categories,
     setCategories,
-  ] = useState([])
+  ] = useState(() => getLastProductCategories() || [])
 
   const [
     categoriesLoading,
     setCategoriesLoading,
-  ] = useState(true)
+  ] = useState(() => !getLastProductCategories())
 
   const [
     categoriesError,
@@ -55,22 +59,13 @@ function Home() {
       new AbortController()
 
 
-    const requestOptions = {
-      signal: controller.signal,
-    }
-
     const loadCategories = async () => {
       try {
-        setCategoriesLoading(true)
+        if (!getLastProductCategories()) {
+          setCategoriesLoading(true)
+        }
         setCategoriesError('')
-
-        const response = await api.get(
-          '/categories',
-          requestOptions
-        )
-
-        const loadedCategories =
-          response.data.categories || []
+        const loadedCategories = await loadProductCategories()
 
         if (controller.signal.aborted) {
           return
@@ -93,6 +88,10 @@ function Home() {
           setCategoriesLoading(false)
         }
       }
+    }
+
+    const requestOptions = {
+      signal: controller.signal,
     }
 
     const loadHomepageContent = async () => {

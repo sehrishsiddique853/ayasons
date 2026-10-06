@@ -358,9 +358,9 @@ function RequestQuote() {
 
             <a
               className="quote-whatsapp-card"
-              href={whatsappHref || '#contact'}
-              target="_blank"
-              rel="noreferrer"
+              href={whatsappHref || undefined}
+              target={whatsappHref ? '_blank' : undefined}
+              rel={whatsappHref ? 'noreferrer' : undefined}
             >
               <div className="quote-whatsapp-icon">
   <img

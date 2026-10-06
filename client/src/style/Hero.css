@@ -57,23 +57,23 @@
   background:
     linear-gradient(
       90deg,
-      rgba(4, 5, 7, 0.93) 0%,
-      rgba(4, 5, 7, 0.76) 30%,
-      rgba(4, 5, 7, 0.38) 54%,
-      rgba(4, 5, 7, 0.08) 78%,
+      rgba(4, 5, 7, 0.84) 0%,
+      rgba(4, 5, 7, 0.66) 30%,
+      rgba(4, 5, 7, 0.32) 54%,
+      rgba(4, 5, 7, 0.06) 78%,
       transparent 100%
     ),
     linear-gradient(
       180deg,
       rgba(4, 5, 7, 0.08) 0%,
       transparent 52%,
-      rgba(4, 5, 7, 0.58) 100%
+      rgba(4, 5, 7, 0.46) 100%
     ),
     radial-gradient(
       circle at 76% 36%,
       transparent 0 28%,
       rgba(4, 5, 7, 0.12) 76%,
-      rgba(4, 5, 7, 0.24) 100%
+      rgba(4, 5, 7, 0.18) 100%
     );
 }
 
@@ -280,15 +280,15 @@
     background:
       linear-gradient(
         90deg,
-        rgba(4,5,7,.92) 0%,
-        rgba(4,5,7,.68) 58%,
-        rgba(4,5,7,.25) 100%
+        rgba(4,5,7,.82) 0%,
+        rgba(4,5,7,.58) 58%,
+        rgba(4,5,7,.2) 100%
       ),
       linear-gradient(
         180deg,
         rgba(4,5,7,.08) 20%,
-        rgba(4,5,7,.38) 52%,
-        rgba(4,5,7,.94) 100%
+        rgba(4,5,7,.32) 52%,
+        rgba(4,5,7,.84) 100%
       );
   }
 
@@ -337,15 +337,15 @@
     background:
       linear-gradient(
         90deg,
-        rgba(4,5,7,.68) 0%,
-        rgba(4,5,7,.28) 100%
+        rgba(4,5,7,.54) 0%,
+        rgba(4,5,7,.2) 100%
       ),
       linear-gradient(
         180deg,
         rgba(4,5,7,.12) 0%,
         rgba(4,5,7,.18) 30%,
-        rgba(4,5,7,.82) 58%,
-        rgba(4,5,7,.98) 100%
+        rgba(4,5,7,.74) 58%,
+        rgba(4,5,7,.9) 100%
       );
   }
 

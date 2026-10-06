@@ -1,4 +1,5 @@
 import '../../style/FactoryFactsSection.css'
+import { Link } from 'react-router-dom'
 
 const factoryFacts = [
   {
@@ -176,13 +177,13 @@ function FactoryFactsSection() {
             customization options for your project?
           </p>
 
-          <a
-            href="/contact"
+          <Link
+            to="/contact"
             className="factory-facts-button"
           >
             Talk To Our Team
             <span aria-hidden="true">→</span>
-          </a>
+          </Link>
         </div>
 
       </div>

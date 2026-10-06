@@ -38,7 +38,7 @@ function ManufactureSection({
     return loadProductCategory(slug)
   }
 
-  const openCategory = async (event, category) => {
+  const openCategory = (event, category) => {
     if (
       event.button !== 0 ||
       event.metaKey ||
@@ -51,13 +51,8 @@ function ManufactureSection({
 
     event.preventDefault()
 
-    try {
-      await prepareCategory(category)
-    } catch {
-      // The destination page will show its normal error state if needed.
-    }
-
     navigate(createCategoryPath(category))
+    prepareCategory(category).catch(() => {})
   }
 
   return (

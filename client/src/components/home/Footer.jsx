@@ -56,7 +56,7 @@ function Footer() {
   const prepareCategory = (slug) =>
     loadProductCategory(slug)
 
-  const openCategory = async (event, slug) => {
+  const openCategory = (event, slug) => {
     if (
       event.button !== 0 ||
       event.metaKey ||
@@ -69,13 +69,8 @@ function Footer() {
 
     event.preventDefault()
 
-    try {
-      await prepareCategory(slug)
-    } catch {
-      // Let the destination render its standard error state.
-    }
-
     navigate(`/products/${slug}`)
+    prepareCategory(slug).catch(() => {})
   }
 
   const productLinkProps = (slug) => ({

@@ -21,7 +21,7 @@ function Navbar() {
 
   const prepareProducts = () => loadProductCategories()
 
-  const openProducts = async (event) => {
+  const openProducts = (event) => {
     if (
       event.button !== 0 ||
       event.metaKey ||
@@ -32,19 +32,14 @@ function Navbar() {
 
     event.preventDefault()
 
-    try {
-      await prepareProducts()
-    } catch {
-      // Products page handles its own error state.
-    }
-
     setIsMenuOpen(false)
     navigate('/products')
+    prepareProducts().catch(() => {})
   }
 
   const prepareAbout = () => loadHomepageContent()
 
-  const openAbout = async (event) => {
+  const openAbout = (event) => {
     if (
       event.button !== 0 ||
       event.metaKey ||
@@ -55,14 +50,9 @@ function Navbar() {
 
     event.preventDefault()
 
-    try {
-      await prepareAbout()
-    } catch {
-      // About page handles its own fallback state.
-    }
-
     setIsMenuOpen(false)
     navigate('/about')
+    prepareAbout().catch(() => {})
   }
 
   const getPreloadProps = (path) => {
