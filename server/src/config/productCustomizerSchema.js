@@ -1,125 +1,879 @@
 import pool from './mysql.js'
 
+/**
+ * Four complete soccer uniform designs. Each contains a matching jersey,
+ * shorts and socks. Item images can be uploaded individually in Admin.
+ * Existing customizer records are never deleted by this migration.
+ */
 const defaultItems = [
   {
-    name: 'Jersey / Shirt',
-    slug: 'jersey-shirt',
-    description: 'Custom soccer jersey with team logo, player name, player number and short or long sleeve options.',
-    sizes: ['XS','S','M','L','XL','2XL','3XL','4XL'],
-    colors: [
-      { name: 'Black', value: '#080808' },
-      { name: 'White', value: '#ffffff' },
-      { name: 'Red', value: '#e10600' },
-      { name: 'Royal Blue', value: '#0047ab' },
-      { name: 'Green', value: '#00a651' },
-      { name: 'Gold', value: '#f5d000' }
+    "name": "Soccer Uniform 1",
+    "slug": "soccer-uniform-1",
+    "description": "Complete soccer kit design 1, matching jersey, shorts and socks with personalized team colors and branding.",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL",
+      "4XL"
     ],
-    colorZones: ['Primary Color','Secondary Color','Trim / Accent Color'],
-    optionGroups: [
-      { name: 'Sleeve Style', slug: 'sleeve-style', values: ['Short Sleeve','Long Sleeve'] },
-      { name: 'Fabric', slug: 'fabric', values: ['Polyester Interlock','Bird Eye Mesh','Dry Fit','Micro Mesh'] },
-      { name: 'Fit', slug: 'fit', values: ['Regular','Athletic','Slim'] },
-      { name: 'Collar Style', slug: 'collar-style', values: ['V Neck','Round Neck','Polo Collar'] },
-      { name: 'Branding Method', slug: 'branding-method', values: ['Sublimation','Embroidery','Screen Print','Heat Transfer'] },
-      { name: 'Logo Position', slug: 'logo-position', values: ['Left Chest','Right Chest','Center Chest','Sleeve'] },
-      { name: 'Fabric Pattern', slug: 'fabric-pattern', values: ['Solid','Carbon','Camo','Dots','Geometric','Custom Pattern'] },
-      { name: 'Material Finish', slug: 'material-finish', values: ['Matte','Gloss','Metallic'] },
-      { name: 'Stitching', slug: 'stitching', values: ['Standard','Flatlock','Reinforced'] },
-      { name: 'Hem Style', slug: 'hem-style', values: ['Straight','Drop Tail','Side Slit'] },
-      { name: 'Ventilation', slug: 'ventilation', values: ['Standard','Mesh Panels','Laser Vent'] }
+    "colors": [
+      {
+        "name": "Black",
+        "value": "#080808"
+      },
+      {
+        "name": "White",
+        "value": "#ffffff"
+      },
+      {
+        "name": "Red",
+        "value": "#e10600"
+      },
+      {
+        "name": "Royal Blue",
+        "value": "#0047ab"
+      },
+      {
+        "name": "Green",
+        "value": "#00a651"
+      },
+      {
+        "name": "Gold",
+        "value": "#f5d000"
+      }
     ],
-    allowLogoUpload: 1,
-    allowPlayerName: 1,
-    allowPlayerNumber: 1,
-    order: 1,
+    "colorZones": [
+      "Jersey Main Color",
+      "Jersey Secondary Color",
+      "Shorts Color",
+      "Socks Color",
+      "Trim / Accent Color"
+    ],
+    "optionGroups": [
+      {
+        "name": "Jersey Sleeve",
+        "slug": "jersey-sleeve",
+        "values": [
+          "Short Sleeve",
+          "Long Sleeve"
+        ]
+      },
+      {
+        "name": "Jersey Fit",
+        "slug": "jersey-fit",
+        "values": [
+          "Regular",
+          "Athletic",
+          "Slim"
+        ]
+      },
+      {
+        "name": "Neck Style",
+        "slug": "neck-style",
+        "values": [
+          "Crew Neck",
+          "V Neck",
+          "Polo Collar"
+        ]
+      },
+      {
+        "name": "Shorts Style",
+        "slug": "shorts-style",
+        "values": [
+          "Regular",
+          "Relaxed",
+          "Compression"
+        ]
+      },
+      {
+        "name": "Shorts Size",
+        "slug": "shorts-size",
+        "values": [
+          "XS",
+          "S",
+          "M",
+          "L",
+          "XL",
+          "2XL",
+          "3XL",
+          "4XL"
+        ]
+      },
+      {
+        "name": "Sock Size",
+        "slug": "sock-size",
+        "values": [
+          "Youth",
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "name": "Sock Length",
+        "slug": "sock-length",
+        "values": [
+          "Crew",
+          "Knee High",
+          "Over Knee"
+        ]
+      },
+      {
+        "name": "Fabric",
+        "slug": "fabric",
+        "values": [
+          "Dry Fit",
+          "Polyester Interlock",
+          "Bird Eye Mesh",
+          "Micro Mesh"
+        ]
+      },
+      {
+        "name": "Fabric Pattern",
+        "slug": "fabric-pattern",
+        "values": [
+          "Solid",
+          "Stripes",
+          "Geometric",
+          "Gradient",
+          "Custom Pattern"
+        ]
+      },
+      {
+        "name": "Material Finish",
+        "slug": "material-finish",
+        "values": [
+          "Matte",
+          "Gloss"
+        ]
+      },
+      {
+        "name": "Branding Method",
+        "slug": "branding-method",
+        "values": [
+          "Sublimation",
+          "Embroidery",
+          "Heat Transfer",
+          "Screen Print"
+        ]
+      },
+      {
+        "name": "Team Crest Position",
+        "slug": "team-crest-position",
+        "values": [
+          "Left Chest",
+          "Right Chest",
+          "Center Chest"
+        ]
+      },
+      {
+        "name": "Sponsor Placement",
+        "slug": "sponsor-placement",
+        "values": [
+          "Front",
+          "Sleeve",
+          "Back",
+          "None"
+        ]
+      },
+      {
+        "name": "Number Style",
+        "slug": "number-style",
+        "values": [
+          "Classic",
+          "Block",
+          "Modern"
+        ]
+      },
+      {
+        "name": "Trim Style",
+        "slug": "trim-style",
+        "values": [
+          "Plain",
+          "Contrast Piping",
+          "Striped"
+        ]
+      },
+      {
+        "name": "Stitching",
+        "slug": "stitching",
+        "values": [
+          "Standard",
+          "Flatlock",
+          "Reinforced"
+        ]
+      },
+      {
+        "name": "Packaging",
+        "slug": "packaging",
+        "values": [
+          "Bulk Packed",
+          "Individual Polybag",
+          "Custom Branded Bag"
+        ]
+      }
+    ],
+    "allowLogoUpload": 1,
+    "allowPlayerName": 1,
+    "allowPlayerNumber": 1,
+    "order": 1
   },
   {
-    name: 'Soccer Shorts',
-    slug: 'soccer-shorts',
-    description: 'Matching performance shorts with team branding and optional player number.',
-    sizes: ['XS','S','M','L','XL','2XL','3XL','4XL'],
-    colors: [
-      { name: 'Black', value: '#080808' },
-      { name: 'White', value: '#ffffff' },
-      { name: 'Red', value: '#e10600' },
-      { name: 'Royal Blue', value: '#0047ab' }
+    "name": "Soccer Uniform 2",
+    "slug": "soccer-uniform-2",
+    "description": "Complete soccer kit design 2, coordinated jersey, shorts and socks with custom panels, number and crest.",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL",
+      "4XL"
     ],
-    colorZones: ['Primary Color','Secondary Color','Trim / Accent Color'],
-    optionGroups: [
-      { name: 'Fabric', slug: 'fabric', values: ['Polyester Interlock','Bird Eye Mesh','Dry Fit','Micro Mesh'] },
-      { name: 'Fit', slug: 'fit', values: ['Regular','Athletic','Slim'] },
-      { name: 'Waistband', slug: 'waistband', values: ['Elastic','Elastic + Drawcord'] },
-      { name: 'Branding Method', slug: 'branding-method', values: ['Sublimation','Embroidery','Screen Print','Heat Transfer'] }
+    "colors": [
+      {
+        "name": "Black",
+        "value": "#080808"
+      },
+      {
+        "name": "White",
+        "value": "#ffffff"
+      },
+      {
+        "name": "Red",
+        "value": "#e10600"
+      },
+      {
+        "name": "Royal Blue",
+        "value": "#0047ab"
+      },
+      {
+        "name": "Green",
+        "value": "#00a651"
+      },
+      {
+        "name": "Gold",
+        "value": "#f5d000"
+      }
     ],
-    allowLogoUpload: 1,
-    allowPlayerName: 0,
-    allowPlayerNumber: 1,
-    order: 2,
+    "colorZones": [
+      "Jersey Main Color",
+      "Jersey Secondary Color",
+      "Shorts Color",
+      "Socks Color",
+      "Trim / Accent Color"
+    ],
+    "optionGroups": [
+      {
+        "name": "Jersey Sleeve",
+        "slug": "jersey-sleeve",
+        "values": [
+          "Short Sleeve",
+          "Long Sleeve"
+        ]
+      },
+      {
+        "name": "Jersey Fit",
+        "slug": "jersey-fit",
+        "values": [
+          "Regular",
+          "Athletic",
+          "Slim"
+        ]
+      },
+      {
+        "name": "Neck Style",
+        "slug": "neck-style",
+        "values": [
+          "Crew Neck",
+          "V Neck",
+          "Polo Collar"
+        ]
+      },
+      {
+        "name": "Shorts Style",
+        "slug": "shorts-style",
+        "values": [
+          "Regular",
+          "Relaxed",
+          "Compression"
+        ]
+      },
+      {
+        "name": "Shorts Size",
+        "slug": "shorts-size",
+        "values": [
+          "XS",
+          "S",
+          "M",
+          "L",
+          "XL",
+          "2XL",
+          "3XL",
+          "4XL"
+        ]
+      },
+      {
+        "name": "Sock Size",
+        "slug": "sock-size",
+        "values": [
+          "Youth",
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "name": "Sock Length",
+        "slug": "sock-length",
+        "values": [
+          "Crew",
+          "Knee High",
+          "Over Knee"
+        ]
+      },
+      {
+        "name": "Fabric",
+        "slug": "fabric",
+        "values": [
+          "Dry Fit",
+          "Polyester Interlock",
+          "Bird Eye Mesh",
+          "Micro Mesh"
+        ]
+      },
+      {
+        "name": "Fabric Pattern",
+        "slug": "fabric-pattern",
+        "values": [
+          "Solid",
+          "Stripes",
+          "Geometric",
+          "Gradient",
+          "Custom Pattern"
+        ]
+      },
+      {
+        "name": "Material Finish",
+        "slug": "material-finish",
+        "values": [
+          "Matte",
+          "Gloss"
+        ]
+      },
+      {
+        "name": "Branding Method",
+        "slug": "branding-method",
+        "values": [
+          "Sublimation",
+          "Embroidery",
+          "Heat Transfer",
+          "Screen Print"
+        ]
+      },
+      {
+        "name": "Team Crest Position",
+        "slug": "team-crest-position",
+        "values": [
+          "Left Chest",
+          "Right Chest",
+          "Center Chest"
+        ]
+      },
+      {
+        "name": "Sponsor Placement",
+        "slug": "sponsor-placement",
+        "values": [
+          "Front",
+          "Sleeve",
+          "Back",
+          "None"
+        ]
+      },
+      {
+        "name": "Number Style",
+        "slug": "number-style",
+        "values": [
+          "Classic",
+          "Block",
+          "Modern"
+        ]
+      },
+      {
+        "name": "Trim Style",
+        "slug": "trim-style",
+        "values": [
+          "Plain",
+          "Contrast Piping",
+          "Striped"
+        ]
+      },
+      {
+        "name": "Stitching",
+        "slug": "stitching",
+        "values": [
+          "Standard",
+          "Flatlock",
+          "Reinforced"
+        ]
+      },
+      {
+        "name": "Packaging",
+        "slug": "packaging",
+        "values": [
+          "Bulk Packed",
+          "Individual Polybag",
+          "Custom Branded Bag"
+        ]
+      }
+    ],
+    "allowLogoUpload": 1,
+    "allowPlayerName": 1,
+    "allowPlayerNumber": 1,
+    "order": 2
   },
   {
-    name: 'Soccer Socks',
-    slug: 'soccer-socks',
-    description: 'Long team socks designed to cover shin guards with coordinated team colors.',
-    sizes: ['Youth','S','M','L','XL'],
-    colors: [
-      { name: 'Black', value: '#080808' },
-      { name: 'White', value: '#ffffff' },
-      { name: 'Red', value: '#e10600' },
-      { name: 'Royal Blue', value: '#0047ab' }
+    "name": "Soccer Uniform 3",
+    "slug": "soccer-uniform-3",
+    "description": "Complete soccer kit design 3, performance jersey, shorts and socks with personalized graphics and fit.",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL",
+      "4XL"
     ],
-    colorZones: ['Main Color','Stripe / Accent Color'],
-    optionGroups: [
-      { name: 'Sock Length', slug: 'sock-length', values: ['Crew','Knee High','Over Knee'] },
-      { name: 'Cushioning', slug: 'cushioning', values: ['Light','Medium','Full'] }
+    "colors": [
+      {
+        "name": "Black",
+        "value": "#080808"
+      },
+      {
+        "name": "White",
+        "value": "#ffffff"
+      },
+      {
+        "name": "Red",
+        "value": "#e10600"
+      },
+      {
+        "name": "Royal Blue",
+        "value": "#0047ab"
+      },
+      {
+        "name": "Green",
+        "value": "#00a651"
+      },
+      {
+        "name": "Gold",
+        "value": "#f5d000"
+      }
     ],
-    allowLogoUpload: 0,
-    allowPlayerName: 0,
-    allowPlayerNumber: 0,
-    order: 3,
+    "colorZones": [
+      "Jersey Main Color",
+      "Jersey Secondary Color",
+      "Shorts Color",
+      "Socks Color",
+      "Trim / Accent Color"
+    ],
+    "optionGroups": [
+      {
+        "name": "Jersey Sleeve",
+        "slug": "jersey-sleeve",
+        "values": [
+          "Short Sleeve",
+          "Long Sleeve"
+        ]
+      },
+      {
+        "name": "Jersey Fit",
+        "slug": "jersey-fit",
+        "values": [
+          "Regular",
+          "Athletic",
+          "Slim"
+        ]
+      },
+      {
+        "name": "Neck Style",
+        "slug": "neck-style",
+        "values": [
+          "Crew Neck",
+          "V Neck",
+          "Polo Collar"
+        ]
+      },
+      {
+        "name": "Shorts Style",
+        "slug": "shorts-style",
+        "values": [
+          "Regular",
+          "Relaxed",
+          "Compression"
+        ]
+      },
+      {
+        "name": "Shorts Size",
+        "slug": "shorts-size",
+        "values": [
+          "XS",
+          "S",
+          "M",
+          "L",
+          "XL",
+          "2XL",
+          "3XL",
+          "4XL"
+        ]
+      },
+      {
+        "name": "Sock Size",
+        "slug": "sock-size",
+        "values": [
+          "Youth",
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "name": "Sock Length",
+        "slug": "sock-length",
+        "values": [
+          "Crew",
+          "Knee High",
+          "Over Knee"
+        ]
+      },
+      {
+        "name": "Fabric",
+        "slug": "fabric",
+        "values": [
+          "Dry Fit",
+          "Polyester Interlock",
+          "Bird Eye Mesh",
+          "Micro Mesh"
+        ]
+      },
+      {
+        "name": "Fabric Pattern",
+        "slug": "fabric-pattern",
+        "values": [
+          "Solid",
+          "Stripes",
+          "Geometric",
+          "Gradient",
+          "Custom Pattern"
+        ]
+      },
+      {
+        "name": "Material Finish",
+        "slug": "material-finish",
+        "values": [
+          "Matte",
+          "Gloss"
+        ]
+      },
+      {
+        "name": "Branding Method",
+        "slug": "branding-method",
+        "values": [
+          "Sublimation",
+          "Embroidery",
+          "Heat Transfer",
+          "Screen Print"
+        ]
+      },
+      {
+        "name": "Team Crest Position",
+        "slug": "team-crest-position",
+        "values": [
+          "Left Chest",
+          "Right Chest",
+          "Center Chest"
+        ]
+      },
+      {
+        "name": "Sponsor Placement",
+        "slug": "sponsor-placement",
+        "values": [
+          "Front",
+          "Sleeve",
+          "Back",
+          "None"
+        ]
+      },
+      {
+        "name": "Number Style",
+        "slug": "number-style",
+        "values": [
+          "Classic",
+          "Block",
+          "Modern"
+        ]
+      },
+      {
+        "name": "Trim Style",
+        "slug": "trim-style",
+        "values": [
+          "Plain",
+          "Contrast Piping",
+          "Striped"
+        ]
+      },
+      {
+        "name": "Stitching",
+        "slug": "stitching",
+        "values": [
+          "Standard",
+          "Flatlock",
+          "Reinforced"
+        ]
+      },
+      {
+        "name": "Packaging",
+        "slug": "packaging",
+        "values": [
+          "Bulk Packed",
+          "Individual Polybag",
+          "Custom Branded Bag"
+        ]
+      }
+    ],
+    "allowLogoUpload": 1,
+    "allowPlayerName": 1,
+    "allowPlayerNumber": 1,
+    "order": 3
   },
   {
-    name: 'Shin Guards',
-    slug: 'shin-guards',
-    description: 'Protective shin guards for training and match use with custom color options.',
-    sizes: ['Youth S','Youth M','Youth L','Adult S','Adult M','Adult L'],
-    colors: [
-      { name: 'Black', value: '#080808' },
-      { name: 'White', value: '#ffffff' },
-      { name: 'Red', value: '#e10600' },
-      { name: 'Royal Blue', value: '#0047ab' }
+    "name": "Soccer Uniform 4",
+    "slug": "soccer-uniform-4",
+    "description": "Complete soccer kit design 4, coordinated match kit with customizable jersey, shorts, socks and team detailing.",
+    "sizes": [
+      "XS",
+      "S",
+      "M",
+      "L",
+      "XL",
+      "2XL",
+      "3XL",
+      "4XL"
     ],
-    colorZones: ['Shell Color','Trim Color'],
-    optionGroups: [
-      { name: 'Shell Type', slug: 'shell-type', values: ['Flexible','Hard Shell'] },
-      { name: 'Strap Style', slug: 'strap-style', values: ['Slip In','Single Strap','Double Strap'] }
+    "colors": [
+      {
+        "name": "Black",
+        "value": "#080808"
+      },
+      {
+        "name": "White",
+        "value": "#ffffff"
+      },
+      {
+        "name": "Red",
+        "value": "#e10600"
+      },
+      {
+        "name": "Royal Blue",
+        "value": "#0047ab"
+      },
+      {
+        "name": "Green",
+        "value": "#00a651"
+      },
+      {
+        "name": "Gold",
+        "value": "#f5d000"
+      }
     ],
-    allowLogoUpload: 0,
-    allowPlayerName: 0,
-    allowPlayerNumber: 0,
-    order: 4,
-  },
-  {
-    name: 'Soccer Cleats / Boots',
-    slug: 'soccer-cleats-boots',
-    description: 'Studded soccer footwear for field performance with flexible sizing and color customization.',
-    sizes: ['US 5','US 6','US 7','US 8','US 9','US 10','US 11','US 12','US 13'],
-    colors: [
-      { name: 'Black', value: '#080808' },
-      { name: 'White', value: '#ffffff' },
-      { name: 'Red', value: '#e10600' },
-      { name: 'Royal Blue', value: '#0047ab' }
+    "colorZones": [
+      "Jersey Main Color",
+      "Jersey Secondary Color",
+      "Shorts Color",
+      "Socks Color",
+      "Trim / Accent Color"
     ],
-    colorZones: ['Upper Color','Sole Color','Accent Color'],
-    optionGroups: [
-      { name: 'Surface', slug: 'surface', values: ['Firm Ground','Artificial Grass','Indoor'] },
-      { name: 'Upper Material', slug: 'upper-material', values: ['Synthetic','Microfiber','Mesh'] },
-      { name: 'Lace Style', slug: 'lace-style', values: ['Centered','Offset','Laceless'] }
+    "optionGroups": [
+      {
+        "name": "Jersey Sleeve",
+        "slug": "jersey-sleeve",
+        "values": [
+          "Short Sleeve",
+          "Long Sleeve"
+        ]
+      },
+      {
+        "name": "Jersey Fit",
+        "slug": "jersey-fit",
+        "values": [
+          "Regular",
+          "Athletic",
+          "Slim"
+        ]
+      },
+      {
+        "name": "Neck Style",
+        "slug": "neck-style",
+        "values": [
+          "Crew Neck",
+          "V Neck",
+          "Polo Collar"
+        ]
+      },
+      {
+        "name": "Shorts Style",
+        "slug": "shorts-style",
+        "values": [
+          "Regular",
+          "Relaxed",
+          "Compression"
+        ]
+      },
+      {
+        "name": "Shorts Size",
+        "slug": "shorts-size",
+        "values": [
+          "XS",
+          "S",
+          "M",
+          "L",
+          "XL",
+          "2XL",
+          "3XL",
+          "4XL"
+        ]
+      },
+      {
+        "name": "Sock Size",
+        "slug": "sock-size",
+        "values": [
+          "Youth",
+          "S",
+          "M",
+          "L",
+          "XL"
+        ]
+      },
+      {
+        "name": "Sock Length",
+        "slug": "sock-length",
+        "values": [
+          "Crew",
+          "Knee High",
+          "Over Knee"
+        ]
+      },
+      {
+        "name": "Fabric",
+        "slug": "fabric",
+        "values": [
+          "Dry Fit",
+          "Polyester Interlock",
+          "Bird Eye Mesh",
+          "Micro Mesh"
+        ]
+      },
+      {
+        "name": "Fabric Pattern",
+        "slug": "fabric-pattern",
+        "values": [
+          "Solid",
+          "Stripes",
+          "Geometric",
+          "Gradient",
+          "Custom Pattern"
+        ]
+      },
+      {
+        "name": "Material Finish",
+        "slug": "material-finish",
+        "values": [
+          "Matte",
+          "Gloss"
+        ]
+      },
+      {
+        "name": "Branding Method",
+        "slug": "branding-method",
+        "values": [
+          "Sublimation",
+          "Embroidery",
+          "Heat Transfer",
+          "Screen Print"
+        ]
+      },
+      {
+        "name": "Team Crest Position",
+        "slug": "team-crest-position",
+        "values": [
+          "Left Chest",
+          "Right Chest",
+          "Center Chest"
+        ]
+      },
+      {
+        "name": "Sponsor Placement",
+        "slug": "sponsor-placement",
+        "values": [
+          "Front",
+          "Sleeve",
+          "Back",
+          "None"
+        ]
+      },
+      {
+        "name": "Number Style",
+        "slug": "number-style",
+        "values": [
+          "Classic",
+          "Block",
+          "Modern"
+        ]
+      },
+      {
+        "name": "Trim Style",
+        "slug": "trim-style",
+        "values": [
+          "Plain",
+          "Contrast Piping",
+          "Striped"
+        ]
+      },
+      {
+        "name": "Stitching",
+        "slug": "stitching",
+        "values": [
+          "Standard",
+          "Flatlock",
+          "Reinforced"
+        ]
+      },
+      {
+        "name": "Packaging",
+        "slug": "packaging",
+        "values": [
+          "Bulk Packed",
+          "Individual Polybag",
+          "Custom Branded Bag"
+        ]
+      }
     ],
-    allowLogoUpload: 0,
-    allowPlayerName: 0,
-    allowPlayerNumber: 0,
-    order: 5,
-  },
+    "allowLogoUpload": 1,
+    "allowPlayerName": 1,
+    "allowPlayerNumber": 1,
+    "order": 4
+  }
 ]
 
 export const ensureProductCustomizerSchema = async () => {
@@ -176,40 +930,43 @@ export const ensureProductCustomizerSchema = async () => {
   if (!products.length) return
 
   const productId = products[0].id
-  const [existing] = await pool.execute(
-    'SELECT COUNT(*) AS total FROM product_customizer_items WHERE product_id = ?',
-    [productId]
+
+  // One-time transition from old component cards to complete kit designs.
+  // Hide old cards but preserve their rows, images and admin changes.
+  const [existingVariants] = await pool.execute(
+    `SELECT COUNT(*) AS total
+       FROM product_customizer_items
+       WHERE product_id = ? AND slug IN (?, ?, ?, ?)`,
+    [productId, ...defaultItems.map((item) => item.slug)]
   )
 
+  if (Number(existingVariants[0].total) === 0) {
+    await pool.execute(
+      `UPDATE product_customizer_items
+       SET active = 0
+       WHERE product_id = ?
+       AND slug IN ('jersey-shirt','soccer-shorts','soccer-socks',
+                    'shin-guards','soccer-cleats-boots')`,
+      [productId]
+    )
+  }
+
+  // Idempotent seed: running the server again never overwrites admin edits.
   for (const item of defaultItems) {
     await pool.execute(`
-      INSERT INTO product_customizer_items (
+      INSERT IGNORE INTO product_customizer_items (
         product_id, name, slug, description,
         sizes_json, colors_json, color_zones_json, option_groups_json,
         allow_custom_color, allow_logo_upload,
         allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
-      ON DUPLICATE KEY UPDATE
-        color_zones_json =
-          CASE
-            WHEN color_zones_json IS NULL OR JSON_LENGTH(color_zones_json) < ?
-            THEN VALUES(color_zones_json)
-            ELSE color_zones_json
-          END,
-        option_groups_json =
-          CASE
-            WHEN option_groups_json IS NULL OR JSON_LENGTH(option_groups_json) < ?
-            THEN VALUES(option_groups_json)
-            ELSE option_groups_json
-          END
     `, [
       productId, item.name, item.slug, item.description,
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
-      JSON.stringify(item.colorZones || ['Primary Color']), JSON.stringify(item.optionGroups),
-      item.allowLogoUpload, item.allowPlayerName, item.allowPlayerNumber, item.order,
-      (item.colorZones || ['Primary Color']).length,
-      item.optionGroups.length,
+      JSON.stringify(item.colorZones), JSON.stringify(item.optionGroups),
+      item.allowLogoUpload, item.allowPlayerName,
+      item.allowPlayerNumber, item.order,
     ])
   }
 }
