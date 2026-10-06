@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
-  Check,
   ChevronDown,
   ChevronUp,
   Settings2,
@@ -153,7 +152,7 @@ function ProductCustomizer() {
 
         setProduct(loadedProduct)
         const nextConfiguration = createInitialState(items)
-        if (productSlug === 'soccer-uniform' && items.length) {
+        if (items.length) {
           nextConfiguration[items[0].id].enabled = true
         }
         setConfiguration(nextConfiguration)
@@ -228,20 +227,6 @@ function ProductCustomizer() {
         ])
       )
     })
-
-    setMessage('')
-  }
-
-  const toggleActiveItem = () => {
-    if (!activeItem) return
-
-    setConfiguration((current) => ({
-      ...current,
-      [activeItem.id]: {
-        ...current[activeItem.id],
-        enabled: !current[activeItem.id].enabled,
-      },
-    }))
 
     setMessage('')
   }
@@ -466,33 +451,10 @@ function ProductCustomizer() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className={
-                    activeSelection.enabled
-                      ? 'ecom-item-toggle active'
-                      : 'ecom-item-toggle'
-                  }
-                  onClick={toggleActiveItem}
-                >
-                  {activeSelection.enabled && <Check size={15} />}
-                  {activeSelection.enabled ? 'Selected' : 'Select item'}
-                </button>
+
               </div>
 
               <div className="ecom-basic-customization">
-                <div className="ecom-mode-heading">
-                  <div>
-                    <span>Basic Customization</span>
-                    <strong>{productSlug === 'soccer-uniform' ? 'Your match kit' : 'Quick and simple'}</strong>
-                  </div>
-
-                  <p>
-                    {productSlug === 'soccer-uniform'
-                      ? 'Set jersey and shorts sizes, kit colors and player details.'
-                      : 'Size, main color, essential style and personalization.'}
-                  </p>
-                </div>
 
                 {(activeItem.sizes || []).length > 0 && (
                   <div className="ecom-option-block">
@@ -750,25 +712,13 @@ function ProductCustomizer() {
               )}
 
               <div className="ecom-checkout-actions">
-                <div>
-                  <strong>
-                    {advancedOpen
-                      ? 'Detailed customization enabled'
-                      : 'Basic customization is enough to continue'}
-                  </strong>
-
-                  <span>
-                    You can add this item now or open advanced options.
-                  </span>
-                </div>
-
                 <button
                   type="button"
                   className="ecom-add-cart"
                   onClick={handleAddToCart}
                 >
                   <ShoppingBag size={18} />
-                  Add selected items to cart
+                  Add to Cart
                 </button>
               </div>
 
