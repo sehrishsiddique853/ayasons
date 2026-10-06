@@ -25,6 +25,10 @@ const BASIC_OPTION_SLUGS = new Set([
   'surface',
   'sock-length',
   'shell-type',
+  'jersey-sleeve',
+  'jersey-fit',
+  'shorts-size',
+  'sock-size',
 ])
 
 const firstColorValue = (item) => {
@@ -148,7 +152,11 @@ function ProductCustomizer() {
         const items = loadedProduct.items || []
 
         setProduct(loadedProduct)
-        setConfiguration(createInitialState(items))
+        const nextConfiguration = createInitialState(items)
+        if (productSlug === 'soccer-uniform' && items.length) {
+          nextConfiguration[items[0].id].enabled = true
+        }
+        setConfiguration(nextConfiguration)
         setActiveItemId(items[0]?.id || null)
         setAdvancedOpen(false)
       } catch (requestError) {
@@ -200,13 +208,26 @@ function ProductCustomizer() {
     setActiveItemId(itemId)
     setAdvancedOpen(false)
 
-    setConfiguration((current) => ({
-      ...current,
-      [itemId]: {
-        ...current[itemId],
-        enabled: true,
-      },
-    }))
+    setConfiguration((current) => {
+      if (productSlug !== 'soccer-uniform') {
+        return {
+          ...current,
+          [itemId]: {
+            ...current[itemId],
+            enabled: true,
+          },
+        }
+      }
+
+      // Soccer cards represent alternative complete kit designs,
+      // not individual pieces of one kit. Only one design is selected.
+      return Object.fromEntries(
+        Object.entries(current).map(([id, value]) => [
+          id,
+          { ...value, enabled: Number(id) === Number(itemId) },
+        ])
+      )
+    })
 
     setMessage('')
   }
@@ -362,43 +383,47 @@ function ProductCustomizer() {
     <>
       <main className="product-customizer-page">
         <div className="ecom-product-shell">
-          <div className="ecom-breadcrumb">
-            <Link to="/products">Products</Link>
-            <span>/</span>
-            <Link to={`/products/${categorySlug}`}>
-              {product.category?.name || 'Collection'}
-            </Link>
-            <span>/</span>
-            <strong>{product.name}</strong>
-          </div>
-
-          <div className="ecom-title-row">
-            <div>
-              <span>Custom Manufacturing</span>
+          {productSlug === 'soccer-uniform' ? (
+            <header className="ecom-collection-header">
               <h1>{product.name}</h1>
-              <p>
-                Start with the essentials. If you want full control,
-                open Advanced Customization for detailed manufacturing options.
-              </p>
-            </div>
-
-            <Link
-              className="ecom-back-link"
-              to={`/products/${categorySlug}`}
-            >
-              <ArrowLeft size={16} />
-              Back to collection
-            </Link>
-          </div>
+              <p>Our Collection</p>
+            </header>
+          ) : (
+            <>
+              <div className="ecom-breadcrumb">
+                <Link to="/products">Products</Link>
+                <span>/</span>
+                <Link to={`/products/${categorySlug}`}>
+                  {product.category?.name || 'Collection'}
+                </Link>
+                <span>/</span>
+                <strong>{product.name}</strong>
+              </div>
+              <div className="ecom-title-row">
+                <div>
+                  <span>Custom Manufacturing</span>
+                  <h1>{product.name}</h1>
+                  <p>
+                    Start with the essentials, or open Advanced Customization
+                    to configure additional details.
+                  </p>
+                </div>
+                <Link className="ecom-back-link" to={`/products/${categorySlug}`}>
+                  <ArrowLeft size={16} />
+                  Back to collection
+                </Link>
+              </div>
+            </>
+          )}
 
           <section className="ecom-kit-selector">
             <div className="ecom-section-heading">
               <div>
-                <span>Step 1</span>
-                <h2>Choose what you need</h2>
+                <span>{productSlug === 'soccer-uniform' ? 'Available designs' : 'Step 1'}</span>
+                <h2>{productSlug === 'soccer-uniform' ? 'Choose your uniform' : 'Choose what you need'}</h2>
               </div>
 
-              <strong>{selectedCount} selected</strong>
+              <strong>{productSlug === 'soccer-uniform' ? 'Select a design' : `${selectedCount} selected`}</strong>
             </div>
 
             <div className="ecom-item-grid">
@@ -432,11 +457,12 @@ function ProductCustomizer() {
             <div className="ecom-product-options">
               <div className="ecom-option-head">
                 <div>
-                  <span>Step 2</span>
+                  <span>Customize your {productSlug === 'soccer-uniform' ? 'kit' : 'product'}</span>
                   <h2>{activeItem.name}</h2>
                   <p>
-                    Choose the basic options below. These are enough
-                    for customers who do not need detailed customization.
+                    {productSlug === 'soccer-uniform'
+                      ? 'Personalize this complete soccer uniform, including jersey, shorts and socks.'
+                      : 'Choose your basic options, or customize further below.'}
                   </p>
                 </div>
 
@@ -458,18 +484,20 @@ function ProductCustomizer() {
                 <div className="ecom-mode-heading">
                   <div>
                     <span>Basic Customization</span>
-                    <strong>Quick and simple</strong>
+                    <strong>{productSlug === 'soccer-uniform' ? 'Your match kit' : 'Quick and simple'}</strong>
                   </div>
 
                   <p>
-                    Size, main color, essential style and personalization.
+                    {productSlug === 'soccer-uniform'
+                      ? 'Set jersey and shorts sizes, kit colors and player details.'
+                      : 'Size, main color, essential style and personalization.'}
                   </p>
                 </div>
 
                 {(activeItem.sizes || []).length > 0 && (
                   <div className="ecom-option-block">
                     <div className="ecom-option-label">
-                      <span>Size</span>
+                      <span>{productSlug === 'soccer-uniform' ? 'Jersey Size' : 'Size'}</span>
                       <strong>
                         {activeSelection.size || 'Select a size'}
                       </strong>
