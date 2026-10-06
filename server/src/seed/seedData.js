@@ -1213,5 +1213,43 @@ export const categoryData = [
         ],
       },
     ],
-  },
+  },,
+  /*
+  |--------------------------------------------------------------------------
+  | GLOVES
+  |--------------------------------------------------------------------------
+  */
+  {
+    name: 'Gloves',
+    slug: 'gloves',
+    eyebrow: 'Gloves',
+    showcaseLabel: 'Sport & Safety Gloves',
+    heroTitle: 'Custom Gloves For Work And Sport',
+    description: 'Custom safety, goalkeeper and golf gloves manufactured for protection, grip, comfort and branded collections.',
+    collectionDescription: 'Explore safety gloves, goalkeeper gloves and golf gloves with custom materials, sizing and branding.',
+    groups: [
+      {
+        title: 'Gloves Collection',
+        items: ['Safety Gloves', 'Goalkeeper Gloves', 'Golf Gloves'],
+      },
+    ],
+    order: 8,
+    products: [
+      {
+        name: 'Safety Gloves',
+        description: 'Protective work gloves designed for secure grip, durability and branded safety equipment ranges.',
+        features: ['Grip Options', 'Durable Materials', 'Custom Sizes'],
+      },
+      {
+        name: 'Goalkeeper Gloves',
+        description: 'Performance goalkeeper gloves with customizable palm grip, backhand materials and fit.',
+        features: ['Grip Latex Options', 'Custom Branding', 'Custom Sizes'],
+      },
+      {
+        name: 'Golf Gloves',
+        description: 'Comfortable golf gloves designed for reliable grip, flexibility and private-label branding.',
+        features: ['Material Options', 'Custom Branding', 'Custom Sizes'],
+      },
+    ],
+  }
 ]
