@@ -1089,3 +1089,140 @@
     align-items: flex-start;
   }
 }
+
+
+/* Soccer uniform collection: clean, compact storefront hierarchy */
+.ecom-collection-header {
+  padding: 8px 0 34px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+  text-align: center;
+}
+
+.ecom-collection-header h1 {
+  margin: 0;
+  color: #f7f7f5;
+  font-family: var(--font-display, inherit);
+  font-weight: 750;
+  font-size: clamp(34px, 4.1vw, 54px);
+  line-height: 1.16;
+  letter-spacing: -.025em;
+}
+
+.ecom-collection-header p {
+  margin: 12px 0 0;
+  color: rgba(255,255,255,.6);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .015em;
+}
+
+.ecom-collection-header + .ecom-kit-selector {
+  margin-bottom: 26px;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-section-heading {
+  margin-bottom: 16px;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-section-heading span {
+  font-size: 11px;
+  letter-spacing: .045em;
+  text-transform: none;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-section-heading h2 {
+  font-size: clamp(21px, 2.6vw, 27px);
+  font-weight: 700;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-section-heading > strong {
+  color: rgba(255,255,255,.5);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-card {
+  border-radius: 10px;
+  background: #101114;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-card.active {
+  border-color: var(--brand-yellow);
+  box-shadow: 0 0 0 1px var(--brand-yellow);
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-image {
+  height: 205px;
+  background: #f2f2f2;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-image img {
+  object-fit: contain;
+  padding: 9px;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-copy {
+  padding: 14px 16px 15px;
+}
+
+.ecom-collection-header + .ecom-kit-selector .ecom-item-copy h3 {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.ecom-collection-header ~ .ecom-configurator .ecom-option-head > div > span {
+  font-size: 11px;
+  letter-spacing: .045em;
+  text-transform: none;
+}
+
+.ecom-collection-header ~ .ecom-configurator .ecom-option-head h2 {
+  font-size: 25px;
+}
+
+.ecom-collection-header ~ .ecom-configurator .ecom-option-head p {
+  max-width: 390px;
+}
+
+@media (max-width: 1050px) {
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .ecom-collection-header {
+    padding: 0 0 24px;
+    margin-bottom: 25px;
+  }
+
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    gap: 10px;
+  }
+
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-card {
+    width: 100%;
+  }
+
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-image {
+    height: 150px;
+  }
+
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-copy h3 {
+    font-size: 12px;
+  }
+
+  .ecom-collection-header + .ecom-kit-selector .ecom-item-copy {
+    padding: 10px;
+  }
+}
