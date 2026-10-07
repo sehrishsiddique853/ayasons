@@ -903,6 +903,54 @@ export const ensureProductCustomizerSchema = async () => {
     )
   }
 
+  // Upgrade older soccer design rows to the shirt + shorts form structure.
+  // Product images and other uploaded media are preserved.
+  const [savedSoccerRows] = await pool.execute(
+    `SELECT id, slug, option_groups_json
+     FROM product_customizer_items
+     WHERE product_id = ?
+       AND slug IN (?, ?, ?, ?)`,
+    [productId, ...defaultItems.map((item) => item.slug)]
+  )
+
+  for (const row of savedSoccerRows) {
+    let groups = []
+
+    try {
+      groups = typeof row.option_groups_json === 'string'
+        ? JSON.parse(row.option_groups_json || '[]')
+        : row.option_groups_json || []
+    } catch {
+      groups = []
+    }
+
+    const hasOldSockFields = groups.some(
+      (group) => group?.slug === 'sock-size' || group?.slug === 'sock-length'
+    )
+
+    const hasShortsWaist = groups.some(
+      (group) => group?.slug === 'shorts-waist'
+    )
+
+    if (hasOldSockFields || !hasShortsWaist) {
+      const defaults = defaultItems.find((item) => item.slug === row.slug)
+
+      if (defaults) {
+        await pool.execute(
+          `UPDATE product_customizer_items
+           SET color_zones_json = ?,
+               option_groups_json = ?
+           WHERE id = ?`,
+          [
+            JSON.stringify(defaults.colorZones),
+            JSON.stringify(defaults.optionGroups),
+            row.id,
+          ]
+        )
+      }
+    }
+  }
+
   // Idempotent seed: running the server again never overwrites admin edits.
   for (const item of defaultItems) {
     await pool.execute(`
