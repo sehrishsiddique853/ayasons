@@ -8,6 +8,7 @@ import pool, {
 import { ensureProductCustomizerSchema } from './config/productCustomizerSchema.js'
 import { ensureGlovesCategory } from './config/glovesCatalog.js'
 import { ensureSportsCustomizers } from './config/sportsCustomizers.js'
+import { ensureStreetwearCustomizers } from './config/streetwearCustomizers.js'
 
 
 const PORT =
@@ -26,6 +27,7 @@ const startServer = async () => {
     await ensureProductCustomizerSchema()
     await ensureGlovesCategory()
     await ensureSportsCustomizers()
+    await ensureStreetwearCustomizers()
 
 
     /*
