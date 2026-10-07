@@ -64,6 +64,7 @@ function Cart() {
           itemName: item.itemName,
           size: item.size,
           color: item.color,
+          colorMode: item.colorMode || '',
           colorSelections: item.colorSelections || {},
           quantity: item.quantity,
           playerName: item.playerName,
@@ -168,16 +169,30 @@ function Cart() {
                           <strong>{item.quantity}</strong>
                         </div>
 
+                        {item.colorMode && (
+                          <div>
+                            <span>Color Setup</span>
+                            <strong>
+                              {item.colorMode === 'preset'
+                                ? 'Original Design Colors'
+                                : item.colorMode === 'custom-preset'
+                                  ? 'Original Colors + Custom Changes'
+                                  : 'Custom Main Color'}
+                            </strong>
+                          </div>
+                        )}
+
                         {Object.entries(item.colorSelections || {}).map(
-                          ([zone, color]) => (
-                            <div key={zone}>
-                              <span>{zone}</span>
-                              <strong className="cart-color-value">
-                                <i style={{ background: color }} />
-                                {color}
-                              </strong>
-                            </div>
-                          )
+                          ([zone, color]) =>
+                            color ? (
+                              <div key={zone}>
+                                <span>{zone}</span>
+                                <strong className="cart-color-value">
+                                  <i style={{ background: color }} />
+                                  {color}
+                                </strong>
+                              </div>
+                            ) : null
                         )}
 
                         {Object.entries(item.options || {}).map(
