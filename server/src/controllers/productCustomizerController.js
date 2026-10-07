@@ -28,7 +28,7 @@ const formatItem = (row, admin = false) => ({
   optionGroups: parseJson(row.option_groups_json, []),
   specifications: parseJson(row.specifications_json, []),
   defaultOptions: parseJson(row.default_options_json, {}),
-  basicOptionSlugs: parseJson(row.basic_option_slugs_json, []),
+  basicOptionSlugs: parseJson(row.basic_option_slugs_json, null),
   requiredFields: parseJson(row.required_fields_json, []),
   defaultColorMode: row.default_color_mode || 'custom',
   presetColors: parseJson(row.preset_colors_json, {}),
