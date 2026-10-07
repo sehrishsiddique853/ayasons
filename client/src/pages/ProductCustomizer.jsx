@@ -183,6 +183,116 @@ const optionValues = (group) =>
       : value
   )
 
+
+const componentToHex = (value) =>
+  Math.max(0, Math.min(255, value))
+    .toString(16)
+    .padStart(2, '0')
+
+const rgbToHex = (r, g, b) =>
+  `#${componentToHex(r)}${componentToHex(g)}${componentToHex(b)}`
+
+const colorDistance = (a, b) =>
+  Math.sqrt(
+    ((a.r - b.r) ** 2) +
+    ((a.g - b.g) ** 2) +
+    ((a.b - b.b) ** 2)
+  )
+
+const extractDominantKitColors = (imageUrl) =>
+  new Promise((resolve) => {
+    if (!imageUrl) {
+      resolve([])
+      return
+    }
+
+    const image = new Image()
+    image.crossOrigin = 'anonymous'
+
+    image.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        const size = 120
+        canvas.width = size
+        canvas.height = size
+
+        const context = canvas.getContext('2d', {
+          willReadFrequently: true,
+        })
+
+        if (!context) {
+          resolve([])
+          return
+        }
+
+        context.drawImage(image, 0, 0, size, size)
+
+        const { data } = context.getImageData(0, 0, size, size)
+        const buckets = new Map()
+
+        for (let index = 0; index < data.length; index += 16) {
+          const r = data[index]
+          const g = data[index + 1]
+          const b = data[index + 2]
+          const alpha = data[index + 3]
+
+          if (alpha < 180) continue
+
+          const max = Math.max(r, g, b)
+          const min = Math.min(r, g, b)
+          const brightness = (r + g + b) / 3
+
+          // Ignore white/light studio backgrounds and near-neutral shadows.
+          if (brightness > 238) continue
+          if (brightness > 220 && max - min < 18) continue
+
+          const qr = Math.round(r / 24) * 24
+          const qg = Math.round(g / 24) * 24
+          const qb = Math.round(b / 24) * 24
+          const key = `${qr}-${qg}-${qb}`
+
+          const current = buckets.get(key) || {
+            r: qr,
+            g: qg,
+            b: qb,
+            count: 0,
+          }
+
+          current.count += 1
+          buckets.set(key, current)
+        }
+
+        const ranked = [...buckets.values()]
+          .sort((a, b) => b.count - a.count)
+
+        const selected = []
+
+        for (const color of ranked) {
+          if (
+            selected.every(
+              (picked) => colorDistance(color, picked) > 52
+            )
+          ) {
+            selected.push(color)
+          }
+
+          if (selected.length === 4) break
+        }
+
+        resolve(
+          selected.map((color) =>
+            rgbToHex(color.r, color.g, color.b)
+          )
+        )
+      } catch {
+        resolve([])
+      }
+    }
+
+    image.onerror = () => resolve([])
+    image.src = imageUrl
+  })
+
 function OptionGroup({
   group,
   selection,
@@ -237,6 +347,7 @@ function ProductCustomizer() {
   const [activeItemId, setActiveItemId] = useState(null)
   const [logoPreviews, setLogoPreviews] = useState({})
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [manualColorItems, setManualColorItems] = useState(() => new Set())
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -299,6 +410,63 @@ function ProductCustomizer() {
   const activeSelection =
     activeItem ? configuration[activeItem.id] : null
 
+  useEffect(() => {
+    if (
+      productSlug !== 'soccer-uniform' ||
+      !activeItem ||
+      manualColorItems.has(activeItem.id)
+    ) {
+      return
+    }
+
+    const current = configuration[activeItem.id]
+
+    if (
+      current?.colorSelections?.['Jersey Main Color']
+    ) {
+      return
+    }
+
+    let cancelled = false
+
+    extractDominantKitColors(activeItem.image?.url)
+      .then((colors) => {
+        if (cancelled || colors.length === 0) return
+
+        const [
+          mainColor,
+          secondaryColor = mainColor,
+          accentColor = secondaryColor,
+          shortsColor = mainColor,
+        ] = colors
+
+        setConfiguration((existing) => ({
+          ...existing,
+          [activeItem.id]: {
+            ...existing[activeItem.id],
+            color: mainColor,
+            colorSelections: {
+              ...(existing[activeItem.id]?.colorSelections || {}),
+              'Jersey Main Color': mainColor,
+              'Jersey Secondary Color': secondaryColor,
+              'Shorts Main Color': shortsColor,
+              'Trim / Accent Color': accentColor,
+            },
+          },
+        }))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [
+    productSlug,
+    activeItem,
+    activeItem?.id,
+    activeItem?.image?.url,
+    manualColorItems,
+  ])
+
   const updateItem = (itemId, key, value) => {
     setConfiguration((current) => ({
       ...current,
@@ -342,6 +510,12 @@ function ProductCustomizer() {
   const updateColorZone = (zone, color) => {
     if (!activeItem) return
 
+    setManualColorItems((current) => {
+      const next = new Set(current)
+      next.add(activeItem.id)
+      return next
+    })
+
     setConfiguration((current) => ({
       ...current,
       [activeItem.id]: {
@@ -377,6 +551,12 @@ function ProductCustomizer() {
 
   const updateSoccerKitColor = (color) => {
     if (!activeItem) return
+
+    setManualColorItems((current) => {
+      const next = new Set(current)
+      next.add(activeItem.id)
+      return next
+    })
 
     setConfiguration((current) => ({
       ...current,
