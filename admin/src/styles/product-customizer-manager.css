@@ -217,3 +217,170 @@
   font-size: 10px;
   font-weight: 400;
 }
+
+
+.pcm-behavior-card {
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.pcm-behavior-head {
+  margin-bottom: 14px;
+}
+
+.pcm-behavior-head > div {
+  display: grid;
+  gap: 3px;
+}
+
+.pcm-behavior-head strong {
+  color: var(--admin-text);
+  font-size: 12px;
+}
+
+.pcm-behavior-head small,
+.pcm-behavior-empty,
+.pcm-color-note {
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.pcm-default-grid,
+.pcm-preset-color-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+}
+
+.pcm-default-grid label,
+.pcm-preset-color-grid > label {
+  display: grid;
+  gap: 6px;
+}
+
+.pcm-default-grid label > span,
+.pcm-preset-color-grid > label > span {
+  color: var(--admin-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pcm-choice-list {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+}
+
+.pcm-choice-list-compact {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+
+.pcm-choice-list > label {
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.pcm-choice-list > label > span {
+  display: grid;
+  gap: 2px;
+}
+
+.pcm-choice-list strong {
+  color: var(--admin-text);
+  font-size: 11px;
+}
+
+.pcm-choice-list small {
+  color: var(--admin-muted);
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.pcm-radio-cards {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+
+.pcm-radio-cards > label {
+  min-height: 76px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+.pcm-radio-cards > label.active {
+  border-color: #c9b842;
+  background: #fffdf0;
+}
+
+.pcm-radio-cards span {
+  display: grid;
+  gap: 3px;
+}
+
+.pcm-radio-cards strong {
+  color: var(--admin-text);
+  font-size: 11px;
+}
+
+.pcm-radio-cards small {
+  color: var(--admin-muted);
+  font-size: 9px;
+  font-weight: 400;
+}
+
+.pcm-preset-color-grid {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.pcm-color-control {
+  display: grid;
+  grid-template-columns: 46px minmax(0,1fr);
+  gap: 7px;
+}
+
+.pcm-color-control input[type='color'] {
+  width: 46px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--admin-border);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.pcm-color-control input[type='text'] {
+  min-width: 0;
+}
+
+.pcm-color-note {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 800px) {
+  .pcm-default-grid,
+  .pcm-preset-color-grid,
+  .pcm-choice-list,
+  .pcm-choice-list-compact,
+  .pcm-radio-cards {
+    grid-template-columns: 1fr;
+  }
+}
