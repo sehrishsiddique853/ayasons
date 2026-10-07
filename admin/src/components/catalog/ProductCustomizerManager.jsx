@@ -241,6 +241,45 @@ function ProductCustomizerManager({ productId }) {
     [form.specificationsText]
   )
 
+
+  const specificationValue = (...labels) =>
+    currentSpecifications.find((spec) => labels.includes(spec.label))?.value || ''
+
+  const productInfo = {
+    bullet1: specificationValue('Product Detail', 'Set Includes', 'Product'),
+    bullet2:
+      specificationValue('Branding Detail') ||
+      'Custom colors, team logo and branding options',
+    bullet3:
+      specificationValue('Customization Detail') ||
+      'Sport-specific sizing, fit, fabric and finishing choices',
+    bullet4: specificationValue('Use'),
+  }
+
+  const updateProductInfo = (key, value) => {
+    const labelMap = {
+      bullet1: 'Product Detail',
+      bullet2: 'Branding Detail',
+      bullet3: 'Customization Detail',
+      bullet4: 'Use',
+    }
+
+    const aliases =
+      key === 'bullet1'
+        ? ['Product Detail', 'Set Includes', 'Product']
+        : [labelMap[key]]
+
+    const remaining = currentSpecifications.filter(
+      (spec) => !aliases.includes(spec.label)
+    )
+
+    const next = value.trim()
+      ? [...remaining, { label: labelMap[key], value }]
+      : remaining
+
+    updateField('specificationsText', toSpecificationsText(next))
+  }
+
   const updateDraft = (name, value) =>
     setDrafts((current) => ({ ...current, [name]: value }))
 
@@ -809,32 +848,62 @@ function ProductCustomizerManager({ productId }) {
                 <span>6</span>
                 <div>
                   <h4>Product information</h4>
-                  <p>Optional details used in the product information area.</p>
+                  <p>This appears below the product image exactly in the same order shown on the customer page.</p>
                 </div>
               </div>
 
-              <div className="pcm-spec-add">
-                <input
-                  value={drafts.specLabel}
-                  onChange={(event) => updateDraft('specLabel', event.target.value)}
-                  placeholder="Label, e.g. Set Includes"
-                />
-                <input
-                  value={drafts.specValue}
-                  onChange={(event) => updateDraft('specValue', event.target.value)}
-                  placeholder="Value, e.g. Jersey and pants"
-                />
-                <button type="button" onClick={addSpecification}><Plus size={15} /> Add detail</button>
-              </div>
+              <div className="pcm-product-info-editor">
+                <label className="pcm-product-description-field">
+                  <span>Product Description</span>
+                  <textarea
+                    value={form.description}
+                    onChange={(event) => updateField('description', event.target.value)}
+                    placeholder="Write the product description shown below the image..."
+                    required
+                  />
+                </label>
 
-              <div className="pcm-spec-list">
-                {currentSpecifications.map((spec, index) => (
-                  <div className="pcm-spec-row" key={`${spec.label}-${index}`}>
-                    <strong>{spec.label}</strong>
-                    <span>{spec.value}</span>
-                    <button type="button" onClick={() => removeSpecification(index)}><Trash2 size={14} /></button>
-                  </div>
-                ))}
+                <div className="pcm-product-info-bullets">
+                  <label>
+                    <span>1</span>
+                    <input
+                      value={productInfo.bullet1}
+                      onChange={(event) => updateProductInfo('bullet1', event.target.value)}
+                      placeholder="e.g. Soccer Uniform or Jersey and shorts set"
+                    />
+                  </label>
+
+                  <label>
+                    <span>2</span>
+                    <input
+                      value={productInfo.bullet2}
+                      onChange={(event) => updateProductInfo('bullet2', event.target.value)}
+                      placeholder="Custom colors, team logo and branding options"
+                    />
+                  </label>
+
+                  <label>
+                    <span>3</span>
+                    <input
+                      value={productInfo.bullet3}
+                      onChange={(event) => updateProductInfo('bullet3', event.target.value)}
+                      placeholder="Sport-specific sizing, fit, fabric and finishing choices"
+                    />
+                  </label>
+
+                  <label>
+                    <span>4</span>
+                    <input
+                      value={productInfo.bullet4}
+                      onChange={(event) => updateProductInfo('bullet4', event.target.value)}
+                      placeholder="e.g. Teams, clubs, academies and custom orders"
+                    />
+                  </label>
+                </div>
+
+                <small className="pcm-product-info-note">
+                  These four lines appear with the shield/check icons under Product Description.
+                </small>
               </div>
             </section>
           </div>
