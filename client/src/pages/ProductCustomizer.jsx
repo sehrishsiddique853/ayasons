@@ -455,10 +455,11 @@ function ProductCustomizer() {
     setConfiguration((current) => {
       const existing = current[activeItem.id]
       const nextMode =
-        productSlug === 'soccer-uniform' &&
-        existing.colorMode === 'preset'
-          ? 'custom-preset'
-          : existing.colorMode
+        productSlug === 'soccer-uniform'
+          ? existing.colorMode === 'preset'
+            ? 'custom-preset'
+            : existing.colorMode || 'custom'
+          : 'custom'
 
       return {
         ...current,
@@ -646,7 +647,10 @@ function ProductCustomizer() {
           selected.colorSelections?.[firstZone] ||
           selected.color
 
-        if (!selected.colorMode) {
+        if (
+          productSlug === 'soccer-uniform' &&
+          !selected.colorMode
+        ) {
           setActiveItemId(item.id)
           setMessage(`Please choose a color setup for ${item.name}.`)
           return
