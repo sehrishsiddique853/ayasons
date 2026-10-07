@@ -7,6 +7,7 @@ import pool, {
 } from './config/mysql.js'
 import { ensureProductCustomizerSchema } from './config/productCustomizerSchema.js'
 import { ensureGlovesCategory } from './config/glovesCatalog.js'
+import { ensureSportsCustomizers } from './config/sportsCustomizers.js'
 
 
 const PORT =
@@ -24,6 +25,7 @@ const startServer = async () => {
     await testMySQLConnection()
     await ensureProductCustomizerSchema()
     await ensureGlovesCategory()
+    await ensureSportsCustomizers()
 
 
     /*
