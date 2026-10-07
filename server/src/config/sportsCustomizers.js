@@ -426,53 +426,73 @@ export const ensureSportsCustomizers = async () => {
     if (!products.length) continue
 
     const productId = products[0].id
-    const itemSlug = slugify(config.item)
+    const legacyItemSlug = slugify(config.item)
 
+    // Earlier versions created one generic customizable item per product.
+    // Keep that row for safety/admin history, but hide it once the four
+    // design variants exist.
     await pool.execute(
-      `INSERT IGNORE INTO product_customizer_items (
-        product_id,
-        name,
-        slug,
-        description,
-        sizes_json,
-        colors_json,
-        color_zones_json,
-        option_groups_json,
-        specifications_json,
-        default_options_json,
-        basic_option_slugs_json,
-        required_fields_json,
-        default_color_mode,
-        preset_colors_json,
-        allow_custom_color,
-        allow_logo_upload,
-        allow_player_name,
-        allow_player_number,
-        allow_custom_notes,
-        active,
-        display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1)`,
-      [
-        productId,
-        config.item,
-        itemSlug,
-        config.description,
-        JSON.stringify(config.sizes),
-        JSON.stringify(config.colors),
-        JSON.stringify(config.colorZones),
-        JSON.stringify(config.optionGroups),
-        JSON.stringify(config.specifications),
-        JSON.stringify({}),
-        JSON.stringify(config.basic),
-        JSON.stringify(config.required),
-        'custom',
-        JSON.stringify({}),
-        1,
-        config.logo ? 1 : 0,
-        config.player ? 1 : 0,
-        config.player ? 1 : 0,
-        config.notes ? 1 : 0,
-      ]
+      `UPDATE product_customizer_items
+       SET active = 0
+       WHERE product_id = ?
+         AND slug = ?`,
+      [productId, legacyItemSlug]
     )
+
+    for (let variant = 1; variant <= 4; variant += 1) {
+      const variantName = `${config.product} ${variant}`
+      const variantSlug = slugify(variantName)
+
+      await pool.execute(
+        `INSERT IGNORE INTO product_customizer_items (
+          product_id,
+          name,
+          slug,
+          description,
+          sizes_json,
+          colors_json,
+          color_zones_json,
+          option_groups_json,
+          specifications_json,
+          default_options_json,
+          basic_option_slugs_json,
+          required_fields_json,
+          default_color_mode,
+          preset_colors_json,
+          allow_custom_color,
+          allow_logo_upload,
+          allow_player_name,
+          allow_player_number,
+          allow_custom_notes,
+          active,
+          display_order
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+        [
+          productId,
+          variantName,
+          variantSlug,
+          `${config.description} Design ${variant}.`,
+          JSON.stringify(config.sizes),
+          JSON.stringify(config.colors),
+          JSON.stringify(config.colorZones),
+          JSON.stringify(config.optionGroups),
+          JSON.stringify([
+            ...config.specifications,
+            { label: 'Design', value: `Design ${variant}` },
+          ]),
+          JSON.stringify({}),
+          JSON.stringify(config.basic),
+          JSON.stringify(config.required),
+          'custom',
+          JSON.stringify({}),
+          1,
+          config.logo ? 1 : 0,
+          config.player ? 1 : 0,
+          config.player ? 1 : 0,
+          config.notes ? 1 : 0,
+          variant,
+        ]
+      )
+    }
   }
 }
