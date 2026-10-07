@@ -154,51 +154,23 @@ const createInitialState = (items) =>
         ? item.colorZones
         : ['Primary Color']
 
-    const configuredDefaults =
-      item.defaultOptions &&
-      Object.keys(item.defaultOptions).length > 0
-        ? item.defaultOptions
-        : /^soccer-uniform-[1-4]$/.test(item.slug || '')
-          ? soccerDefaultOptions(item)
-          : {}
-
-    const presetColors =
-      item.presetColors &&
-      Object.keys(item.presetColors).length > 0
-        ? item.presetColors
-        : {}
-
-    const colorMode =
-      item.defaultColorMode ||
-      (/^soccer-uniform-[1-4]$/.test(item.slug || '')
-        ? 'preset'
-        : 'custom')
-
-    const colorSelections = zones.reduce((colors, zone) => {
-      colors[zone] =
-        colorMode === 'preset'
-          ? presetColors[zone] || ''
-          : ''
-      return colors
-    }, {})
-
     result[item.id] = {
       enabled: false,
       size: '',
-      colorMode,
-      color:
-        colorMode === 'preset'
-          ? colorSelections[zones[0]] || ''
-          : '',
-      presetColorSelections: { ...presetColors },
-      colorSelections,
+      colorMode: '',
+      color: '',
+      presetColorSelections: {},
+      colorSelections: zones.reduce((colors, zone) => {
+        colors[zone] = ''
+        return colors
+      }, {}),
       quantity: 1,
       playerName: '',
       playerNumber: '',
       logoName: '',
       logoFile: null,
       notes: '',
-      options: { ...configuredDefaults },
+      options: {},
     }
 
     return result
@@ -437,114 +409,6 @@ function ProductCustomizer() {
   const activeSelection =
     activeItem ? configuration[activeItem.id] : null
 
-  useEffect(() => {
-    if (
-      productSlug !== 'soccer-uniform' ||
-      !activeItem
-    ) {
-      return
-    }
-
-    const current = configuration[activeItem.id]
-
-    if (
-      current?.presetColorSelections &&
-      Object.keys(current.presetColorSelections).length > 0
-    ) {
-      return
-    }
-
-    const adminPresetColors =
-      activeItem.presetColors &&
-      Object.keys(activeItem.presetColors).length > 0
-        ? activeItem.presetColors
-        : null
-
-    if (adminPresetColors) {
-      setConfiguration((existing) => {
-        const item = existing[activeItem.id]
-
-        if (!item) return existing
-
-        return {
-          ...existing,
-          [activeItem.id]: {
-            ...item,
-            presetColorSelections: {
-              ...adminPresetColors,
-            },
-            color:
-              item.colorMode === 'preset'
-                ? adminPresetColors['Jersey Main Color'] ||
-                  Object.values(adminPresetColors)[0] ||
-                  ''
-                : item.color,
-            colorSelections:
-              item.colorMode === 'preset'
-                ? {
-                    ...(item.colorSelections || {}),
-                    ...adminPresetColors,
-                  }
-                : item.colorSelections,
-          },
-        }
-      })
-      return
-    }
-
-    let cancelled = false
-
-    extractDominantKitColors(activeItem.image?.url)
-      .then((colors) => {
-        if (cancelled || colors.length === 0) return
-
-        const [
-          mainColor,
-          secondaryColor = mainColor,
-          accentColor = secondaryColor,
-          shortsColor = mainColor,
-        ] = colors
-
-        const presetColorSelections = {
-          'Jersey Main Color': mainColor,
-          'Jersey Secondary Color': secondaryColor,
-          'Shorts Main Color': shortsColor,
-          'Trim / Accent Color': accentColor,
-        }
-
-        setConfiguration((existing) => {
-          const item = existing[activeItem.id]
-
-          if (!item) return existing
-
-          return {
-            ...existing,
-            [activeItem.id]: {
-              ...item,
-              presetColorSelections,
-              color:
-                item.colorMode === 'preset'
-                  ? mainColor
-                  : item.color,
-              colorSelections:
-                item.colorMode === 'preset'
-                  ? presetColorSelections
-                  : item.colorSelections,
-            },
-          }
-        })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [
-    productSlug,
-    activeItem?.id,
-    activeItem?.image?.url,
-    activeItem?.presetColors,
-  ])
-
   const updateItem = (itemId, key, value) => {
     setConfiguration((current) => ({
       ...current,
@@ -634,18 +498,44 @@ function ProductCustomizer() {
     setMessage('')
   }
 
-  const selectOriginalDesignColors = () => {
+  const selectOriginalDesignColors = async () => {
     if (!activeItem) return
+
+    let preset =
+      activeItem.presetColors &&
+      Object.keys(activeItem.presetColors).length > 0
+        ? { ...activeItem.presetColors }
+        : {}
+
+    if (Object.keys(preset).length === 0) {
+      const colors = await extractDominantKitColors(activeItem.image?.url)
+
+      if (colors.length > 0) {
+        const [
+          mainColor,
+          secondaryColor = mainColor,
+          accentColor = secondaryColor,
+          shortsColor = mainColor,
+        ] = colors
+
+        preset = {
+          'Jersey Main Color': mainColor,
+          'Jersey Secondary Color': secondaryColor,
+          'Shorts Main Color': shortsColor,
+          'Trim / Accent Color': accentColor,
+        }
+      }
+    }
 
     setConfiguration((current) => {
       const existing = current[activeItem.id]
-      const preset = existing.presetColorSelections || {}
 
       return {
         ...current,
         [activeItem.id]: {
           ...existing,
           colorMode: 'preset',
+          presetColorSelections: { ...preset },
           color: preset['Jersey Main Color'] || '',
           colorSelections: { ...preset },
         },
@@ -667,12 +557,10 @@ function ProductCustomizer() {
           ...existing,
           colorMode: 'custom',
           color: '',
-          colorSelections: {
-            'Jersey Main Color': '',
-            'Jersey Secondary Color': '',
-            'Shorts Main Color': '',
-            'Trim / Accent Color': '',
-          },
+          presetColorSelections: {},
+          colorSelections: Object.fromEntries(
+            (activeItem.colorZones || ['Primary Color']).map((zone) => [zone, ''])
+          ),
         },
       }
     })
@@ -757,6 +645,12 @@ function ProductCustomizer() {
         const selectedColor =
           selected.colorSelections?.[firstZone] ||
           selected.color
+
+        if (!selected.colorMode) {
+          setActiveItemId(item.id)
+          setMessage(`Please choose a color setup for ${item.name}.`)
+          return
+        }
 
         if (
           selected.colorMode !== 'preset' &&
@@ -1074,11 +968,13 @@ function ProductCustomizer() {
                       <div className="ecom-option-label">
                         <span>Color Setup</span>
                         <strong>
-                          {activeSelection.colorMode === 'preset'
-                            ? 'Original Design Colors'
-                            : activeSelection.colorMode === 'custom-preset'
-                              ? 'Original Colors + Custom Changes'
-                              : 'Custom Main Color'}
+                          {!activeSelection.colorMode
+                            ? 'Choose color setup'
+                            : activeSelection.colorMode === 'preset'
+                              ? 'Original Design Colors'
+                              : activeSelection.colorMode === 'custom-preset'
+                                ? 'Original Colors + Custom Changes'
+                                : 'Custom Main Color'}
                         </strong>
                       </div>
 
@@ -1108,7 +1004,7 @@ function ProductCustomizer() {
                         </button>
                       </div>
 
-                      {activeSelection.colorMode !== 'preset' && (
+                      {activeSelection.colorMode && activeSelection.colorMode !== 'preset' && (
                         <div className="soccer-custom-main-color">
                           <ColorPicker
                             label="Main Kit Color"
@@ -1294,7 +1190,7 @@ function ProductCustomizer() {
                       <span>
                         <strong>Advanced Customization</strong>
                         <small>
-                          Optional — standard soccer settings and design colors are already selected
+                          Optional — choose additional customization only if needed
                         </small>
                       </span>
                     </div>
@@ -1312,7 +1208,7 @@ function ProductCustomizer() {
                         </strong>
 
                         <p>
-                          Standard soccer choices are already selected. Open this section only if you want to change shirt fit, sleeves, neckline, shorts setup, fabric, colours, branding or finishing.
+                          Choose shirt fit, sleeves, neckline, shorts setup, fabric, colors, branding and finishing as needed.
                         </p>
                       </div>
 
