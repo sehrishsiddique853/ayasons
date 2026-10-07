@@ -154,27 +154,51 @@ const createInitialState = (items) =>
         ? item.colorZones
         : ['Primary Color']
 
+    const configuredDefaults =
+      item.defaultOptions &&
+      Object.keys(item.defaultOptions).length > 0
+        ? item.defaultOptions
+        : /^soccer-uniform-[1-4]$/.test(item.slug || '')
+          ? soccerDefaultOptions(item)
+          : {}
+
+    const presetColors =
+      item.presetColors &&
+      Object.keys(item.presetColors).length > 0
+        ? item.presetColors
+        : {}
+
+    const colorMode =
+      item.defaultColorMode ||
+      (/^soccer-uniform-[1-4]$/.test(item.slug || '')
+        ? 'preset'
+        : 'custom')
+
+    const colorSelections = zones.reduce((colors, zone) => {
+      colors[zone] =
+        colorMode === 'preset'
+          ? presetColors[zone] || ''
+          : ''
+      return colors
+    }, {})
+
     result[item.id] = {
       enabled: false,
       size: '',
-      colorMode: /^soccer-uniform-[1-4]$/.test(item.slug || '')
-        ? 'preset'
-        : 'custom',
-      color: '',
-      presetColorSelections: {},
-      colorSelections: zones.reduce((colors, zone) => {
-        colors[zone] = ''
-        return colors
-      }, {}),
+      colorMode,
+      color:
+        colorMode === 'preset'
+          ? colorSelections[zones[0]] || ''
+          : '',
+      presetColorSelections: { ...presetColors },
+      colorSelections,
       quantity: 1,
       playerName: '',
       playerNumber: '',
       logoName: '',
       logoFile: null,
       notes: '',
-      options: /^soccer-uniform-[1-4]$/.test(item.slug || '')
-        ? soccerDefaultOptions(item)
-        : {},
+      options: { ...configuredDefaults },
     }
 
     return result
@@ -430,6 +454,44 @@ function ProductCustomizer() {
       return
     }
 
+    const adminPresetColors =
+      activeItem.presetColors &&
+      Object.keys(activeItem.presetColors).length > 0
+        ? activeItem.presetColors
+        : null
+
+    if (adminPresetColors) {
+      setConfiguration((existing) => {
+        const item = existing[activeItem.id]
+
+        if (!item) return existing
+
+        return {
+          ...existing,
+          [activeItem.id]: {
+            ...item,
+            presetColorSelections: {
+              ...adminPresetColors,
+            },
+            color:
+              item.colorMode === 'preset'
+                ? adminPresetColors['Jersey Main Color'] ||
+                  Object.values(adminPresetColors)[0] ||
+                  ''
+                : item.color,
+            colorSelections:
+              item.colorMode === 'preset'
+                ? {
+                    ...(item.colorSelections || {}),
+                    ...adminPresetColors,
+                  }
+                : item.colorSelections,
+          },
+        }
+      })
+      return
+    }
+
     let cancelled = false
 
     extractDominantKitColors(activeItem.image?.url)
@@ -480,6 +542,7 @@ function ProductCustomizer() {
     productSlug,
     activeItem?.id,
     activeItem?.image?.url,
+    activeItem?.presetColors,
   ])
 
   const updateItem = (itemId, key, value) => {
@@ -669,30 +732,67 @@ function ProductCustomizer() {
       return
     }
 
-    const missingSize = selectedItems.find(
-      (item) =>
-        (item.sizes || []).length &&
-        !configuration[item.id].size
-    )
+    for (const item of selectedItems) {
+      const selected = configuration[item.id]
+      const configuredRequired = Array.isArray(item.requiredFields)
+        ? item.requiredFields
+        : []
+      const required = new Set(
+        configuredRequired.length
+          ? configuredRequired
+          : (item.sizes || []).length
+            ? ['size']
+            : []
+      )
 
-    if (missingSize) {
-      setActiveItemId(missingSize.id)
-      setMessage(`Please select a size for ${missingSize.name}.`)
-      return
-    }
+      if (required.has('size') && !selected.size) {
+        setActiveItemId(item.id)
+        setMessage(`Please select a size for ${item.name}.`)
+        return
+      }
 
-    if (productSlug === 'soccer-uniform') {
-      const selectedSoccerItem = selectedItems[0]
-      const selectedSoccerConfig = configuration[selectedSoccerItem.id]
-      const mainColor =
-        selectedSoccerConfig.colorSelections?.['Jersey Main Color'] || ''
+      if (required.has('color')) {
+        const firstZone =
+          item.colorZones?.[0] || 'Primary Color'
+        const selectedColor =
+          selected.colorSelections?.[firstZone] ||
+          selected.color
+
+        if (
+          selected.colorMode !== 'preset' &&
+          !selectedColor
+        ) {
+          setActiveItemId(item.id)
+          setMessage(`Please select a color for ${item.name}.`)
+          return
+        }
+      }
 
       if (
-        selectedSoccerConfig.colorMode !== 'preset' &&
-        !mainColor
+        required.has('playerName') &&
+        !String(selected.playerName || '').trim()
       ) {
-        setActiveItemId(selectedSoccerItem.id)
-        setMessage('Please select a main kit color.')
+        setActiveItemId(item.id)
+        setMessage(`Please enter a player name for ${item.name}.`)
+        return
+      }
+
+      if (
+        required.has('playerNumber') &&
+        !String(selected.playerNumber || '').trim()
+      ) {
+        setActiveItemId(item.id)
+        setMessage(`Please enter a player number for ${item.name}.`)
+        return
+      }
+
+      if (
+        required.has('logo') &&
+        !selected.logoFile
+      ) {
+        setActiveItemId(item.id)
+        setAdvancedOpen(true)
+        setMessage(`Please upload a logo for ${item.name}.`)
         return
       }
     }
@@ -762,17 +862,27 @@ function ProductCustomizer() {
         )
       : colorZones.slice(1)
 
+  const configuredBasicSlugs =
+    Array.isArray(activeItem.basicOptionSlugs)
+      ? new Set(activeItem.basicOptionSlugs)
+      : new Set()
+
+  const useConfiguredBasic =
+    Array.isArray(activeItem.basicOptionSlugs)
+
   const basicOptionGroups =
     (activeItem.optionGroups || []).filter((group) =>
-      BASIC_OPTION_SLUGS.has(group.slug)
+      useConfiguredBasic
+        ? configuredBasicSlugs.has(group.slug)
+        : BASIC_OPTION_SLUGS.has(group.slug)
     )
 
   const advancedOptionGroups =
-    productSlug === 'soccer-uniform'
-      ? (activeItem.optionGroups || [])
-      : (activeItem.optionGroups || []).filter(
-          (group) => !BASIC_OPTION_SLUGS.has(group.slug)
-        )
+    (activeItem.optionGroups || []).filter((group) =>
+      !basicOptionGroups.some(
+        (basicGroup) => basicGroup.slug === group.slug
+      )
+    )
 
   const hasAdvancedOptions =
     advancedColorZones.length > 0 ||
