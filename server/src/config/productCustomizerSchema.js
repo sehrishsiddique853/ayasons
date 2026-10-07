@@ -1261,7 +1261,7 @@ export const ensureProductCustomizerSchema = async () => {
       [
         JSON.stringify(defaults.defaultOptions || {}),
         JSON.stringify([]),
-        JSON.stringify(['size']),
+        JSON.stringify(['size', 'color']),
         productId,
         item.slug,
       ]
@@ -1286,7 +1286,7 @@ export const ensureProductCustomizerSchema = async () => {
       JSON.stringify(item.colorZones), JSON.stringify(item.optionGroups), JSON.stringify(item.specifications || []),
       JSON.stringify(soccerAdminDefaults[item.slug]?.defaultOptions || {}),
       JSON.stringify([]),
-      JSON.stringify(['size']),
+      JSON.stringify(['size', 'color']),
       'preset',
       JSON.stringify({}),
       item.allowLogoUpload, item.allowPlayerName,
