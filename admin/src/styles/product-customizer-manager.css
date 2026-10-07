@@ -683,3 +683,74 @@
     justify-self: start;
   }
 }
+
+
+/* Product information editor mirrors storefront block */
+.pcm-product-info-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.pcm-product-description-field {
+  display: grid;
+  gap: 7px;
+}
+
+.pcm-product-description-field > span {
+  color: var(--admin-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pcm-product-description-field textarea {
+  min-height: 92px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--admin-text);
+  font: inherit;
+  resize: vertical;
+}
+
+.pcm-product-info-bullets {
+  display: grid;
+  gap: 8px;
+}
+
+.pcm-product-info-bullets label {
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+}
+
+.pcm-product-info-bullets label > span {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: #fff7c7;
+  color: #765f00;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.pcm-product-info-bullets input {
+  min-height: 42px;
+  width: 100%;
+  padding: 0 11px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--admin-text);
+  font: inherit;
+}
+
+.pcm-product-info-note {
+  color: var(--admin-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
