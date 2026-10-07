@@ -12,6 +12,11 @@ const emptyForm = {
   colorZonesText: 'Primary Color\nSecondary Color\nTrim / Accent Color',
   optionsText: '',
   specificationsText: '',
+  defaultOptionsText: '',
+  basicOptionSlugsText: '',
+  requiredFieldsText: 'size',
+  defaultColorMode: 'custom',
+  presetColorsText: '',
   allowCustomColor: true,
   allowLogoUpload: false,
   allowPlayerName: false,
@@ -92,6 +97,32 @@ const toSpecificationsText = (specifications = []) =>
     .map((item) => `${item.label} | ${item.value}`)
     .join('\n')
 
+
+const parseKeyValueObject = (text) =>
+  text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .reduce((result, line) => {
+      const [key, ...valueParts] = line.split('|')
+      const cleanKey = (key || '').trim()
+      const value = valueParts.join('|').trim()
+
+      if (cleanKey && value) result[cleanKey] = value
+      return result
+    }, {})
+
+const toKeyValueText = (value = {}) =>
+  Object.entries(value || {})
+    .map(([key, item]) => `${key} | ${item}`)
+    .join('\n')
+
+const parseLineList = (text) =>
+  text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+
 function ProductCustomizerManager({ productId }) {
   const [items, setItems] = useState([])
   const [form, setForm] = useState(emptyForm)
@@ -147,6 +178,11 @@ function ProductCustomizerManager({ productId }) {
       colorZonesText: (item.colorZones || ['Primary Color']).join('\n'),
       optionsText: toOptionsText(item.optionGroups),
       specificationsText: toSpecificationsText(item.specifications),
+      defaultOptionsText: toKeyValueText(item.defaultOptions),
+      basicOptionSlugsText: (item.basicOptionSlugs || []).join('\n'),
+      requiredFieldsText: (item.requiredFields || []).join('\n'),
+      defaultColorMode: item.defaultColorMode || 'custom',
+      presetColorsText: toKeyValueText(item.presetColors),
       allowCustomColor: Boolean(item.allowCustomColor),
       allowLogoUpload: Boolean(item.allowLogoUpload),
       allowPlayerName: Boolean(item.allowPlayerName),
@@ -189,6 +225,11 @@ function ProductCustomizerManager({ productId }) {
       )
       data.append('optionGroups', JSON.stringify(parseOptionGroups(form.optionsText)))
       data.append('specifications', JSON.stringify(parseSpecifications(form.specificationsText)))
+      data.append('defaultOptions', JSON.stringify(parseKeyValueObject(form.defaultOptionsText)))
+      data.append('basicOptionSlugs', JSON.stringify(parseLineList(form.basicOptionSlugsText)))
+      data.append('requiredFields', JSON.stringify(parseLineList(form.requiredFieldsText)))
+      data.append('defaultColorMode', form.defaultColorMode)
+      data.append('presetColors', JSON.stringify(parseKeyValueObject(form.presetColorsText)))
       data.append('allowCustomColor', String(form.allowCustomColor))
       data.append('allowLogoUpload', String(form.allowLogoUpload))
       data.append('allowPlayerName', String(form.allowPlayerName))
@@ -397,6 +438,75 @@ function ProductCustomizerManager({ productId }) {
                 placeholder={'Sleeve Style: Short Sleeve, Long Sleeve\nCollar: V Neck, Round Neck'}
               />
               <small>One group per line: Group name: option 1, option 2.</small>
+            </label>
+
+            <div className="pcm-subsection pcm-wide">
+              <strong>Customer form behavior</strong>
+              <small>
+                Control what customers see first, what is preselected, and how colors behave without editing code.
+              </small>
+            </div>
+
+            <label className="pcm-wide">
+              <span>Default selected options</span>
+              <textarea
+                value={form.defaultOptionsText}
+                onChange={(event) => updateField('defaultOptionsText', event.target.value)}
+                placeholder={'jersey-sleeve | Short Sleeve\njersey-fit | Athletic\nfabric | Micro Mesh'}
+              />
+              <small>
+                One per line: option-slug | default value. The value must match one of that option group&apos;s choices.
+              </small>
+            </label>
+
+            <label>
+              <span>Basic option slugs</span>
+              <textarea
+                value={form.basicOptionSlugsText}
+                onChange={(event) => updateField('basicOptionSlugsText', event.target.value)}
+                placeholder={'jersey-sleeve\njersey-fit'}
+              />
+              <small>
+                One slug per line. Leave empty to keep all configurable option groups in Advanced Customization.
+              </small>
+            </label>
+
+            <label>
+              <span>Required customer fields</span>
+              <textarea
+                value={form.requiredFieldsText}
+                onChange={(event) => updateField('requiredFieldsText', event.target.value)}
+                placeholder={'size\ncolor'}
+              />
+              <small>
+                Supported examples: size, color, playerName, playerNumber, logo.
+              </small>
+            </label>
+
+            <label>
+              <span>Default color mode</span>
+              <select
+                value={form.defaultColorMode}
+                onChange={(event) => updateField('defaultColorMode', event.target.value)}
+              >
+                <option value="custom">Customer chooses color</option>
+                <option value="preset">Original design colors</option>
+              </select>
+              <small>
+                Original design colors can still be changed by the customer when custom colors are enabled.
+              </small>
+            </label>
+
+            <label>
+              <span>Original design colors</span>
+              <textarea
+                value={form.presetColorsText}
+                onChange={(event) => updateField('presetColorsText', event.target.value)}
+                placeholder={'Jersey Main Color | #b5121b\nJersey Secondary Color | #ffffff\nShorts Main Color | #b5121b\nTrim / Accent Color | #111111'}
+              />
+              <small>
+                One per line: color zone | #hex. Leave empty to let the storefront detect colors from the item image.
+              </small>
             </label>
           </div>
 
