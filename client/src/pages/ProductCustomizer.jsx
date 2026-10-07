@@ -101,19 +101,8 @@ const soccerDefaultOptions = (item) =>
     return result
   }, {})
 
-const firstColorValue = (item) => {
-  const firstColor = item.colors?.[0]
-
-  return (
-    (typeof firstColor === 'string' ? firstColor : firstColor?.value) ||
-    '#080808'
-  )
-}
-
 const createInitialState = (items) =>
   items.reduce((result, item) => {
-    const baseColor = firstColorValue(item)
-
     const zones =
       item.colorZones?.length
         ? item.colorZones
@@ -122,9 +111,9 @@ const createInitialState = (items) =>
     result[item.id] = {
       enabled: false,
       size: '',
-      color: baseColor,
+      color: '',
       colorSelections: zones.reduce((colors, zone) => {
-        colors[zone] = baseColor
+        colors[zone] = ''
         return colors
       }, {}),
       quantity: 1,
@@ -399,6 +388,19 @@ function ProductCustomizer() {
       setActiveItemId(missingSize.id)
       setMessage(`Please select a size for ${missingSize.name}.`)
       return
+    }
+
+    if (productSlug === 'soccer-uniform') {
+      const selectedSoccerItem = selectedItems[0]
+      const selectedSoccerConfig = configuration[selectedSoccerItem.id]
+      const mainColor =
+        selectedSoccerConfig.colorSelections?.['Jersey Main Color'] || ''
+
+      if (!mainColor) {
+        setActiveItemId(selectedSoccerItem.id)
+        setMessage('Please select a main kit color.')
+        return
+      }
     }
 
     addToCart(
