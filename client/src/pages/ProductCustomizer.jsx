@@ -1142,6 +1142,17 @@ function ProductCustomizer() {
                         </div>
                       )}
                     </div>
+
+                    {basicOptionGroups.map((group) => (
+                      <OptionGroup
+                        key={group.slug || group.name}
+                        group={group}
+                        selection={activeSelection}
+                        onChange={(options) =>
+                          updateItem(activeItem.id, 'options', options)
+                        }
+                      />
+                    ))}
                   </div>                ) : (
                   <>
                     {(activeItem.sizes || []).length > 0 && (
