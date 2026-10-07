@@ -409,6 +409,12 @@ function ProductCustomizer() {
   const activeSelection =
     activeItem ? configuration[activeItem.id] : null
 
+  const isDesignCollection =
+    (product?.items || []).length === 4 &&
+    (product?.items || []).every((item) =>
+      /-([1-4])$/.test(item.slug || '')
+    )
+
   const updateItem = (itemId, key, value) => {
     setConfiguration((current) => ({
       ...current,
@@ -792,7 +798,7 @@ function ProductCustomizer() {
     <>
       <main className="product-customizer-page">
         <div className="ecom-product-shell">
-          {productSlug === 'soccer-uniform' ? (
+          {isDesignCollection ? (
             <header className="ecom-collection-header">
               <h1>{product.name}</h1>
               <p>Our Collection</p>
@@ -825,14 +831,14 @@ function ProductCustomizer() {
             </>
           )}
 
-          <section className="ecom-kit-selector">
+          <section className={`ecom-kit-selector${isDesignCollection ? ' design-collection-selector' : ''}`}>
             <div className="ecom-section-heading">
               <div>
-                <span>{productSlug === 'soccer-uniform' ? 'Available designs' : 'Step 1'}</span>
-                <h2>{productSlug === 'soccer-uniform' ? 'Choose your uniform' : 'Choose what you need'}</h2>
+                <span>{isDesignCollection ? 'Available designs' : 'Step 1'}</span>
+                <h2>{isDesignCollection ? 'Choose your design' : 'Choose what you need'}</h2>
               </div>
 
-              <strong>{productSlug === 'soccer-uniform' ? 'Select a design' : `${selectedCount} selected`}</strong>
+              <strong>{isDesignCollection ? 'Select a design' : `${selectedCount} selected`}</strong>
             </div>
 
             <div className="ecom-item-grid">
