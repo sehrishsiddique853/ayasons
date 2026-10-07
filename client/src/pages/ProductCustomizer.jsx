@@ -794,6 +794,22 @@ function ProductCustomizer() {
     activeItem.allowLogoUpload ||
     activeItem.allowCustomNotes
 
+
+  const designSetIncludes =
+    activeItem.specifications?.find(
+      (spec) => spec.label === 'Set Includes'
+    )?.value ||
+    activeItem.specifications?.find(
+      (spec) => spec.label === 'Product'
+    )?.value ||
+    product.name
+
+  const designUse =
+    activeItem.specifications?.find(
+      (spec) => spec.label === 'Use'
+    )?.value ||
+    'Teams, clubs, academies and custom orders'
+
   return (
     <>
       <main className="product-customizer-page">
@@ -868,70 +884,67 @@ function ProductCustomizer() {
                 <strong>{activeItem.name}</strong>
               </div>
 
-              {productSlug === 'soccer-uniform' && (
+              {isDesignCollection && (
                 <div className="soccer-product-proof">
                   <div className="soccer-proof-grid">
                     <div className="soccer-proof-item">
                       <strong>Custom Design</strong>
-                      <span>Your colours, logo and team identity</span>
+                      <span>Your colors, logo and team identity</span>
                     </div>
 
                     <div className="soccer-proof-item">
                       <strong>Performance Fabrics</strong>
-                      <span>Dry-fit and mesh options for match use</span>
+                      <span>Sport-specific fabric, fit and construction options</span>
                     </div>
 
                     <div className="soccer-proof-item">
                       <strong>Made for Teams</strong>
-                      <span>Player names, numbers and club branding</span>
+                      <span>Player details, branding and coordinated team presentation</span>
                     </div>
 
                     <div className="soccer-proof-item">
                       <strong>Production Options</strong>
-                      <span>Multiple finishes, stitching and decoration methods</span>
+                      <span>Multiple finishes, decoration and customization methods</span>
                     </div>
                   </div>
 
                   <section className="soccer-product-description">
                     <h3>Product Description</h3>
 
-                    <p>
-                      {activeItem.description}
-                    </p>
+                    <p>{activeItem.description}</p>
 
                     <ul>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Complete matching soccer jersey and shorts set</span>
+                        <span>{designSetIncludes}</span>
                       </li>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Custom team colours, crest, player name and number</span>
+                        <span>Custom colors, team logo and branding options</span>
                       </li>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Performance fabric and fit options for different levels of play</span>
+                        <span>Sport-specific sizing, fit, fabric and finishing choices</span>
                       </li>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Suitable for clubs, academies, schools and team orders</span>
+                        <span>{designUse}</span>
                       </li>
                     </ul>
                   </section>
-
-
                 </div>
+              )}
               )}
             </div>
 
             <div className="ecom-product-options">
               <div className="ecom-option-head">
                 <div>
-                  <span>Customize your {productSlug === 'soccer-uniform' ? 'kit' : 'product'}</span>
+                  <span>Customize your {isDesignCollection ? 'design' : 'product'}</span>
                   <h2>{activeItem.name}</h2>
                   <p>
-                    {productSlug === 'soccer-uniform'
-                      ? 'Customize the soccer jersey and shorts as a coordinated team uniform.'
+                    {isDesignCollection
+                      ? `Customize ${activeItem.name} with the available size, color, fit, fabric and branding options.`
                       : 'Choose your basic options, or customize further below.'}
                   </p>
                 </div>
