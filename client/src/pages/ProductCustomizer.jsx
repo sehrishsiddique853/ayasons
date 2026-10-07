@@ -44,9 +44,47 @@ const SOCCER_STANDARD_DEFAULTS = {
   packaging: 'Bulk Packed',
 }
 
+const SOCCER_VARIANT_DEFAULTS = {
+  'soccer-uniform-1': {
+    'jersey-sleeve': 'Short Sleeve',
+    'jersey-fit': 'Athletic',
+    'neck-style': 'V Neck',
+    fabric: 'Micro Mesh',
+    'shorts-style': 'Regular Fit',
+    stitching: 'Flatlock',
+  },
+  'soccer-uniform-2': {
+    'jersey-sleeve': 'Short Sleeve',
+    'jersey-fit': 'Regular',
+    'neck-style': 'Crew Neck',
+    fabric: 'Polyester Interlock',
+    'shorts-style': 'Regular Fit',
+    stitching: 'Reinforced',
+  },
+  'soccer-uniform-3': {
+    'jersey-sleeve': 'Short Sleeve',
+    'jersey-fit': 'Slim',
+    'neck-style': 'V Neck',
+    fabric: 'Bird Eye Mesh',
+    'shorts-style': 'Slim Fit',
+    stitching: 'Flatlock',
+  },
+  'soccer-uniform-4': {
+    'jersey-sleeve': 'Long Sleeve',
+    'jersey-fit': 'Regular',
+    'neck-style': 'Crew Neck',
+    fabric: 'Dry Fit',
+    'shorts-style': 'Regular Fit',
+    'branding-method': 'Heat Transfer',
+    stitching: 'Reinforced',
+  },
+}
+
 const soccerDefaultOptions = (item) =>
   (item.optionGroups || []).reduce((result, group) => {
-    const desired = SOCCER_STANDARD_DEFAULTS[group.slug]
+    const desired =
+      SOCCER_VARIANT_DEFAULTS[item.slug]?.[group.slug] ||
+      SOCCER_STANDARD_DEFAULTS[group.slug]
 
     if (!desired) return result
 
@@ -801,8 +839,7 @@ function ProductCustomizer() {
                         </strong>
 
                         <p>
-                          Optional details for fabric, trim, branding, crest placement,
-                          printing, stitching and packaging.
+                          Standard soccer choices are already selected. Open this section only if you want to change shirt fit, sleeves, neckline, shorts setup, fabric, colours, branding or finishing.
                         </p>
                       </div>
 
