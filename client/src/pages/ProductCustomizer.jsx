@@ -514,20 +514,7 @@ function ProductCustomizer() {
                     </ul>
                   </section>
 
-                  {(activeItem.specifications || []).length > 0 && (
-                    <section className="soccer-product-specs">
-                      <h3>Product Specifications</h3>
 
-                      <dl>
-                        {activeItem.specifications.map((spec) => (
-                          <div key={`${spec.label}-${spec.value}`}>
-                            <dt>{spec.label}</dt>
-                            <dd>{spec.value}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    </section>
-                  )}
                 </div>
               )}
             </div>
