@@ -6,6 +6,13 @@ function CustomProductCard({
   active,
   onSelect,
 }) {
+  const subtitle =
+    item.specifications?.find((spec) => spec.label === 'Uniform Type')?.value ||
+    item.specifications?.find((spec) => spec.label === 'Product')?.value ||
+    item.specifications?.find((spec) => spec.label === 'Set Includes')?.value ||
+    item.specifications?.find((spec) => spec.label === 'Use')?.value ||
+    item.description
+
   return (
     <button
       type="button"
@@ -29,14 +36,7 @@ function CustomProductCard({
 
       <div className="ecom-item-copy">
         <h3>{item.name}</h3>
-        {/^soccer-uniform-[1-4]$/.test(item.slug || '') ? (
-          <p>
-            {item.specifications?.find((spec) => spec.label === 'Uniform Type')?.value ||
-              'Custom Soccer Kit'}
-          </p>
-        ) : (
-          <p>{item.description}</p>
-        )}
+        <p>{subtitle}</p>
       </div>
     </button>
   )
