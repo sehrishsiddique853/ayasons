@@ -980,6 +980,86 @@ const defaultItems = [
   }
 ]
 
+
+const soccerAdminDefaults = {
+  'soccer-uniform-1': {
+    defaultOptions: {
+      'jersey-sleeve': 'Short Sleeve',
+      'jersey-fit': 'Athletic',
+      'neck-style': 'V Neck',
+      'shorts-style': 'Regular Fit',
+      'shorts-waist': 'Elastic + Drawcord',
+      fabric: 'Micro Mesh',
+      'fabric-pattern': 'Geometric',
+      'material-finish': 'Matte',
+      'branding-method': 'Sublimation',
+      'team-crest-position': 'Left Chest',
+      'sponsor-placement': 'None',
+      'number-style': 'Modern',
+      'trim-style': 'Contrast Piping',
+      stitching: 'Flatlock',
+      packaging: 'Bulk Packed',
+    },
+  },
+  'soccer-uniform-2': {
+    defaultOptions: {
+      'jersey-sleeve': 'Short Sleeve',
+      'jersey-fit': 'Regular',
+      'neck-style': 'Crew Neck',
+      'shorts-style': 'Regular Fit',
+      'shorts-waist': 'Elastic + Drawcord',
+      fabric: 'Polyester Interlock',
+      'fabric-pattern': 'Stripes',
+      'material-finish': 'Matte',
+      'branding-method': 'Embroidery',
+      'team-crest-position': 'Left Chest',
+      'sponsor-placement': 'None',
+      'number-style': 'Classic',
+      'trim-style': 'Plain',
+      stitching: 'Reinforced',
+      packaging: 'Bulk Packed',
+    },
+  },
+  'soccer-uniform-3': {
+    defaultOptions: {
+      'jersey-sleeve': 'Short Sleeve',
+      'jersey-fit': 'Slim',
+      'neck-style': 'V Neck',
+      'shorts-style': 'Slim Fit',
+      'shorts-waist': 'Elastic + Drawcord',
+      fabric: 'Bird Eye Mesh',
+      'fabric-pattern': 'Gradient',
+      'material-finish': 'Matte',
+      'branding-method': 'Sublimation',
+      'team-crest-position': 'Left Chest',
+      'sponsor-placement': 'None',
+      'number-style': 'Modern',
+      'trim-style': 'Contrast Piping',
+      stitching: 'Flatlock',
+      packaging: 'Bulk Packed',
+    },
+  },
+  'soccer-uniform-4': {
+    defaultOptions: {
+      'jersey-sleeve': 'Long Sleeve',
+      'jersey-fit': 'Regular',
+      'neck-style': 'Crew Neck',
+      'shorts-style': 'Regular Fit',
+      'shorts-waist': 'Elastic + Drawcord',
+      fabric: 'Dry Fit',
+      'fabric-pattern': 'Solid',
+      'material-finish': 'Matte',
+      'branding-method': 'Heat Transfer',
+      'team-crest-position': 'Left Chest',
+      'sponsor-placement': 'None',
+      'number-style': 'Classic',
+      'trim-style': 'Plain',
+      stitching: 'Reinforced',
+      packaging: 'Bulk Packed',
+    },
+  },
+}
+
 export const ensureProductCustomizerSchema = async () => {
   await pool.execute(`
     CREATE TABLE IF NOT EXISTS product_customizer_items (
@@ -996,6 +1076,11 @@ export const ensureProductCustomizerSchema = async () => {
       color_zones_json JSON NULL,
       option_groups_json JSON NULL,
       specifications_json JSON NULL,
+      default_options_json JSON NULL,
+      basic_option_slugs_json JSON NULL,
+      required_fields_json JSON NULL,
+      default_color_mode VARCHAR(40) NOT NULL DEFAULT 'custom',
+      preset_colors_json JSON NULL,
       allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
       allow_logo_upload BOOLEAN NOT NULL DEFAULT FALSE,
       allow_player_name BOOLEAN NOT NULL DEFAULT FALSE,
@@ -1032,6 +1117,26 @@ export const ensureProductCustomizerSchema = async () => {
     await pool.execute(
       'ALTER TABLE product_customizer_items ADD COLUMN specifications_json JSON NULL AFTER option_groups_json'
     )
+  }
+
+  const adminDrivenColumns = [
+    ['default_options_json', 'JSON NULL AFTER specifications_json'],
+    ['basic_option_slugs_json', 'JSON NULL AFTER default_options_json'],
+    ['required_fields_json', 'JSON NULL AFTER basic_option_slugs_json'],
+    ['default_color_mode', "VARCHAR(40) NOT NULL DEFAULT 'custom' AFTER required_fields_json"],
+    ['preset_colors_json', 'JSON NULL AFTER default_color_mode'],
+  ]
+
+  for (const [column, definition] of adminDrivenColumns) {
+    const [columns] = await pool.execute(
+      `SHOW COLUMNS FROM product_customizer_items LIKE '${column}'`
+    )
+
+    if (!columns.length) {
+      await pool.execute(
+        `ALTER TABLE product_customizer_items ADD COLUMN ${column} ${definition}`
+      )
+    }
   }
 
   const [products] = await pool.execute(`
@@ -1133,20 +1238,57 @@ export const ensureProductCustomizerSchema = async () => {
     )
   }
 
+  // Populate admin-editable behavior for existing soccer rows only when empty.
+  for (const item of defaultItems) {
+    const defaults = soccerAdminDefaults[item.slug] || {}
+
+    await pool.execute(
+      `UPDATE product_customizer_items
+       SET default_options_json = ?,
+           basic_option_slugs_json = ?,
+           required_fields_json = ?,
+           default_color_mode = CASE
+             WHEN default_color_mode IS NULL OR default_color_mode = 'custom'
+             THEN 'preset'
+             ELSE default_color_mode
+           END
+       WHERE product_id = ?
+         AND slug = ?
+         AND (
+           default_options_json IS NULL OR
+           JSON_LENGTH(default_options_json) = 0
+         )`,
+      [
+        JSON.stringify(defaults.defaultOptions || {}),
+        JSON.stringify([]),
+        JSON.stringify(['size']),
+        productId,
+        item.slug,
+      ]
+    )
+  }
+
   // Idempotent seed: running the server again never overwrites admin edits.
   for (const item of defaultItems) {
     await pool.execute(`
       INSERT IGNORE INTO product_customizer_items (
         product_id, name, slug, description,
         sizes_json, colors_json, color_zones_json, option_groups_json, specifications_json,
+        default_options_json, basic_option_slugs_json, required_fields_json,
+        default_color_mode, preset_colors_json,
         allow_custom_color, allow_logo_upload,
         allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
     `, [
       productId, item.name, item.slug, item.description,
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
       JSON.stringify(item.colorZones), JSON.stringify(item.optionGroups), JSON.stringify(item.specifications || []),
+      JSON.stringify(soccerAdminDefaults[item.slug]?.defaultOptions || {}),
+      JSON.stringify([]),
+      JSON.stringify(['size']),
+      'preset',
+      JSON.stringify({}),
       item.allowLogoUpload, item.allowPlayerName,
       item.allowPlayerNumber, item.order,
     ])
