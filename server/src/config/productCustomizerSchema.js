@@ -49,8 +49,7 @@ const defaultItems = [
     "colorZones": [
       "Jersey Main Color",
       "Jersey Secondary Color",
-      "Shorts Color",
-      "Socks Color",
+      "Shorts Main Color",
       "Trim / Accent Color"
     ],
     "optionGroups": [
@@ -81,12 +80,20 @@ const defaultItems = [
         ]
       },
       {
-        "name": "Shorts Style",
+        "name": "Shorts Fit",
         "slug": "shorts-style",
         "values": [
-          "Regular",
-          "Relaxed",
-          "Compression"
+          "Regular Fit",
+          "Slim Fit",
+          "Relaxed Fit"
+        ]
+      },
+      {
+        "name": "Shorts Waist",
+        "slug": "shorts-waist",
+        "values": [
+          "Elastic",
+          "Elastic + Drawcord"
         ]
       },
       {
@@ -103,26 +110,7 @@ const defaultItems = [
           "4XL"
         ]
       },
-      {
-        "name": "Sock Size",
-        "slug": "sock-size",
-        "values": [
-          "Youth",
-          "S",
-          "M",
-          "L",
-          "XL"
-        ]
-      },
-      {
-        "name": "Sock Length",
-        "slug": "sock-length",
-        "values": [
-          "Crew",
-          "Knee High",
-          "Over Knee"
-        ]
-      },
+      
       {
         "name": "Fabric",
         "slug": "fabric",
@@ -266,8 +254,7 @@ const defaultItems = [
     "colorZones": [
       "Jersey Main Color",
       "Jersey Secondary Color",
-      "Shorts Color",
-      "Socks Color",
+      "Shorts Main Color",
       "Trim / Accent Color"
     ],
     "optionGroups": [
@@ -298,12 +285,20 @@ const defaultItems = [
         ]
       },
       {
-        "name": "Shorts Style",
+        "name": "Shorts Fit",
         "slug": "shorts-style",
         "values": [
-          "Regular",
-          "Relaxed",
-          "Compression"
+          "Regular Fit",
+          "Slim Fit",
+          "Relaxed Fit"
+        ]
+      },
+      {
+        "name": "Shorts Waist",
+        "slug": "shorts-waist",
+        "values": [
+          "Elastic",
+          "Elastic + Drawcord"
         ]
       },
       {
@@ -320,26 +315,7 @@ const defaultItems = [
           "4XL"
         ]
       },
-      {
-        "name": "Sock Size",
-        "slug": "sock-size",
-        "values": [
-          "Youth",
-          "S",
-          "M",
-          "L",
-          "XL"
-        ]
-      },
-      {
-        "name": "Sock Length",
-        "slug": "sock-length",
-        "values": [
-          "Crew",
-          "Knee High",
-          "Over Knee"
-        ]
-      },
+      
       {
         "name": "Fabric",
         "slug": "fabric",
@@ -483,8 +459,7 @@ const defaultItems = [
     "colorZones": [
       "Jersey Main Color",
       "Jersey Secondary Color",
-      "Shorts Color",
-      "Socks Color",
+      "Shorts Main Color",
       "Trim / Accent Color"
     ],
     "optionGroups": [
@@ -515,12 +490,20 @@ const defaultItems = [
         ]
       },
       {
-        "name": "Shorts Style",
+        "name": "Shorts Fit",
         "slug": "shorts-style",
         "values": [
-          "Regular",
-          "Relaxed",
-          "Compression"
+          "Regular Fit",
+          "Slim Fit",
+          "Relaxed Fit"
+        ]
+      },
+      {
+        "name": "Shorts Waist",
+        "slug": "shorts-waist",
+        "values": [
+          "Elastic",
+          "Elastic + Drawcord"
         ]
       },
       {
@@ -537,26 +520,7 @@ const defaultItems = [
           "4XL"
         ]
       },
-      {
-        "name": "Sock Size",
-        "slug": "sock-size",
-        "values": [
-          "Youth",
-          "S",
-          "M",
-          "L",
-          "XL"
-        ]
-      },
-      {
-        "name": "Sock Length",
-        "slug": "sock-length",
-        "values": [
-          "Crew",
-          "Knee High",
-          "Over Knee"
-        ]
-      },
+      
       {
         "name": "Fabric",
         "slug": "fabric",
@@ -700,8 +664,7 @@ const defaultItems = [
     "colorZones": [
       "Jersey Main Color",
       "Jersey Secondary Color",
-      "Shorts Color",
-      "Socks Color",
+      "Shorts Main Color",
       "Trim / Accent Color"
     ],
     "optionGroups": [
@@ -732,12 +695,20 @@ const defaultItems = [
         ]
       },
       {
-        "name": "Shorts Style",
+        "name": "Shorts Fit",
         "slug": "shorts-style",
         "values": [
-          "Regular",
-          "Relaxed",
-          "Compression"
+          "Regular Fit",
+          "Slim Fit",
+          "Relaxed Fit"
+        ]
+      },
+      {
+        "name": "Shorts Waist",
+        "slug": "shorts-waist",
+        "values": [
+          "Elastic",
+          "Elastic + Drawcord"
         ]
       },
       {
@@ -754,26 +725,7 @@ const defaultItems = [
           "4XL"
         ]
       },
-      {
-        "name": "Sock Size",
-        "slug": "sock-size",
-        "values": [
-          "Youth",
-          "S",
-          "M",
-          "L",
-          "XL"
-        ]
-      },
-      {
-        "name": "Sock Length",
-        "slug": "sock-length",
-        "values": [
-          "Crew",
-          "Knee High",
-          "Over Knee"
-        ]
-      },
+      
       {
         "name": "Fabric",
         "slug": "fabric",
