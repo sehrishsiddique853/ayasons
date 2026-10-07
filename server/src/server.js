@@ -12,6 +12,8 @@ import { ensureStreetwearCustomizers } from './config/streetwearCustomizers.js'
 import { ensureActivewearCustomizers } from './config/activewearCustomizers.js'
 import { ensureWorkwearCustomizers } from './config/workwearCustomizers.js'
 import { ensureHeadwearCustomizers } from './config/headwearCustomizers.js'
+import { ensureAccessoriesCustomizers } from './config/accessoriesCustomizers.js'
+import { ensureGloveCustomizers } from './config/gloveCustomizers.js'
 
 
 const PORT =
@@ -34,6 +36,8 @@ const startServer = async () => {
     await ensureActivewearCustomizers()
     await ensureWorkwearCustomizers()
     await ensureHeadwearCustomizers()
+    await ensureAccessoriesCustomizers()
+    await ensureGloveCustomizers()
 
 
     /*
