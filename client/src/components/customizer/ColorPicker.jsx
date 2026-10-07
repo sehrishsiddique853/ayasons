@@ -15,7 +15,9 @@ function ColorPicker({
     <div className="customizer-color-area">
       <div className="customizer-field-heading">
         <span>{label}</span>
-        <strong>{String(value || '').toUpperCase()}</strong>
+        <strong>
+          {value ? String(value).toUpperCase() : 'Select color'}
+        </strong>
       </div>
 
       <div className="customizer-swatches">
@@ -40,7 +42,7 @@ function ColorPicker({
             <span>+</span>
             <input
               type="color"
-              value={value || '#080808'}
+              value={value || '#ffffff'}
               onChange={(event) => onChange(event.target.value)}
             />
           </label>
@@ -52,7 +54,7 @@ function ColorPicker({
           <span>Custom color</span>
           <input
             type="color"
-            value={value || '#080808'}
+            value={value || '#ffffff'}
             onChange={(event) => onChange(event.target.value)}
           />
           <input
@@ -60,7 +62,7 @@ function ColorPicker({
             value={value || ''}
             maxLength={7}
             onChange={(event) => onChange(event.target.value)}
-            placeholder="#080808"
+            placeholder="#RRGGBB"
           />
         </label>
       )}
