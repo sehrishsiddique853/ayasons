@@ -11,6 +11,7 @@ const emptyForm = {
   colorsText: 'Black | #080808\nWhite | #ffffff',
   colorZonesText: 'Primary Color\nSecondary Color\nTrim / Accent Color',
   optionsText: '',
+  specificationsText: '',
   allowCustomColor: true,
   allowLogoUpload: false,
   allowPlayerName: false,
@@ -72,6 +73,25 @@ const toOptionsText = (groups = []) =>
     })
     .join('\n')
 
+const parseSpecifications = (text) =>
+  text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [label, ...valueParts] = line.split('|')
+      return {
+        label: (label || '').trim(),
+        value: valueParts.join('|').trim(),
+      }
+    })
+    .filter((item) => item.label && item.value)
+
+const toSpecificationsText = (specifications = []) =>
+  specifications
+    .map((item) => `${item.label} | ${item.value}`)
+    .join('\n')
+
 function ProductCustomizerManager({ productId }) {
   const [items, setItems] = useState([])
   const [form, setForm] = useState(emptyForm)
@@ -126,6 +146,7 @@ function ProductCustomizerManager({ productId }) {
       colorsText: toColorsText(item.colors),
       colorZonesText: (item.colorZones || ['Primary Color']).join('\n'),
       optionsText: toOptionsText(item.optionGroups),
+      specificationsText: toSpecificationsText(item.specifications),
       allowCustomColor: Boolean(item.allowCustomColor),
       allowLogoUpload: Boolean(item.allowLogoUpload),
       allowPlayerName: Boolean(item.allowPlayerName),
@@ -167,6 +188,7 @@ function ProductCustomizerManager({ productId }) {
         JSON.stringify(form.colorZonesText.split('\n').map((item) => item.trim()).filter(Boolean))
       )
       data.append('optionGroups', JSON.stringify(parseOptionGroups(form.optionsText)))
+      data.append('specifications', JSON.stringify(parseSpecifications(form.specificationsText)))
       data.append('allowCustomColor', String(form.allowCustomColor))
       data.append('allowLogoUpload', String(form.allowLogoUpload))
       data.append('allowPlayerName', String(form.allowPlayerName))
@@ -355,6 +377,16 @@ function ProductCustomizerManager({ productId }) {
                 placeholder={'Primary Color\nSecondary Color\nTrim / Accent Color'}
               />
               <small>One customizable color area per line.</small>
+            </label>
+
+            <label className="pcm-wide">
+              <span>Product specifications</span>
+              <textarea
+                value={form.specificationsText}
+                onChange={(event) => updateField('specificationsText', event.target.value)}
+                placeholder={'Uniform Type | Pro Match Kit\nFabric | Micro Mesh Dry Fit\nFit | Athletic Fit'}
+              />
+              <small>One specification per line: Label | Value.</small>
             </label>
 
             <label className="pcm-wide">
