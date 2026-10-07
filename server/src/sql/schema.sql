@@ -350,6 +350,18 @@ CREATE TABLE IF NOT EXISTS product_customizer_items (
 
     option_groups_json JSON NULL,
 
+    specifications_json JSON NULL,
+
+    default_options_json JSON NULL,
+
+    basic_option_slugs_json JSON NULL,
+
+    required_fields_json JSON NULL,
+
+    default_color_mode VARCHAR(40) NOT NULL DEFAULT 'custom',
+
+    preset_colors_json JSON NULL,
+
     allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
 
     allow_logo_upload BOOLEAN NOT NULL DEFAULT FALSE,
