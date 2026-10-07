@@ -279,10 +279,10 @@ function ProductCustomizerManager({ productId }) {
       )
       data.append('optionGroups', JSON.stringify(parseOptionGroups(form.optionsText)))
       data.append('specifications', JSON.stringify(parseSpecifications(form.specificationsText)))
-      data.append('defaultOptions', JSON.stringify(parseKeyValueObject(form.defaultOptionsText)))
+      data.append('defaultOptions', JSON.stringify({}))
       data.append('basicOptionSlugs', JSON.stringify(parseLineList(form.basicOptionSlugsText)))
       data.append('requiredFields', JSON.stringify(parseLineList(form.requiredFieldsText)))
-      data.append('defaultColorMode', form.defaultColorMode)
+      data.append('defaultColorMode', 'custom')
       data.append('presetColors', JSON.stringify(parseKeyValueObject(form.presetColorsText)))
       data.append('allowCustomColor', String(form.allowCustomColor))
       data.append('allowLogoUpload', String(form.allowLogoUpload))
@@ -504,49 +504,6 @@ function ProductCustomizerManager({ productId }) {
             <div className="pcm-wide pcm-behavior-card">
               <div className="pcm-behavior-head">
                 <div>
-                  <strong>Default selections</strong>
-                  <small>Choose the normal/default value for each option group.</small>
-                </div>
-              </div>
-
-              {currentOptionGroups.length === 0 ? (
-                <div className="pcm-behavior-empty">
-                  Add option groups above first. Default dropdowns will appear here automatically.
-                </div>
-              ) : (
-                <div className="pcm-default-grid">
-                  {currentOptionGroups.map((group) => (
-                    <label key={group.slug}>
-                      <span>{group.name}</span>
-                      <select
-                        value={currentDefaultOptions[group.slug] || ''}
-                        onChange={(event) =>
-                          updateField(
-                            'defaultOptionsText',
-                            setKeyValueText(
-                              form.defaultOptionsText,
-                              group.slug,
-                              event.target.value
-                            )
-                          )
-                        }
-                      >
-                        <option value="">No default</option>
-                        {group.values.map((value) => (
-                          <option key={value} value={value}>
-                            {value}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="pcm-wide pcm-behavior-card">
-              <div className="pcm-behavior-head">
-                <div>
                   <strong>Basic vs Advanced</strong>
                   <small>
                     Tick an option to show it in the main customer form. Unticked options stay under Advanced Customization.
@@ -624,92 +581,63 @@ function ProductCustomizerManager({ productId }) {
             <div className="pcm-wide pcm-behavior-card">
               <div className="pcm-behavior-head">
                 <div>
-                  <strong>Color behavior</strong>
-                  <small>Decide whether this design opens with its original colors or asks the customer to choose.</small>
-                </div>
-              </div>
-
-              <div className="pcm-radio-cards">
-                <label className={form.defaultColorMode === 'preset' ? 'active' : ''}>
-                  <input
-                    type="radio"
-                    name="defaultColorMode"
-                    value="preset"
-                    checked={form.defaultColorMode === 'preset'}
-                    onChange={() => updateField('defaultColorMode', 'preset')}
-                  />
-                  <span>
-                    <strong>Original design colors</strong>
-                    <small>Best for ready-made design variants.</small>
-                  </span>
-                </label>
-
-                <label className={form.defaultColorMode === 'custom' ? 'active' : ''}>
-                  <input
-                    type="radio"
-                    name="defaultColorMode"
-                    value="custom"
-                    checked={form.defaultColorMode === 'custom'}
-                    onChange={() => updateField('defaultColorMode', 'custom')}
-                  />
-                  <span>
-                    <strong>Customer chooses color</strong>
-                    <small>Starts without a preset design color.</small>
-                  </span>
-                </label>
-              </div>
-
-              {form.defaultColorMode === 'preset' && (
-                <div className="pcm-preset-color-grid">
-                  {currentColorZones.length === 0 ? (
-                    <div className="pcm-behavior-empty">
-                      Add color zones above first.
-                    </div>
-                  ) : (
-                    currentColorZones.map((zone) => (
-                      <label key={zone}>
-                        <span>{zone}</span>
-                        <div className="pcm-color-control">
-                          <input
-                            type="color"
-                            value={currentPresetColors[zone] || '#ffffff'}
-                            onChange={(event) =>
-                              updateField(
-                                'presetColorsText',
-                                setKeyValueText(
-                                  form.presetColorsText,
-                                  zone,
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                          <input
-                            type="text"
-                            value={currentPresetColors[zone] || ''}
-                            placeholder="#RRGGBB"
-                            maxLength="7"
-                            onChange={(event) =>
-                              updateField(
-                                'presetColorsText',
-                                setKeyValueText(
-                                  form.presetColorsText,
-                                  zone,
-                                  event.target.value
-                                )
-                              )
-                            }
-                          />
-                        </div>
-                      </label>
-                    ))
-                  )}
-
-                  <small className="pcm-color-note">
-                    Leave a color blank to let the storefront try detecting it from the uploaded item image.
+                  <strong>Original design colors</strong>
+                  <small>
+                    Optional reference colors used only when the customer actively chooses “Use Original Design Colors”.
                   </small>
                 </div>
-              )}
+              </div>
+
+              <div className="pcm-preset-color-grid">
+                {currentColorZones.length === 0 ? (
+                  <div className="pcm-behavior-empty">
+                    Add color zones above first.
+                  </div>
+                ) : (
+                  currentColorZones.map((zone) => (
+                    <label key={zone}>
+                      <span>{zone}</span>
+                      <div className="pcm-color-control">
+                        <input
+                          type="color"
+                          value={currentPresetColors[zone] || '#ffffff'}
+                          onChange={(event) =>
+                            updateField(
+                              'presetColorsText',
+                              setKeyValueText(
+                                form.presetColorsText,
+                                zone,
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                        <input
+                          type="text"
+                          value={currentPresetColors[zone] || ''}
+                          placeholder="#RRGGBB"
+                          maxLength="7"
+                          onChange={(event) =>
+                            updateField(
+                              'presetColorsText',
+                              setKeyValueText(
+                                form.presetColorsText,
+                                zone,
+                                event.target.value
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                    </label>
+                  ))
+                )}
+
+                <small className="pcm-color-note">
+                  Leave blank to let the storefront detect original colors from the item image when the customer chooses that option.
+                </small>
+              </div>
+            </div>
             </div>
           </div>
 
