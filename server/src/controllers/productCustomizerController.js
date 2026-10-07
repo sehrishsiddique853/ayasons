@@ -26,6 +26,7 @@ const formatItem = (row, admin = false) => ({
   colors: parseJson(row.colors_json, []),
   colorZones: parseJson(row.color_zones_json, ['Primary Color']),
   optionGroups: parseJson(row.option_groups_json, []),
+  specifications: parseJson(row.specifications_json, []),
   allowCustomColor: Boolean(row.allow_custom_color),
   allowLogoUpload: Boolean(row.allow_logo_upload),
   allowPlayerName: Boolean(row.allow_player_name),
@@ -37,7 +38,7 @@ const formatItem = (row, admin = false) => ({
 
 const baseSelect = `
   SELECT id, product_id, name, slug, description, image_name,
-    sizes_json, colors_json, color_zones_json, option_groups_json, allow_custom_color,
+    sizes_json, colors_json, color_zones_json, option_groups_json, specifications_json, allow_custom_color,
     allow_logo_upload, allow_player_name, allow_player_number,
     allow_custom_notes, active, display_order, updated_at
   FROM product_customizer_items
@@ -117,6 +118,7 @@ const readPayload = (body) => ({
   colors: parseJson(body.colors, []),
   colorZones: parseJson(body.colorZones, ['Primary Color']),
   optionGroups: parseJson(body.optionGroups, []),
+  specifications: parseJson(body.specifications, []),
   allowCustomColor: parseBoolean(body.allowCustomColor),
   allowLogoUpload: parseBoolean(body.allowLogoUpload),
   allowPlayerName: parseBoolean(body.allowPlayerName),
@@ -142,16 +144,16 @@ export const createAdminCustomizerItem = async (req, res, next) => {
       `
       INSERT INTO product_customizer_items (
         product_id, name, slug, description, image_blob, image_mime, image_name,
-        sizes_json, colors_json, color_zones_json, option_groups_json, allow_custom_color,
+        sizes_json, colors_json, color_zones_json, option_groups_json, specifications_json, allow_custom_color,
         allow_logo_upload, allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         productId, data.name, data.slug, data.description,
         image?.buffer || null, image?.mimeType || null,
         image ? `${Date.now()}-${image.fileName}` : null,
-        JSON.stringify(data.sizes), JSON.stringify(data.colors), JSON.stringify(data.colorZones), JSON.stringify(data.optionGroups),
+        JSON.stringify(data.sizes), JSON.stringify(data.colors), JSON.stringify(data.colorZones), JSON.stringify(data.optionGroups), JSON.stringify(data.specifications),
         data.allowCustomColor ? 1 : 0, data.allowLogoUpload ? 1 : 0,
         data.allowPlayerName ? 1 : 0, data.allowPlayerNumber ? 1 : 0,
         data.allowCustomNotes ? 1 : 0, data.active ? 1 : 0, data.order,
@@ -181,13 +183,13 @@ export const updateAdminCustomizerItem = async (req, res, next) => {
 
     const fields = [
       'name = ?', 'slug = ?', 'description = ?', 'sizes_json = ?',
-      'colors_json = ?', 'color_zones_json = ?', 'option_groups_json = ?', 'allow_custom_color = ?',
+      'colors_json = ?', 'color_zones_json = ?', 'option_groups_json = ?', 'specifications_json = ?', 'allow_custom_color = ?',
       'allow_logo_upload = ?', 'allow_player_name = ?', 'allow_player_number = ?',
       'allow_custom_notes = ?', 'active = ?', 'display_order = ?'
     ]
     const params = [
       data.name, data.slug, data.description, JSON.stringify(data.sizes),
-      JSON.stringify(data.colors), JSON.stringify(data.colorZones), JSON.stringify(data.optionGroups),
+      JSON.stringify(data.colors), JSON.stringify(data.colorZones), JSON.stringify(data.optionGroups), JSON.stringify(data.specifications),
       data.allowCustomColor ? 1 : 0, data.allowLogoUpload ? 1 : 0,
       data.allowPlayerName ? 1 : 0, data.allowPlayerNumber ? 1 : 0,
       data.allowCustomNotes ? 1 : 0, data.active ? 1 : 0, data.order
