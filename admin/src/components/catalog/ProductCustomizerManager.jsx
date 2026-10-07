@@ -153,6 +153,16 @@ function ProductCustomizerManager({ productId }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [drafts, setDrafts] = useState({
+    size: '',
+    colorName: '',
+    colorHex: '#000000',
+    zone: '',
+    specLabel: '',
+    specValue: '',
+    optionName: '',
+    optionValues: '',
+  })
 
   const imagePreview = useMemo(
     () => form.image ? URL.createObjectURL(form.image) : form.imageUrl,
@@ -215,13 +225,161 @@ function ProductCustomizerManager({ productId }) {
     [form.presetColorsText]
   )
 
+
+  const currentSizes = useMemo(
+    () => parseLineList(form.sizesText),
+    [form.sizesText]
+  )
+
+  const currentColors = useMemo(
+    () => parseColors(form.colorsText),
+    [form.colorsText]
+  )
+
+  const currentSpecifications = useMemo(
+    () => parseSpecifications(form.specificationsText),
+    [form.specificationsText]
+  )
+
+  const updateDraft = (name, value) =>
+    setDrafts((current) => ({ ...current, [name]: value }))
+
+  const setLines = (field, values) =>
+    updateField(field, values.filter(Boolean).join('\n'))
+
+  const addSize = () => {
+    const value = drafts.size.trim()
+    if (!value) return
+    setLines('sizesText', [...currentSizes, value])
+    updateDraft('size', '')
+  }
+
+  const removeSize = (index) =>
+    setLines('sizesText', currentSizes.filter((_, itemIndex) => itemIndex !== index))
+
+  const addColor = () => {
+    const name = drafts.colorName.trim()
+    const hex = drafts.colorHex.trim()
+    if (!name || !hex) return
+    updateField(
+      'colorsText',
+      toColorsText([...currentColors, { name, value: hex }])
+    )
+    setDrafts((current) => ({
+      ...current,
+      colorName: '',
+      colorHex: '#000000',
+    }))
+  }
+
+  const removeColor = (index) =>
+    updateField(
+      'colorsText',
+      toColorsText(currentColors.filter((_, itemIndex) => itemIndex !== index))
+    )
+
+  const addZone = () => {
+    const value = drafts.zone.trim()
+    if (!value) return
+    setLines('colorZonesText', [...currentColorZones, value])
+    updateDraft('zone', '')
+  }
+
+  const removeZone = (index) =>
+    setLines(
+      'colorZonesText',
+      currentColorZones.filter((_, itemIndex) => itemIndex !== index)
+    )
+
+  const addSpecification = () => {
+    const label = drafts.specLabel.trim()
+    const value = drafts.specValue.trim()
+    if (!label || !value) return
+    updateField(
+      'specificationsText',
+      toSpecificationsText([
+        ...currentSpecifications,
+        { label, value },
+      ])
+    )
+    setDrafts((current) => ({
+      ...current,
+      specLabel: '',
+      specValue: '',
+    }))
+  }
+
+  const removeSpecification = (index) =>
+    updateField(
+      'specificationsText',
+      toSpecificationsText(
+        currentSpecifications.filter((_, itemIndex) => itemIndex !== index)
+      )
+    )
+
+  const addOptionGroup = () => {
+    const name = drafts.optionName.trim()
+    const values = drafts.optionValues
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+
+    if (!name || values.length === 0) return
+
+    updateField(
+      'optionsText',
+      toOptionsText([
+        ...currentOptionGroups,
+        {
+          name,
+          slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+          values,
+        },
+      ])
+    )
+
+    setDrafts((current) => ({
+      ...current,
+      optionName: '',
+      optionValues: '',
+    }))
+  }
+
+  const removeOptionGroup = (index) =>
+    updateField(
+      'optionsText',
+      toOptionsText(
+        currentOptionGroups.filter((_, itemIndex) => itemIndex !== index)
+      )
+    )
+
   const openNew = () => {
+    setDrafts({
+      size: '',
+      colorName: '',
+      colorHex: '#000000',
+      zone: '',
+      specLabel: '',
+      specValue: '',
+      optionName: '',
+      optionValues: '',
+    })
     setForm({ ...emptyForm, order: items.length + 1 })
     setShowForm(true)
     setError('')
   }
 
   const openEdit = (item) => {
+    setDrafts({
+      size: '',
+      colorName: '',
+      colorHex: '#000000',
+      zone: '',
+      specLabel: '',
+      specValue: '',
+      optionName: '',
+      optionValues: '',
+    })
     setForm({
       ...emptyForm,
       id: item.id,
@@ -333,17 +491,16 @@ function ProductCustomizerManager({ productId }) {
     <section className="pcm">
       <div className="pcm-head">
         <div>
-          <span className="admin-page-eyebrow">PRODUCT BUILDER</span>
-          <h2>Customer Customization</h2>
+          <span className="admin-page-eyebrow">DESIGN VARIANTS</span>
+          <h2>Sub Products</h2>
           <p>
-            Add the compact cards customers can select and customize. Images, sizes,
-            colors and options are loaded from the database.
+            Manage the four design cards customers see for this product. Each design can have its own image, sizes, colors and customization choices.
           </p>
         </div>
 
         <button className="categories-add-button" type="button" onClick={openNew}>
           <Plus size={17} />
-          Add Customizable Item
+          Add Sub Product
         </button>
       </div>
 
@@ -394,129 +551,204 @@ function ProductCustomizerManager({ productId }) {
         <form className="pcm-editor" onSubmit={saveItem}>
           <div className="pcm-editor-head">
             <div>
-              <h3>{form.id ? 'Edit Customizable Item' : 'Add Customizable Item'}</h3>
-              <p>Everything saved here appears dynamically on the customer product builder.</p>
+              <h3>{form.id ? 'Edit Sub Product' : 'Add Sub Product'}</h3>
+              <p>Keep it simple: add the design image, available choices and what should appear in Basic or Advanced customization.</p>
             </div>
             <button type="button" className="pcm-close" onClick={closeForm} aria-label="Close">
               <X size={18} />
             </button>
           </div>
 
-          <div className="pcm-grid">
-            <label>
-              <span>Item name</span>
-              <input
-                value={form.name}
-                onChange={(event) => updateField('name', event.target.value)}
-                placeholder="Jersey / Shirt"
-                required
-              />
-            </label>
-
-            <label>
-              <span>Sort order</span>
-              <input
-                type="number"
-                min="0"
-                value={form.order}
-                onChange={(event) => updateField('order', event.target.value)}
-              />
-            </label>
-
-            <label className="pcm-wide">
-              <span>Description</span>
-              <textarea
-                value={form.description}
-                onChange={(event) => updateField('description', event.target.value)}
-                placeholder="Short customer-friendly description..."
-                required
-              />
-            </label>
-
-            <label className="pcm-wide">
-              <span>Item image {form.id ? '(optional replacement)' : ''}</span>
-              <input
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={(event) => updateField('image', event.target.files?.[0] || null)}
-              />
-              <small>If no item image is uploaded, the customer page falls back to the main product image.</small>
-              {imagePreview && <img className="pcm-preview" src={imagePreview} alt="" />}
-            </label>
-
-            <label>
-              <span>Sizes</span>
-              <textarea
-                value={form.sizesText}
-                onChange={(event) => updateField('sizesText', event.target.value)}
-                placeholder={'XS\nS\nM\nL\nXL'}
-              />
-              <small>One size per line.</small>
-            </label>
-
-            <label>
-              <span>Preset colors</span>
-              <textarea
-                value={form.colorsText}
-                onChange={(event) => updateField('colorsText', event.target.value)}
-                placeholder={'Black | #080808\nRed | #e10600'}
-              />
-              <small>One per line: Color name | #hex.</small>
-            </label>
-
-            <label>
-              <span>Color zones</span>
-              <textarea
-                value={form.colorZonesText}
-                onChange={(event) => updateField('colorZonesText', event.target.value)}
-                placeholder={'Primary Color\nSecondary Color\nTrim / Accent Color'}
-              />
-              <small>One customizable color area per line.</small>
-            </label>
-
-            <label className="pcm-wide">
-              <span>Product specifications</span>
-              <textarea
-                value={form.specificationsText}
-                onChange={(event) => updateField('specificationsText', event.target.value)}
-                placeholder={'Uniform Type | Pro Match Kit\nFabric | Micro Mesh Dry Fit\nFit | Athletic Fit'}
-              />
-              <small>One specification per line: Label | Value.</small>
-            </label>
-
-            <label className="pcm-wide">
-              <span>Option groups</span>
-              <textarea
-                value={form.optionsText}
-                onChange={(event) => updateField('optionsText', event.target.value)}
-                placeholder={'Sleeve Style: Short Sleeve, Long Sleeve\nCollar: V Neck, Round Neck'}
-              />
-              <small>One group per line: Group name: option 1, option 2.</small>
-            </label>
-
-            <div className="pcm-subsection pcm-wide">
-              <strong>Customer form setup</strong>
-              <small>
-                Choose what customers see first and which fields are required. Customer selections start blank.
-              </small>
-            </div>
-
-            <div className="pcm-wide pcm-behavior-card">
-              <div className="pcm-behavior-head">
+          <div className="pcm-editor-sections">
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>1</span>
                 <div>
-                  <strong>Basic vs Advanced</strong>
-                  <small>
-                    Tick an option to show it in the main customer form. Unticked options stay under Advanced Customization.
-                  </small>
+                  <h4>Design details</h4>
+                  <p>Name, image and short description shown to customers.</p>
                 </div>
               </div>
 
-              {currentOptionGroups.length === 0 ? (
-                <div className="pcm-behavior-empty">No option groups available yet.</div>
-              ) : (
-                <div className="pcm-choice-list">
-                  {currentOptionGroups.map((group) => (
-                    <label key={group.slug}>
+              <div className="pcm-grid">
+                <label>
+                  <span>Design name</span>
+                  <input
+                    value={form.name}
+                    onChange={(event) => updateField('name', event.target.value)}
+                    placeholder="American Football Uniform 1"
+                    required
+                  />
+                </label>
+
+                <label>
+                  <span>Display order</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.order}
+                    onChange={(event) => updateField('order', event.target.value)}
+                  />
+                </label>
+
+                <label className="pcm-wide">
+                  <span>Description</span>
+                  <textarea
+                    value={form.description}
+                    onChange={(event) => updateField('description', event.target.value)}
+                    placeholder="Short customer-friendly description..."
+                    required
+                  />
+                </label>
+
+                <label className="pcm-wide">
+                  <span>Design image {form.id ? '(upload only to replace)' : ''}</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(event) => updateField('image', event.target.files?.[0] || null)}
+                  />
+                  <small>If no image is uploaded, the main product image is used.</small>
+                  {imagePreview && <img className="pcm-preview" src={imagePreview} alt="" />}
+                </label>
+              </div>
+            </section>
+
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>2</span>
+                <div>
+                  <h4>Sizes</h4>
+                  <p>Add only the sizes customers can order for this design.</p>
+                </div>
+              </div>
+
+              <div className="pcm-inline-add">
+                <input
+                  value={drafts.size}
+                  onChange={(event) => updateDraft('size', event.target.value)}
+                  placeholder="e.g. XL"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      addSize()
+                    }
+                  }}
+                />
+                <button type="button" onClick={addSize}><Plus size={15} /> Add size</button>
+              </div>
+
+              <div className="pcm-chip-list">
+                {currentSizes.map((size, index) => (
+                  <span className="pcm-chip" key={`${size}-${index}`}>
+                    {size}
+                    <button type="button" onClick={() => removeSize(index)} aria-label={`Remove ${size}`}><X size={12} /></button>
+                  </span>
+                ))}
+                {currentSizes.length === 0 && <small>No sizes added yet.</small>}
+              </div>
+            </section>
+
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>3</span>
+                <div>
+                  <h4>Colors</h4>
+                  <p>Set the preset color swatches and the garment areas customers can color.</p>
+                </div>
+              </div>
+
+              <div className="pcm-subgroup">
+                <strong>Available color swatches</strong>
+                <div className="pcm-color-add">
+                  <input
+                    value={drafts.colorName}
+                    onChange={(event) => updateDraft('colorName', event.target.value)}
+                    placeholder="Color name"
+                  />
+                  <input
+                    type="color"
+                    value={drafts.colorHex}
+                    onChange={(event) => updateDraft('colorHex', event.target.value)}
+                  />
+                  <input
+                    value={drafts.colorHex}
+                    onChange={(event) => updateDraft('colorHex', event.target.value)}
+                    placeholder="#000000"
+                  />
+                  <button type="button" onClick={addColor}><Plus size={15} /> Add color</button>
+                </div>
+
+                <div className="pcm-color-list">
+                  {currentColors.map((color, index) => (
+                    <div className="pcm-color-item" key={`${color.name}-${index}`}>
+                      <i style={{ background: color.value }} />
+                      <span>{color.name}</span>
+                      <small>{color.value}</small>
+                      <button type="button" onClick={() => removeColor(index)}><Trash2 size={14} /></button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pcm-subgroup">
+                <strong>Color areas</strong>
+                <small>Example: Jersey Main Color, Pants Main Color, Trim / Accent Color.</small>
+                <div className="pcm-inline-add">
+                  <input
+                    value={drafts.zone}
+                    onChange={(event) => updateDraft('zone', event.target.value)}
+                    placeholder="Color area name"
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        addZone()
+                      }
+                    }}
+                  />
+                  <button type="button" onClick={addZone}><Plus size={15} /> Add area</button>
+                </div>
+                <div className="pcm-chip-list">
+                  {currentColorZones.map((zone, index) => (
+                    <span className="pcm-chip" key={`${zone}-${index}`}>
+                      {zone}
+                      <button type="button" onClick={() => removeZone(index)}><X size={12} /></button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>4</span>
+                <div>
+                  <h4>Customization options</h4>
+                  <p>Create customer choices such as fit, sleeve, fabric or decoration.</p>
+                </div>
+              </div>
+
+              <div className="pcm-option-add">
+                <input
+                  value={drafts.optionName}
+                  onChange={(event) => updateDraft('optionName', event.target.value)}
+                  placeholder="Option name, e.g. Jersey Fit"
+                />
+                <input
+                  value={drafts.optionValues}
+                  onChange={(event) => updateDraft('optionValues', event.target.value)}
+                  placeholder="Choices separated by commas, e.g. Regular, Athletic, Slim"
+                />
+                <button type="button" onClick={addOptionGroup}><Plus size={15} /> Add option</button>
+              </div>
+
+              <div className="pcm-option-list">
+                {currentOptionGroups.map((group, index) => (
+                  <div className="pcm-option-row" key={group.slug}>
+                    <div>
+                      <strong>{group.name}</strong>
+                      <span>{group.values.join(' • ')}</span>
+                    </div>
+                    <label className="pcm-basic-toggle">
                       <input
                         type="checkbox"
                         checked={currentBasicSlugs.has(group.slug)}
@@ -531,25 +763,21 @@ function ProductCustomizerManager({ productId }) {
                           )
                         }
                       />
-                      <span>
-                        <strong>{group.name}</strong>
-                        <small>
-                          {currentBasicSlugs.has(group.slug)
-                            ? 'Shown in Basic'
-                            : 'Shown in Advanced'}
-                        </small>
-                      </span>
+                      <span>{currentBasicSlugs.has(group.slug) ? 'Basic' : 'Advanced'}</span>
                     </label>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <button type="button" className="pcm-icon-delete" onClick={() => removeOptionGroup(index)}><Trash2 size={15} /></button>
+                  </div>
+                ))}
+                {currentOptionGroups.length === 0 && <div className="pcm-behavior-empty">No customization options added yet.</div>}
+              </div>
+            </section>
 
-            <div className="pcm-wide pcm-behavior-card">
-              <div className="pcm-behavior-head">
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>5</span>
                 <div>
-                  <strong>Required customer fields</strong>
-                  <small>Customers cannot add the item to cart until checked fields are completed.</small>
+                  <h4>Customer requirements</h4>
+                  <p>Choose what must be completed before the design can be added to cart.</p>
                 </div>
               </div>
 
@@ -570,84 +798,63 @@ function ProductCustomizerManager({ productId }) {
                         )
                       }
                     />
-                    <span>
-                      <strong>{label}</strong>
-                    </span>
+                    <span><strong>{label}</strong></span>
                   </label>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="pcm-wide pcm-behavior-card">
-              <div className="pcm-behavior-head">
+            <section className="pcm-form-section">
+              <div className="pcm-section-title">
+                <span>6</span>
                 <div>
-                  <strong>Original design colors</strong>
-                  <small>
-                    Optional reference colors used only when the customer actively chooses “Use Original Design Colors”.
-                  </small>
+                  <h4>Product information</h4>
+                  <p>Optional details used in the product information area.</p>
                 </div>
               </div>
 
-              <div className="pcm-preset-color-grid">
-                {currentColorZones.length === 0 ? (
-                  <div className="pcm-behavior-empty">
-                    Add color zones above first.
-                  </div>
-                ) : (
-                  currentColorZones.map((zone) => (
-                    <label key={zone}>
-                      <span>{zone}</span>
-                      <div className="pcm-color-control">
-                        <input
-                          type="color"
-                          value={currentPresetColors[zone] || '#ffffff'}
-                          onChange={(event) =>
-                            updateField(
-                              'presetColorsText',
-                              setKeyValueText(
-                                form.presetColorsText,
-                                zone,
-                                event.target.value
-                              )
-                            )
-                          }
-                        />
-                        <input
-                          type="text"
-                          value={currentPresetColors[zone] || ''}
-                          placeholder="#RRGGBB"
-                          maxLength="7"
-                          onChange={(event) =>
-                            updateField(
-                              'presetColorsText',
-                              setKeyValueText(
-                                form.presetColorsText,
-                                zone,
-                                event.target.value
-                              )
-                            )
-                          }
-                        />
-                      </div>
-                    </label>
-                  ))
-                )}
-
-                <small className="pcm-color-note">
-                  Leave blank to let the storefront detect original colors from the item image when the customer chooses that option.
-                </small>
+              <div className="pcm-spec-add">
+                <input
+                  value={drafts.specLabel}
+                  onChange={(event) => updateDraft('specLabel', event.target.value)}
+                  placeholder="Label, e.g. Set Includes"
+                />
+                <input
+                  value={drafts.specValue}
+                  onChange={(event) => updateDraft('specValue', event.target.value)}
+                  placeholder="Value, e.g. Jersey and pants"
+                />
+                <button type="button" onClick={addSpecification}><Plus size={15} /> Add detail</button>
               </div>
-            </div>
+
+              <div className="pcm-spec-list">
+                {currentSpecifications.map((spec, index) => (
+                  <div className="pcm-spec-row" key={`${spec.label}-${index}`}>
+                    <strong>{spec.label}</strong>
+                    <span>{spec.value}</span>
+                    <button type="button" onClick={() => removeSpecification(index)}><Trash2 size={14} /></button>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
 
-          <div className="pcm-checks">
+          <div className="pcm-feature-section">
+            <div className="pcm-section-title">
+              <span>7</span>
+              <div>
+                <h4>Extra customer features</h4>
+                <p>Turn optional inputs on or off for this design.</p>
+              </div>
+            </div>
+            <div className="pcm-checks">
             {[
-              ['allowCustomColor', 'Allow any custom color'],
-              ['allowLogoUpload', 'Allow team logo upload'],
-              ['allowPlayerName', 'Allow player name'],
-              ['allowPlayerNumber', 'Allow player number'],
-              ['allowCustomNotes', 'Allow custom instructions'],
-              ['active', 'Show this item to customers'],
+              ['allowCustomColor', 'Custom color picker'],
+              ['allowLogoUpload', 'Team logo upload'],
+              ['allowPlayerName', 'Player name'],
+              ['allowPlayerNumber', 'Player number'],
+              ['allowCustomNotes', 'Custom instructions'],
+              ['active', 'Visible to customers'],
             ].map(([field, label]) => (
               <label key={field}>
                 <input
@@ -658,6 +865,7 @@ function ProductCustomizerManager({ productId }) {
                 <span>{label}</span>
               </label>
             ))}
+            </div>
           </div>
 
           <div className="pcm-editor-actions">
