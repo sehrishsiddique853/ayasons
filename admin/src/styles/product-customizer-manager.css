@@ -186,3 +186,34 @@
   .pcm-grid { grid-template-columns: 1fr; }
   .pcm-wide { grid-column: auto; }
 }
+
+
+.pcm-grid select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--admin-text);
+  font: inherit;
+}
+
+.pcm-subsection {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 14px 0 2px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.pcm-subsection strong {
+  color: var(--admin-text);
+  font-size: 13px;
+}
+
+.pcm-subsection small {
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 400;
+}
