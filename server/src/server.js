@@ -9,6 +9,7 @@ import { ensureProductCustomizerSchema } from './config/productCustomizerSchema.
 import { ensureGlovesCategory } from './config/glovesCatalog.js'
 import { ensureSportsCustomizers } from './config/sportsCustomizers.js'
 import { ensureStreetwearCustomizers } from './config/streetwearCustomizers.js'
+import { ensureActivewearCustomizers } from './config/activewearCustomizers.js'
 
 
 const PORT =
@@ -28,6 +29,7 @@ const startServer = async () => {
     await ensureGlovesCategory()
     await ensureSportsCustomizers()
     await ensureStreetwearCustomizers()
+    await ensureActivewearCustomizers()
 
 
     /*
