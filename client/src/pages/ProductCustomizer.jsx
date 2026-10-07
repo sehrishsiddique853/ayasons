@@ -410,9 +410,9 @@ function ProductCustomizer() {
     activeItem ? configuration[activeItem.id] : null
 
   const isDesignCollection =
-    (product?.items || []).length === 4 &&
+    (product?.items || []).length >= 3 &&
     (product?.items || []).every((item) =>
-      /-([1-4])$/.test(item.slug || '')
+      /-\d+$/.test(item.slug || '')
     )
 
   const updateItem = (itemId, key, value) => {
