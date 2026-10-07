@@ -22,12 +22,13 @@ const BASIC_OPTION_SLUGS = new Set([
   'sleeve-style',
   'fit',
   'surface',
-  'sock-length',
   'shell-type',
   'jersey-sleeve',
   'jersey-fit',
+  'neck-style',
   'shorts-size',
-  'sock-size',
+  'shorts-style',
+  'shorts-waist',
 ])
 
 const firstColorValue = (item) => {
@@ -346,12 +347,35 @@ function ProductCustomizer() {
       : ['Primary Color']
 
   const basicColorZone = colorZones[0]
-  const advancedColorZones = colorZones.slice(1)
+
+  const advancedColorZones =
+    productSlug === 'soccer-uniform'
+      ? colorZones.filter(
+          (zone) =>
+            zone !== 'Jersey Main Color' &&
+            zone !== 'Shorts Main Color'
+        )
+      : colorZones.slice(1)
 
   const basicOptionGroups =
     (activeItem.optionGroups || []).filter((group) =>
       BASIC_OPTION_SLUGS.has(group.slug)
     )
+
+  const findOptionGroup = (slug) =>
+    basicOptionGroups.find((group) => group.slug === slug)
+
+  const soccerJerseyGroups = [
+    findOptionGroup('jersey-sleeve'),
+    findOptionGroup('jersey-fit'),
+    findOptionGroup('neck-style'),
+  ].filter(Boolean)
+
+  const soccerShortsGroups = [
+    findOptionGroup('shorts-size'),
+    findOptionGroup('shorts-style'),
+    findOptionGroup('shorts-waist'),
+  ].filter(Boolean)
 
   const advancedOptionGroups =
     (activeItem.optionGroups || []).filter(
@@ -446,7 +470,7 @@ function ProductCustomizer() {
                   <h2>{activeItem.name}</h2>
                   <p>
                     {productSlug === 'soccer-uniform'
-                      ? 'Personalize this complete soccer uniform, including jersey, shorts and socks.'
+                      ? 'Customize the soccer jersey and shorts as a coordinated team uniform.'
                       : 'Choose your basic options, or customize further below.'}
                   </p>
                 </div>
@@ -455,72 +479,181 @@ function ProductCustomizer() {
               </div>
 
               <div className="ecom-basic-customization">
+                {productSlug === 'soccer-uniform' ? (
+                  <>
+                    <div className="soccer-garment-grid">
+                      <section className="soccer-garment-card">
+                        <div className="soccer-garment-heading">
+                          <span>01</span>
+                          <div>
+                            <h3>Soccer Jersey / Shirt</h3>
+                            <p>Choose the shirt size, main color, sleeve, fit and neck style.</p>
+                          </div>
+                        </div>
 
-                {(activeItem.sizes || []).length > 0 && (
-                  <div className="ecom-option-block">
-                    <div className="ecom-option-label">
-                      <span>{productSlug === 'soccer-uniform' ? 'Jersey Size' : 'Size'}</span>
-                      <strong>
-                        {activeSelection.size || 'Select a size'}
-                      </strong>
+                        {(activeItem.sizes || []).length > 0 && (
+                          <div className="ecom-option-block">
+                            <div className="ecom-option-label">
+                              <span>Jersey Size</span>
+                              <strong>
+                                {activeSelection.size || 'Select a size'}
+                              </strong>
+                            </div>
+
+                            <div className="customizer-size-grid">
+                              {activeItem.sizes.map((size) => (
+                                <button
+                                  type="button"
+                                  key={size}
+                                  className={
+                                    activeSelection.size === size
+                                      ? 'active'
+                                      : ''
+                                  }
+                                  onClick={() =>
+                                    updateItem(activeItem.id, 'size', size)
+                                  }
+                                >
+                                  {size}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="ecom-option-block">
+                          <ColorPicker
+                            label="Jersey Main Color"
+                            colors={activeItem.colors || []}
+                            value={
+                              activeSelection.colorSelections?.['Jersey Main Color'] ||
+                              activeSelection.color
+                            }
+                            allowCustomColor={activeItem.allowCustomColor}
+                            onChange={(color) =>
+                              updateColorZone('Jersey Main Color', color)
+                            }
+                          />
+                        </div>
+
+                        {soccerJerseyGroups.map((group) => (
+                          <OptionGroup
+                            key={group.slug}
+                            group={group}
+                            selection={activeSelection}
+                            onChange={(options) =>
+                              updateItem(activeItem.id, 'options', options)
+                            }
+                          />
+                        ))}
+                      </section>
+
+                      <section className="soccer-garment-card">
+                        <div className="soccer-garment-heading">
+                          <span>02</span>
+                          <div>
+                            <h3>Soccer Shorts</h3>
+                            <p>Choose shorts size, color, fit and waistband style.</p>
+                          </div>
+                        </div>
+
+                        <div className="ecom-option-block">
+                          <ColorPicker
+                            label="Shorts Main Color"
+                            colors={activeItem.colors || []}
+                            value={
+                              activeSelection.colorSelections?.['Shorts Main Color'] ||
+                              activeSelection.color
+                            }
+                            allowCustomColor={activeItem.allowCustomColor}
+                            onChange={(color) =>
+                              updateColorZone('Shorts Main Color', color)
+                            }
+                          />
+                        </div>
+
+                        {soccerShortsGroups.map((group) => (
+                          <OptionGroup
+                            key={group.slug}
+                            group={group}
+                            selection={activeSelection}
+                            onChange={(options) =>
+                              updateItem(activeItem.id, 'options', options)
+                            }
+                          />
+                        ))}
+                      </section>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {(activeItem.sizes || []).length > 0 && (
+                      <div className="ecom-option-block">
+                        <div className="ecom-option-label">
+                          <span>Size</span>
+                          <strong>
+                            {activeSelection.size || 'Select a size'}
+                          </strong>
+                        </div>
+
+                        <div className="customizer-size-grid">
+                          {activeItem.sizes.map((size) => (
+                            <button
+                              type="button"
+                              key={size}
+                              className={
+                                activeSelection.size === size
+                                  ? 'active'
+                                  : ''
+                              }
+                              onClick={() =>
+                                updateItem(activeItem.id, 'size', size)
+                              }
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="ecom-option-block">
+                      <ColorPicker
+                        label={basicColorZone}
+                        colors={activeItem.colors || []}
+                        value={
+                          activeSelection.colorSelections?.[basicColorZone] ||
+                          activeSelection.color
+                        }
+                        allowCustomColor={activeItem.allowCustomColor}
+                        onChange={(color) =>
+                          updateColorZone(basicColorZone, color)
+                        }
+                      />
                     </div>
 
-                    <div className="customizer-size-grid">
-                      {activeItem.sizes.map((size) => (
-                        <button
-                          type="button"
-                          key={size}
-                          className={
-                            activeSelection.size === size
-                              ? 'active'
-                              : ''
-                          }
-                          onClick={() =>
-                            updateItem(activeItem.id, 'size', size)
-                          }
-                        >
-                          {size}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                    {basicOptionGroups.map((group) => (
+                      <OptionGroup
+                        key={group.slug || group.name}
+                        group={group}
+                        selection={activeSelection}
+                        onChange={(options) =>
+                          updateItem(activeItem.id, 'options', options)
+                        }
+                      />
+                    ))}
+                  </>
                 )}
-
-                <div className="ecom-option-block">
-                  <ColorPicker
-                    label={basicColorZone}
-                    colors={activeItem.colors || []}
-                    value={
-                      activeSelection.colorSelections?.[basicColorZone] ||
-                      activeSelection.color
-                    }
-                    allowCustomColor={activeItem.allowCustomColor}
-                    onChange={(color) =>
-                      updateColorZone(basicColorZone, color)
-                    }
-                  />
-                </div>
-
-                {basicOptionGroups.map((group) => (
-                  <OptionGroup
-                    key={group.slug || group.name}
-                    group={group}
-                    selection={activeSelection}
-                    onChange={(options) =>
-                      updateItem(activeItem.id, 'options', options)
-                    }
-                  />
-                ))}
 
                 {(activeItem.allowPlayerName ||
                   activeItem.allowPlayerNumber) && (
                   <div className="ecom-personalize-box">
-                    <h3>Personalization</h3>
+                    <h3>Player Details</h3>
 
                     <div className="ecom-personalize-grid">
                       {activeItem.allowPlayerName && (
                         <label>
-                          <span>Name on item</span>
+                          <span>Name on Jersey</span>
                           <input
                             type="text"
                             value={activeSelection.playerName}
@@ -531,7 +664,7 @@ function ProductCustomizer() {
                                 event.target.value
                               )
                             }
-                            placeholder="Enter name"
+                            placeholder="Player name"
                             maxLength={30}
                           />
                         </label>
@@ -539,7 +672,7 @@ function ProductCustomizer() {
 
                       {activeItem.allowPlayerNumber && (
                         <label>
-                          <span>Number</span>
+                          <span>Jersey Number</span>
                           <input
                             type="text"
                             value={activeSelection.playerNumber}
@@ -550,7 +683,7 @@ function ProductCustomizer() {
                                 event.target.value
                               )
                             }
-                            placeholder="00"
+                            placeholder="10"
                             maxLength={3}
                           />
                         </label>
@@ -561,7 +694,7 @@ function ProductCustomizer() {
 
                 <div className="ecom-basic-quantity">
                   <div className="ecom-quantity-wrap">
-                    <span>Quantity</span>
+                    <span>Order Quantity</span>
 
                     <QuantitySelector
                       value={activeSelection.quantity}
@@ -607,12 +740,12 @@ function ProductCustomizer() {
                     <div className="ecom-advanced-panel">
                       <div className="ecom-advanced-intro">
                         <strong>
-                          Detailed manufacturing options
+                          Advanced Teamwear Options
                         </strong>
 
                         <p>
-                          Optional. Configure additional colors, materials,
-                          construction, branding and special requirements.
+                          Optional details for fabric, trim, branding, crest placement,
+                          printing, stitching and packaging.
                         </p>
                       </div>
 
