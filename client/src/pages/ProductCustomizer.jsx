@@ -897,8 +897,7 @@ function ProductCustomizer() {
                 <strong>{activeItem.name}</strong>
               </div>
 
-              {isDesignCollection && (
-                <div className="soccer-product-proof">
+                              <div className="soccer-product-proof">
                   <div className="soccer-proof-grid">
                     <div className="soccer-proof-item">
                       <strong>Custom Design</strong>
@@ -946,7 +945,7 @@ function ProductCustomizer() {
                     </ul>
                   </section>
                 </div>
-              )}
+
             </div>
 
             <div className="ecom-product-options">
