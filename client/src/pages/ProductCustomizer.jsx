@@ -24,13 +24,44 @@ const BASIC_OPTION_SLUGS = new Set([
   'fit',
   'surface',
   'shell-type',
-  'jersey-sleeve',
-  'jersey-fit',
-  'neck-style',
-  'shorts-size',
-  'shorts-style',
-  'shorts-waist',
 ])
+
+const SOCCER_STANDARD_DEFAULTS = {
+  'jersey-sleeve': 'Short Sleeve',
+  'jersey-fit': 'Athletic',
+  'neck-style': 'V Neck',
+  'shorts-style': 'Regular Fit',
+  'shorts-waist': 'Elastic + Drawcord',
+  fabric: 'Dry Fit',
+  'fabric-pattern': 'Solid',
+  'material-finish': 'Matte',
+  'branding-method': 'Sublimation',
+  'team-crest-position': 'Left Chest',
+  'sponsor-placement': 'None',
+  'number-style': 'Classic',
+  'trim-style': 'Plain',
+  stitching: 'Flatlock',
+  packaging: 'Bulk Packed',
+}
+
+const soccerDefaultOptions = (item) =>
+  (item.optionGroups || []).reduce((result, group) => {
+    const desired = SOCCER_STANDARD_DEFAULTS[group.slug]
+
+    if (!desired) return result
+
+    const match = optionValues(group).find(
+      (option) =>
+        String(option.value).toLowerCase() ===
+        String(desired).toLowerCase()
+    )
+
+    if (match) {
+      result[group.slug] = match.value
+    }
+
+    return result
+  }, {})
 
 const firstColorValue = (item) => {
   const firstColor = item.colors?.[0]
@@ -64,7 +95,9 @@ const createInitialState = (items) =>
       logoName: '',
       logoFile: null,
       notes: '',
-      options: {},
+      options: /^soccer-uniform-[1-4]$/.test(item.slug || '')
+        ? soccerDefaultOptions(item)
+        : {},
     }
 
     return result
@@ -251,6 +284,43 @@ function ProductCustomizer() {
     setMessage('')
   }
 
+  const updateSoccerKitSize = (size) => {
+    if (!activeItem) return
+
+    setConfiguration((current) => ({
+      ...current,
+      [activeItem.id]: {
+        ...current[activeItem.id],
+        size,
+        options: {
+          ...(current[activeItem.id].options || {}),
+          'shorts-size': size,
+        },
+      },
+    }))
+
+    setMessage('')
+  }
+
+  const updateSoccerKitColor = (color) => {
+    if (!activeItem) return
+
+    setConfiguration((current) => ({
+      ...current,
+      [activeItem.id]: {
+        ...current[activeItem.id],
+        color,
+        colorSelections: {
+          ...(current[activeItem.id].colorSelections || {}),
+          'Jersey Main Color': color,
+          'Shorts Main Color': color,
+        },
+      },
+    }))
+
+    setMessage('')
+  }
+
   const handleLogo = (event) => {
     const file = event.target.files?.[0]
 
@@ -363,25 +433,12 @@ function ProductCustomizer() {
       BASIC_OPTION_SLUGS.has(group.slug)
     )
 
-  const findOptionGroup = (slug) =>
-    basicOptionGroups.find((group) => group.slug === slug)
-
-  const soccerJerseyGroups = [
-    findOptionGroup('jersey-sleeve'),
-    findOptionGroup('jersey-fit'),
-    findOptionGroup('neck-style'),
-  ].filter(Boolean)
-
-  const soccerShortsGroups = [
-    findOptionGroup('shorts-size'),
-    findOptionGroup('shorts-style'),
-    findOptionGroup('shorts-waist'),
-  ].filter(Boolean)
-
   const advancedOptionGroups =
-    (activeItem.optionGroups || []).filter(
-      (group) => !BASIC_OPTION_SLUGS.has(group.slug)
-    )
+    productSlug === 'soccer-uniform'
+      ? (activeItem.optionGroups || [])
+      : (activeItem.optionGroups || []).filter(
+          (group) => !BASIC_OPTION_SLUGS.has(group.slug)
+        )
 
   const hasAdvancedOptions =
     advancedColorZones.length > 0 ||
@@ -536,112 +593,56 @@ function ProductCustomizer() {
 
               <div className="ecom-basic-customization">
                 {productSlug === 'soccer-uniform' ? (
-                  <>
-                    <div className="soccer-garment-grid">
-                      <section className="soccer-garment-card">
-                        <div className="soccer-garment-heading">
-                          <span>01</span>
-                          <div>
-                            <h3>Soccer Jersey / Shirt</h3>
-                            <p>Choose the shirt size, main color, sleeve, fit and neck style.</p>
-                          </div>
+                  <div className="soccer-basic-form">
+                    {(activeItem.sizes || []).length > 0 && (
+                      <div className="ecom-option-block">
+                        <div className="ecom-option-label">
+                          <span>Kit Size</span>
+                          <strong>
+                            {activeSelection.size || 'Select size'}
+                          </strong>
                         </div>
 
-                        {(activeItem.sizes || []).length > 0 && (
-                          <div className="ecom-option-block">
-                            <div className="ecom-option-label">
-                              <span>Jersey Size</span>
-                              <strong>
-                                {activeSelection.size || 'Select a size'}
-                              </strong>
-                            </div>
-
-                            <div className="customizer-size-grid">
-                              {activeItem.sizes.map((size) => (
-                                <button
-                                  type="button"
-                                  key={size}
-                                  className={
-                                    activeSelection.size === size
-                                      ? 'active'
-                                      : ''
-                                  }
-                                  onClick={() =>
-                                    updateItem(activeItem.id, 'size', size)
-                                  }
-                                >
-                                  {size}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="ecom-option-block">
-                          <ColorPicker
-                            label="Jersey Main Color"
-                            colors={activeItem.colors || []}
-                            value={
-                              activeSelection.colorSelections?.['Jersey Main Color'] ||
-                              activeSelection.color
-                            }
-                            allowCustomColor={activeItem.allowCustomColor}
-                            onChange={(color) =>
-                              updateColorZone('Jersey Main Color', color)
-                            }
-                          />
+                        <div className="customizer-size-grid">
+                          {activeItem.sizes.map((size) => (
+                            <button
+                              type="button"
+                              key={size}
+                              className={
+                                activeSelection.size === size
+                                  ? 'active'
+                                  : ''
+                              }
+                              onClick={() => updateSoccerKitSize(size)}
+                            >
+                              {size}
+                            </button>
+                          ))}
                         </div>
 
-                        {soccerJerseyGroups.map((group) => (
-                          <OptionGroup
-                            key={group.slug}
-                            group={group}
-                            selection={activeSelection}
-                            onChange={(options) =>
-                              updateItem(activeItem.id, 'options', options)
-                            }
-                          />
-                        ))}
-                      </section>
+                        <small className="soccer-basic-help">
+                          Jersey and shorts use the same size by default. You can set a different shorts size in Advanced Customization.
+                        </small>
+                      </div>
+                    )}
 
-                      <section className="soccer-garment-card">
-                        <div className="soccer-garment-heading">
-                          <span>02</span>
-                          <div>
-                            <h3>Soccer Shorts</h3>
-                            <p>Choose shorts size, color, fit and waistband style.</p>
-                          </div>
-                        </div>
+                    <div className="ecom-option-block">
+                      <ColorPicker
+                        label="Main Kit Color"
+                        colors={activeItem.colors || []}
+                        value={
+                          activeSelection.colorSelections?.['Jersey Main Color'] ||
+                          activeSelection.color
+                        }
+                        allowCustomColor={activeItem.allowCustomColor}
+                        onChange={updateSoccerKitColor}
+                      />
 
-                        <div className="ecom-option-block">
-                          <ColorPicker
-                            label="Shorts Main Color"
-                            colors={activeItem.colors || []}
-                            value={
-                              activeSelection.colorSelections?.['Shorts Main Color'] ||
-                              activeSelection.color
-                            }
-                            allowCustomColor={activeItem.allowCustomColor}
-                            onChange={(color) =>
-                              updateColorZone('Shorts Main Color', color)
-                            }
-                          />
-                        </div>
-
-                        {soccerShortsGroups.map((group) => (
-                          <OptionGroup
-                            key={group.slug}
-                            group={group}
-                            selection={activeSelection}
-                            onChange={(options) =>
-                              updateItem(activeItem.id, 'options', options)
-                            }
-                          />
-                        ))}
-                      </section>
+                      <small className="soccer-basic-help">
+                        This applies the same main color to the jersey and shorts. Separate colors are available in Advanced Customization.
+                      </small>
                     </div>
-                  </>
-                ) : (
+                  </div>                ) : (
                   <>
                     {(activeItem.sizes || []).length > 0 && (
                       <div className="ecom-option-block">
@@ -782,7 +783,7 @@ function ProductCustomizer() {
                       <span>
                         <strong>Advanced Customization</strong>
                         <small>
-                          For customers who want full manufacturing control
+                          Optional — standard soccer settings are already selected
                         </small>
                       </span>
                     </div>
