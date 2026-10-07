@@ -497,7 +497,7 @@ function ProductCustomizerManager({ productId }) {
             <div className="pcm-subsection pcm-wide">
               <strong>Customer form setup</strong>
               <small>
-                Choose what customers see first, what is preselected, and which fields are required.
+                Choose what customers see first and which fields are required. Customer selections start blank.
               </small>
             </div>
 
@@ -637,7 +637,6 @@ function ProductCustomizerManager({ productId }) {
                   Leave blank to let the storefront detect original colors from the item image when the customer chooses that option.
                 </small>
               </div>
-            </div>
             </div>
           </div>
 
