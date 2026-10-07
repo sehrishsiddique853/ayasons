@@ -29,6 +29,7 @@ const normalizeItems = (items) => {
       itemName: String(item.itemName || '').trim(),
       size: String(item.size || '').trim(),
       color: String(item.color || '').trim(),
+      colorMode: String(item.colorMode || '').trim(),
       colorSelections:
         item.colorSelections && typeof item.colorSelections === 'object'
           ? item.colorSelections
@@ -56,7 +57,20 @@ const detailsRowsHtml = (item) => {
   if (item.size) rows.push(['Size', item.size])
   rows.push(['Quantity', item.quantity])
 
+  if (item.colorMode) {
+    rows.push([
+      'Color Setup',
+      item.colorMode === 'preset'
+        ? 'Original Design Colors'
+        : item.colorMode === 'custom-preset'
+          ? 'Original Colors + Custom Changes'
+          : 'Custom Main Color',
+    ])
+  }
+
   const zoneEntries = Object.entries(item.colorSelections || {})
+    .filter(([, value]) => Boolean(value))
+
   if (zoneEntries.length) {
     zoneEntries.forEach(([zone, value]) => {
       rows.push([zone, value])
@@ -108,7 +122,21 @@ const itemText = (item, index) => {
   if (item.size) lines.push(`Size: ${item.size}`)
   lines.push(`Quantity: ${item.quantity}`)
 
+  if (item.colorMode) {
+    lines.push(
+      `Color Setup: ${
+        item.colorMode === 'preset'
+          ? 'Original Design Colors'
+          : item.colorMode === 'custom-preset'
+            ? 'Original Colors + Custom Changes'
+            : 'Custom Main Color'
+      }`
+    )
+  }
+
   const zoneEntries = Object.entries(item.colorSelections || {})
+    .filter(([, value]) => Boolean(value))
+
   if (zoneEntries.length) {
     zoneEntries.forEach(([zone, value]) => lines.push(`${zone}: ${value}`))
   } else if (item.color) {
