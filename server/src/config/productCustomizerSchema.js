@@ -10,7 +10,45 @@ const defaultItems = [
     "name": "Soccer Uniform 1",
     "slug": "soccer-uniform-1",
     "description": "Complete soccer kit design 1, matching jersey, shorts and socks with personalized team colors and branding.",
-    "sizes": [
+
+    "specifications": [
+      {
+        "label": "Uniform Type",
+        "value": "Pro Match Kit"
+      },
+      {
+        "label": "Best For",
+        "value": "Competitive matches"
+      },
+      {
+        "label": "Jersey Fabric",
+        "value": "Micro Mesh Dry Fit"
+      },
+      {
+        "label": "Jersey Fit",
+        "value": "Athletic Fit"
+      },
+      {
+        "label": "Sleeve",
+        "value": "Short Sleeve"
+      },
+      {
+        "label": "Neck",
+        "value": "V Neck"
+      },
+      {
+        "label": "Shorts",
+        "value": "Lightweight Match Shorts"
+      },
+      {
+        "label": "Decoration",
+        "value": "Full Sublimation"
+      },
+      {
+        "label": "Construction",
+        "value": "Flatlock seams"
+      }
+    ],    "sizes": [
       "XS",
       "S",
       "M",
@@ -215,7 +253,45 @@ const defaultItems = [
     "name": "Soccer Uniform 2",
     "slug": "soccer-uniform-2",
     "description": "Complete soccer kit design 2, coordinated jersey, shorts and socks with custom panels, number and crest.",
-    "sizes": [
+
+    "specifications": [
+      {
+        "label": "Uniform Type",
+        "value": "Classic Club Kit"
+      },
+      {
+        "label": "Best For",
+        "value": "Clubs, academies and schools"
+      },
+      {
+        "label": "Jersey Fabric",
+        "value": "Polyester Interlock"
+      },
+      {
+        "label": "Jersey Fit",
+        "value": "Regular Fit"
+      },
+      {
+        "label": "Sleeve",
+        "value": "Short Sleeve"
+      },
+      {
+        "label": "Neck",
+        "value": "Crew Neck"
+      },
+      {
+        "label": "Shorts",
+        "value": "Regular Club Shorts"
+      },
+      {
+        "label": "Decoration",
+        "value": "Sublimation or embroidery"
+      },
+      {
+        "label": "Construction",
+        "value": "Reinforced seams"
+      }
+    ],    "sizes": [
       "XS",
       "S",
       "M",
@@ -420,7 +496,45 @@ const defaultItems = [
     "name": "Soccer Uniform 3",
     "slug": "soccer-uniform-3",
     "description": "Complete soccer kit design 3, performance jersey, shorts and socks with personalized graphics and fit.",
-    "sizes": [
+
+    "specifications": [
+      {
+        "label": "Uniform Type",
+        "value": "Elite Performance Kit"
+      },
+      {
+        "label": "Best For",
+        "value": "High-intensity training and match play"
+      },
+      {
+        "label": "Jersey Fabric",
+        "value": "Bird Eye Mesh"
+      },
+      {
+        "label": "Jersey Fit",
+        "value": "Slim Performance Fit"
+      },
+      {
+        "label": "Sleeve",
+        "value": "Raglan Short Sleeve"
+      },
+      {
+        "label": "Neck",
+        "value": "Performance V Neck"
+      },
+      {
+        "label": "Shorts",
+        "value": "Slim Performance Shorts"
+      },
+      {
+        "label": "Decoration",
+        "value": "Full Sublimation"
+      },
+      {
+        "label": "Construction",
+        "value": "Ventilated side panels"
+      }
+    ],    "sizes": [
       "XS",
       "S",
       "M",
@@ -625,7 +739,45 @@ const defaultItems = [
     "name": "Soccer Uniform 4",
     "slug": "soccer-uniform-4",
     "description": "Complete soccer kit design 4, coordinated match kit with customizable jersey, shorts, socks and team detailing.",
-    "sizes": [
+
+    "specifications": [
+      {
+        "label": "Uniform Type",
+        "value": "Long Sleeve Match Kit"
+      },
+      {
+        "label": "Best For",
+        "value": "Cool-weather matches and training"
+      },
+      {
+        "label": "Jersey Fabric",
+        "value": "Midweight Dry Fit Interlock"
+      },
+      {
+        "label": "Jersey Fit",
+        "value": "Regular Athletic Fit"
+      },
+      {
+        "label": "Sleeve",
+        "value": "Long Sleeve"
+      },
+      {
+        "label": "Neck",
+        "value": "Crew Neck"
+      },
+      {
+        "label": "Shorts",
+        "value": "Regular Match Shorts"
+      },
+      {
+        "label": "Decoration",
+        "value": "Sublimation or heat transfer"
+      },
+      {
+        "label": "Construction",
+        "value": "Reinforced shoulder and sleeve seams"
+      }
+    ],    "sizes": [
       "XS",
       "S",
       "M",
@@ -843,6 +995,7 @@ export const ensureProductCustomizerSchema = async () => {
       colors_json JSON NULL,
       color_zones_json JSON NULL,
       option_groups_json JSON NULL,
+      specifications_json JSON NULL,
       allow_custom_color BOOLEAN NOT NULL DEFAULT TRUE,
       allow_logo_upload BOOLEAN NOT NULL DEFAULT FALSE,
       allow_player_name BOOLEAN NOT NULL DEFAULT FALSE,
@@ -868,6 +1021,16 @@ export const ensureProductCustomizerSchema = async () => {
   if (!colorZoneColumns.length) {
     await pool.execute(
       'ALTER TABLE product_customizer_items ADD COLUMN color_zones_json JSON NULL AFTER colors_json'
+    )
+  }
+
+  const [specificationColumns] = await pool.execute(
+    "SHOW COLUMNS FROM product_customizer_items LIKE 'specifications_json'"
+  )
+
+  if (!specificationColumns.length) {
+    await pool.execute(
+      'ALTER TABLE product_customizer_items ADD COLUMN specifications_json JSON NULL AFTER option_groups_json'
     )
   }
 
@@ -951,20 +1114,39 @@ export const ensureProductCustomizerSchema = async () => {
     }
   }
 
+  // Seed product specifications for the four soccer designs.
+  for (const item of defaultItems) {
+    await pool.execute(
+      `UPDATE product_customizer_items
+       SET specifications_json = ?
+       WHERE product_id = ?
+         AND slug = ?
+         AND (
+           specifications_json IS NULL OR
+           JSON_LENGTH(specifications_json) = 0
+         )`,
+      [
+        JSON.stringify(item.specifications || []),
+        productId,
+        item.slug,
+      ]
+    )
+  }
+
   // Idempotent seed: running the server again never overwrites admin edits.
   for (const item of defaultItems) {
     await pool.execute(`
       INSERT IGNORE INTO product_customizer_items (
         product_id, name, slug, description,
-        sizes_json, colors_json, color_zones_json, option_groups_json,
+        sizes_json, colors_json, color_zones_json, option_groups_json, specifications_json,
         allow_custom_color, allow_logo_upload,
         allow_player_name, allow_player_number,
         allow_custom_notes, active, display_order
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, 1, ?)
     `, [
       productId, item.name, item.slug, item.description,
       JSON.stringify(item.sizes), JSON.stringify(item.colors),
-      JSON.stringify(item.colorZones), JSON.stringify(item.optionGroups),
+      JSON.stringify(item.colorZones), JSON.stringify(item.optionGroups), JSON.stringify(item.specifications || []),
       item.allowLogoUpload, item.allowPlayerName,
       item.allowPlayerNumber, item.order,
     ])
