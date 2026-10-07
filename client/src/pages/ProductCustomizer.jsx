@@ -653,19 +653,7 @@ function ProductCustomizer() {
           selected.colorSelections?.[firstZone] ||
           selected.color
 
-        if (
-          productSlug === 'soccer-uniform' &&
-          !selected.colorMode
-        ) {
-          setActiveItemId(item.id)
-          setMessage(`Please choose a color setup for ${item.name}.`)
-          return
-        }
-
-        if (
-          selected.colorMode !== 'preset' &&
-          !selectedColor
-        ) {
+        if (!selectedColor) {
           setActiveItemId(item.id)
           setMessage(`Please select a color for ${item.name}.`)
           return
@@ -757,14 +745,7 @@ function ProductCustomizer() {
 
   const basicColorZone = colorZones[0]
 
-  const advancedColorZones =
-    productSlug === 'soccer-uniform'
-      ? colorZones.filter(
-          (zone) =>
-            zone !== 'Jersey Main Color' &&
-            zone !== 'Shorts Main Color'
-        )
-      : colorZones.slice(1)
+  const advancedColorZones = colorZones.slice(1)
 
   const configuredBasicSlugs =
     Array.isArray(activeItem.basicOptionSlugs)
@@ -934,7 +915,6 @@ function ProductCustomizer() {
                   </section>
                 </div>
               )}
-              )}
             </div>
 
             <div className="ecom-product-options">
@@ -953,184 +933,63 @@ function ProductCustomizer() {
               </div>
 
               <div className="ecom-basic-customization">
-                {productSlug === 'soccer-uniform' ? (
-                  <div className="soccer-basic-form">
-                    {(activeItem.sizes || []).length > 0 && (
-                      <div className="ecom-option-block">
-                        <div className="ecom-option-label">
-                          <span>Kit Size</span>
-                          <strong>
-                            {activeSelection.size || 'Select size'}
-                          </strong>
-                        </div>
-
-                        <div className="customizer-size-grid">
-                          {activeItem.sizes.map((size) => (
-                            <button
-                              type="button"
-                              key={size}
-                              className={
-                                activeSelection.size === size
-                                  ? 'active'
-                                  : ''
-                              }
-                              onClick={() => updateSoccerKitSize(size)}
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
-
-                        <small className="soccer-basic-help">
-                          Jersey and shorts use the same size by default. You can set a different shorts size in Advanced Customization.
-                        </small>
-                      </div>
-                    )}
-
-                    <div className="ecom-option-block soccer-color-choice">
+                <>
+                  {(activeItem.sizes || []).length > 0 && (
+                    <div className="ecom-option-block">
                       <div className="ecom-option-label">
-                        <span>Color Setup</span>
+                        <span>Size</span>
                         <strong>
-                          {!activeSelection.colorMode
-                            ? 'Choose color setup'
-                            : activeSelection.colorMode === 'preset'
-                              ? 'Original Design Colors'
-                              : activeSelection.colorMode === 'custom-preset'
-                                ? 'Original Colors + Custom Changes'
-                                : 'Custom Main Color'}
+                          {activeSelection.size || 'Select a size'}
                         </strong>
                       </div>
 
-                      <div className="soccer-color-mode">
-                        <button
-                          type="button"
-                          className={
-                            activeSelection.colorMode === 'preset'
-                              ? 'active'
-                              : ''
-                          }
-                          onClick={selectOriginalDesignColors}
-                        >
-                          Use Original Design Colors
-                        </button>
-
-                        <button
-                          type="button"
-                          className={
-                            activeSelection.colorMode === 'custom'
-                              ? 'active'
-                              : ''
-                          }
-                          onClick={selectCustomMainColor}
-                        >
-                          Choose Custom Main Color
-                        </button>
-                      </div>
-
-                      {activeSelection.colorMode && activeSelection.colorMode !== 'preset' && (
-                        <div className="soccer-custom-main-color">
-                          <ColorPicker
-                            label="Main Kit Color"
-                            colors={activeItem.colors || []}
-                            value={
-                              activeSelection.colorSelections?.['Jersey Main Color'] ||
-                              ''
+                      <div className="customizer-size-grid">
+                        {activeItem.sizes.map((size) => (
+                          <button
+                            type="button"
+                            key={size}
+                            className={
+                              activeSelection.size === size
+                                ? 'active'
+                                : ''
                             }
-                            allowCustomColor={activeItem.allowCustomColor}
-                            onChange={updateSoccerKitColor}
-                          />
-
-                          <small className="soccer-basic-help">
-                            This sets the jersey and shorts main color. Secondary and trim colors stay optional in Advanced Customization.
-                          </small>
-                        </div>
-                      )}
-
-                      {activeSelection.colorMode === 'preset' && (
-                        <div className="soccer-preset-colors">
-                          {Object.entries(
-                            activeSelection.presetColorSelections || {}
-                          ).map(([zone, color]) => (
-                            color ? (
-                              <span key={zone}>
-                                <i style={{ background: color }} />
-                                {zone}
-                              </span>
-                            ) : null
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {basicOptionGroups.map((group) => (
-                      <OptionGroup
-                        key={group.slug || group.name}
-                        group={group}
-                        selection={activeSelection}
-                        onChange={(options) =>
-                          updateItem(activeItem.id, 'options', options)
-                        }
-                      />
-                    ))}
-                  </div>                ) : (
-                  <>
-                    {(activeItem.sizes || []).length > 0 && (
-                      <div className="ecom-option-block">
-                        <div className="ecom-option-label">
-                          <span>Size</span>
-                          <strong>
-                            {activeSelection.size || 'Select a size'}
-                          </strong>
-                        </div>
-
-                        <div className="customizer-size-grid">
-                          {activeItem.sizes.map((size) => (
-                            <button
-                              type="button"
-                              key={size}
-                              className={
-                                activeSelection.size === size
-                                  ? 'active'
-                                  : ''
-                              }
-                              onClick={() =>
-                                updateItem(activeItem.id, 'size', size)
-                              }
-                            >
-                              {size}
-                            </button>
-                          ))}
-                        </div>
+                            onClick={() =>
+                              updateItem(activeItem.id, 'size', size)
+                            }
+                          >
+                            {size}
+                          </button>
+                        ))}
                       </div>
-                    )}
-
-                    <div className="ecom-option-block">
-                      <ColorPicker
-                        label={basicColorZone}
-                        colors={activeItem.colors || []}
-                        value={
-                          activeSelection.colorSelections?.[basicColorZone] ||
-                          activeSelection.color
-                        }
-                        allowCustomColor={activeItem.allowCustomColor}
-                        onChange={(color) =>
-                          updateColorZone(basicColorZone, color)
-                        }
-                      />
                     </div>
+                  )}
 
-                    {basicOptionGroups.map((group) => (
-                      <OptionGroup
-                        key={group.slug || group.name}
-                        group={group}
-                        selection={activeSelection}
-                        onChange={(options) =>
-                          updateItem(activeItem.id, 'options', options)
-                        }
-                      />
-                    ))}
-                  </>
-                )}
+                  <div className="ecom-option-block">
+                    <ColorPicker
+                      label={basicColorZone}
+                      colors={activeItem.colors || []}
+                      value={
+                        activeSelection.colorSelections?.[basicColorZone] ||
+                        activeSelection.color
+                      }
+                      allowCustomColor={activeItem.allowCustomColor}
+                      onChange={(color) =>
+                        updateColorZone(basicColorZone, color)
+                      }
+                    />
+                  </div>
+
+                  {basicOptionGroups.map((group) => (
+                    <OptionGroup
+                      key={group.slug || group.name}
+                      group={group}
+                      selection={activeSelection}
+                      onChange={(options) =>
+                        updateItem(activeItem.id, 'options', options)
+                      }
+                    />
+                  ))}
+                </>
 
                 {(activeItem.allowPlayerName ||
                   activeItem.allowPlayerNumber) && (
