@@ -72,7 +72,7 @@ const toOptionsText = (groups = []) =>
   groups
     .map((group) => {
       const values = (group.values || [])
-        .map((value) => typeof value === 'string' ? value : value.label || value.value)
+        .map((value) => typeof value === 'string' ? value : value.value || value.label)
         .join(', ')
       return `${group.name}: ${values}`
     })
@@ -123,6 +123,34 @@ const parseLineList = (text) =>
     .map((line) => line.trim())
     .filter(Boolean)
 
+const stableSerialize = (value) => {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableSerialize).join(',')}]`
+  }
+
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${stableSerialize(value[key])}`
+    ).join(',')}}`
+  }
+
+  return JSON.stringify(value)
+}
+
+const hasSameEditableFields = (left, right) => {
+  const fields = [
+    'name', 'slug', 'description', 'sizes', 'colors', 'colorZones',
+    'optionGroups', 'specifications', 'defaultOptions', 'basicOptionSlugs',
+    'requiredFields', 'defaultColorMode', 'presetColors', 'allowCustomColor',
+    'allowLogoUpload', 'allowPlayerName', 'allowPlayerNumber', 'allowCustomNotes',
+    'active', 'order',
+  ]
+
+  return fields.every((field) =>
+    stableSerialize(left?.[field] ?? null) === stableSerialize(right?.[field] ?? null)
+  )
+}
+
 
 const setKeyValueText = (text, key, value) => {
   const current = parseKeyValueObject(text)
@@ -153,6 +181,8 @@ function ProductCustomizerManager({ productId }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [drafts, setDrafts] = useState({
     size: '',
     colorName: '',
@@ -172,10 +202,15 @@ function ProductCustomizerManager({ productId }) {
   const loadItems = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/admin/products/${productId}/customizer`)
-      setItems(response.data.items || [])
+      const response = await api.get(`/admin/products/${productId}/customizer`, {
+        params: { updatedAt: Date.now() },
+      })
+      const loadedItems = response.data.items || []
+      setItems(loadedItems)
+      return loadedItems
     } catch (requestError) {
       setError(requestError.response?.data?.message || 'Unable to load customizer items.')
+      return null
     } finally {
       setLoading(false)
     }
@@ -191,8 +226,22 @@ function ProductCustomizerManager({ productId }) {
     }
   }, [form.image, imagePreview])
 
-  const updateField = (name, value) =>
+  useEffect(() => {
+    if (!showForm || !hasUnsavedChanges) return undefined
+
+    const warnBeforeLeaving = (event) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+
+    window.addEventListener('beforeunload', warnBeforeLeaving)
+    return () => window.removeEventListener('beforeunload', warnBeforeLeaving)
+  }, [showForm, hasUnsavedChanges])
+
+  const updateField = (name, value) => {
+    setHasUnsavedChanges(true)
     setForm((current) => ({ ...current, [name]: value }))
+  }
 
 
   const currentOptionGroups = useMemo(
@@ -280,8 +329,10 @@ function ProductCustomizerManager({ productId }) {
     updateField('specificationsText', toSpecificationsText(next))
   }
 
-  const updateDraft = (name, value) =>
+  const updateDraft = (name, value) => {
+    setHasUnsavedChanges(true)
     setDrafts((current) => ({ ...current, [name]: value }))
+  }
 
   const setLines = (field, values) =>
     updateField(field, values.filter(Boolean).join('\n'))
@@ -405,7 +456,9 @@ function ProductCustomizerManager({ productId }) {
     })
     setForm({ ...emptyForm, order: items.length + 1 })
     setShowForm(true)
+    setHasUnsavedChanges(false)
     setError('')
+    setSuccess('')
   }
 
   const openEdit = (item) => {
@@ -445,68 +498,133 @@ function ProductCustomizerManager({ productId }) {
       imageUrl: item.image?.url || '',
     })
     setShowForm(true)
+    setHasUnsavedChanges(false)
     setError('')
+    setSuccess('')
   }
 
   const closeForm = () => {
     setShowForm(false)
+    setHasUnsavedChanges(false)
     setForm(emptyForm)
   }
 
   const saveItem = async (event) => {
     event.preventDefault()
 
+    const pendingDrafts = [
+      drafts.size,
+      drafts.colorName,
+      drafts.zone,
+      drafts.specLabel,
+      drafts.specValue,
+      drafts.optionName,
+      drafts.optionValues,
+    ].some((value) => value.trim())
+
+    if (pendingDrafts) {
+      setError('Click the matching Add button to include your unfinished size, color, option, or specification before saving.')
+      return
+    }
+
     try {
       setSaving(true)
       setError('')
+      setSuccess('')
 
       const data = new FormData()
+      const sizes = parseLineList(form.sizesText)
+      const colors = parseColors(form.colorsText)
+      const colorZones = parseLineList(form.colorZonesText)
+      const optionGroups = parseOptionGroups(form.optionsText)
+      const specifications = parseSpecifications(form.specificationsText)
+      const defaultOptions = parseKeyValueObject(form.defaultOptionsText)
+      const basicOptionSlugs = parseLineList(form.basicOptionSlugsText)
+      const requiredFields = parseLineList(form.requiredFieldsText)
+      const presetColors = parseKeyValueObject(form.presetColorsText)
+      const order = Number(form.order || 0)
+      const expectedItem = {
+        name: form.name.trim(),
+        slug: form.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        description: form.description.trim(),
+        sizes,
+        colors,
+        colorZones,
+        optionGroups,
+        specifications,
+        defaultOptions,
+        basicOptionSlugs,
+        requiredFields,
+        defaultColorMode: form.defaultColorMode,
+        presetColors,
+        allowCustomColor: Boolean(form.allowCustomColor),
+        allowLogoUpload: Boolean(form.allowLogoUpload),
+        allowPlayerName: Boolean(form.allowPlayerName),
+        allowPlayerNumber: Boolean(form.allowPlayerNumber),
+        allowCustomNotes: Boolean(form.allowCustomNotes),
+        active: Boolean(form.active),
+        order,
+      }
       data.append('name', form.name)
       data.append('description', form.description)
-      data.append(
-        'sizes',
-        JSON.stringify(
-          form.sizesText.split('\n').map((item) => item.trim()).filter(Boolean)
-        )
-      )
-      data.append('colors', JSON.stringify(parseColors(form.colorsText)))
-      data.append(
-        'colorZones',
-        JSON.stringify(form.colorZonesText.split('\n').map((item) => item.trim()).filter(Boolean))
-      )
-      data.append('optionGroups', JSON.stringify(parseOptionGroups(form.optionsText)))
-      data.append('specifications', JSON.stringify(parseSpecifications(form.specificationsText)))
-      data.append('defaultOptions', JSON.stringify({}))
-      data.append('basicOptionSlugs', JSON.stringify(parseLineList(form.basicOptionSlugsText)))
-      data.append('requiredFields', JSON.stringify(parseLineList(form.requiredFieldsText)))
-      data.append('defaultColorMode', 'custom')
-      data.append('presetColors', JSON.stringify(parseKeyValueObject(form.presetColorsText)))
+      data.append('sizes', JSON.stringify(sizes))
+      data.append('colors', JSON.stringify(colors))
+      data.append('colorZones', JSON.stringify(colorZones))
+      data.append('optionGroups', JSON.stringify(optionGroups))
+      data.append('specifications', JSON.stringify(specifications))
+      data.append('defaultOptions', JSON.stringify(defaultOptions))
+      data.append('basicOptionSlugs', JSON.stringify(basicOptionSlugs))
+      data.append('requiredFields', JSON.stringify(requiredFields))
+      data.append('defaultColorMode', form.defaultColorMode)
+      data.append('presetColors', JSON.stringify(presetColors))
       data.append('allowCustomColor', String(form.allowCustomColor))
       data.append('allowLogoUpload', String(form.allowLogoUpload))
       data.append('allowPlayerName', String(form.allowPlayerName))
       data.append('allowPlayerNumber', String(form.allowPlayerNumber))
       data.append('allowCustomNotes', String(form.allowCustomNotes))
       data.append('active', String(form.active))
-      data.append('order', String(form.order || 0))
+      data.append('order', String(order))
 
       if (form.image) data.append('image', form.image)
 
+      let saveResponse
       if (form.id) {
-        await api.put(
+        saveResponse = await api.put(
           `/admin/products/${productId}/customizer/items/${form.id}`,
           data
         )
       } else {
-        await api.post(
+        saveResponse = await api.post(
           `/admin/products/${productId}/customizer/items`,
           data
         )
       }
 
+      const savedItem = saveResponse.data.item
+      if (
+        !savedItem ||
+        !hasSameEditableFields(savedItem, expectedItem)
+      ) {
+        throw new Error('The server did not confirm every edited field. The editor is still open; please retry or check the backend connection.')
+      }
+      if (form.image && (!savedItem.image?.url || savedItem.image.url === form.imageUrl)) {
+        throw new Error('The server did not confirm the new subproduct image. The editor is still open; please retry.')
+      }
+
+      const refreshedItems = await loadItems()
+      const reloadedItem = refreshedItems?.find((item) => item.id === savedItem.id)
+      if (
+        !reloadedItem ||
+        !hasSameEditableFields(reloadedItem, expectedItem) ||
+        stableSerialize(reloadedItem.image) !== stableSerialize(savedItem.image)
+      ) {
+        throw new Error('The server did not return every saved field and image after reloading. The editor is still open; please retry or check the backend connection.')
+      }
+
       closeForm()
-      await loadItems()
+      setSuccess('Subproduct saved and every field verified from the database.')
     } catch (requestError) {
-      setError(requestError.response?.data?.message || 'Unable to save customizer item.')
+      setError(requestError.response?.data?.message || requestError.message || 'Unable to save customizer item.')
     } finally {
       setSaving(false)
     }
@@ -544,6 +662,7 @@ function ProductCustomizerManager({ productId }) {
       </div>
 
       {error && <div className="categories-error">{error}</div>}
+      {success && <div className="categories-success">{success}</div>}
 
       {loading ? (
         <div className="pcm-empty">Loading customizer...</div>
@@ -592,10 +711,21 @@ function ProductCustomizerManager({ productId }) {
             <div>
               <h3>{form.id ? 'Edit Sub Product' : 'Add Sub Product'}</h3>
               <p>Keep it simple: add the design image, available choices and what should appear in Basic or Advanced customization.</p>
+              {hasUnsavedChanges && (
+                <span className="pcm-unsaved-badge" role="status">
+                  Unsaved changes — save to keep them
+                </span>
+              )}
             </div>
+            <div className="pcm-editor-head-actions">
+              <button type="submit" className="categories-add-button" disabled={saving}>
+                <Save size={16} />
+                {saving ? 'Saving...' : 'Save Item'}
+              </button>
             <button type="button" className="pcm-close" onClick={closeForm} aria-label="Close">
               <X size={18} />
             </button>
+            </div>
           </div>
 
           <div className="pcm-editor-sections">
@@ -770,11 +900,23 @@ function ProductCustomizerManager({ productId }) {
                 <input
                   value={drafts.optionName}
                   onChange={(event) => updateDraft('optionName', event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      addOptionGroup()
+                    }
+                  }}
                   placeholder="Option name, e.g. Jersey Fit"
                 />
                 <input
                   value={drafts.optionValues}
                   onChange={(event) => updateDraft('optionValues', event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      addOptionGroup()
+                    }
+                  }}
                   placeholder="Choices separated by commas, e.g. Regular, Athletic, Slim"
                 />
                 <button type="button" onClick={addOptionGroup}><Plus size={15} /> Add option</button>
@@ -785,7 +927,11 @@ function ProductCustomizerManager({ productId }) {
                   <div className="pcm-option-row" key={group.slug}>
                     <div>
                       <strong>{group.name}</strong>
-                      <span>{group.values.join(' • ')}</span>
+                      <span>
+                        {group.values
+                          .map((value) => typeof value === 'string' ? value : value.label || value.value)
+                          .join(' • ')}
+                      </span>
                     </div>
                     <label className="pcm-basic-toggle">
                       <input

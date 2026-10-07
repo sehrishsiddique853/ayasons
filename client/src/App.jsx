@@ -7,6 +7,7 @@ import {
 import {
   Routes,
   Route,
+  useNavigationType,
   useLocation,
 } from 'react-router-dom'
 
@@ -48,6 +49,7 @@ import Products
 
 function ScrollManager() {
   const location = useLocation()
+  const navigationType = useNavigationType()
 
   useEffect(() => {
     if (
@@ -72,6 +74,8 @@ function ScrollManager() {
   useLayoutEffect(() => {
     const root = document.documentElement
     const previousScrollBehavior = root.style.scrollBehavior
+    const scrollPositions = window.__routeScrollPositions || {}
+    const locationKey = location.key || 'default'
 
     root.style.scrollBehavior = 'auto'
 
@@ -91,17 +95,39 @@ function ScrollManager() {
       }
     }
 
+    const savedPosition = scrollPositions[locationKey]
+    const shouldRestore = navigationType === 'POP' && savedPosition
+
     window.scrollTo({
       left: 0,
-      top: 0,
+      top: shouldRestore ? savedPosition.y : 0,
       behavior: 'auto',
     })
 
     root.style.scrollBehavior = previousScrollBehavior
   }, [
-    location.pathname,
-    location.hash,
+    location,
+    navigationType,
   ])
+
+  useEffect(() => {
+    const saveScrollPosition = () => {
+      const scrollPositions = window.__routeScrollPositions || (window.__routeScrollPositions = {})
+      scrollPositions[location.key || 'default'] = {
+        x: window.scrollX,
+        y: window.scrollY,
+      }
+    }
+
+    window.addEventListener('scroll', saveScrollPosition, { passive: true })
+    window.addEventListener('pagehide', saveScrollPosition)
+
+    return () => {
+      saveScrollPosition()
+      window.removeEventListener('scroll', saveScrollPosition)
+      window.removeEventListener('pagehide', saveScrollPosition)
+    }
+  }, [location.key])
 
 
   return null

@@ -13,6 +13,20 @@ const parseJson = (value, fallback = []) => {
 const parseBoolean = (value) =>
   value === true || value === 'true' || value === '1' || value === 1
 
+const stableSerialize = (value) => {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableSerialize).join(',')}]`
+  }
+
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${stableSerialize(value[key])}`
+    ).join(',')}}`
+  }
+
+  return JSON.stringify(value)
+}
+
 const formatItem = (row, admin = false) => ({
   id: row.id,
   productId: row.product_id,
@@ -53,6 +67,12 @@ const baseSelect = `
 
 export const getPublicProductCustomizer = async (req, res, next) => {
   try {
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+    })
+
     const { categorySlug, productSlug } = req.params
     const [products] = await pool.execute(
       `
@@ -106,6 +126,12 @@ export const getPublicProductCustomizer = async (req, res, next) => {
 
 export const getAdminProductCustomizer = async (req, res, next) => {
   try {
+    res.set({
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+    })
+
     const productId = Number(req.params.productId)
     const [rows] = await pool.execute(
       `${baseSelect} WHERE product_id = ? ORDER BY display_order ASC, id ASC`,
@@ -117,36 +143,123 @@ export const getAdminProductCustomizer = async (req, res, next) => {
   }
 }
 
+const parsePayloadJson = (body, key, expectedType) => {
+  let value
+
+  try {
+    value = typeof body[key] === 'string'
+      ? JSON.parse(body[key])
+      : body[key]
+  } catch {
+    value = null
+  }
+
+  const isValid = expectedType === 'array'
+    ? Array.isArray(value)
+    : Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+
+  if (!isValid) {
+    const error = new Error(`Invalid or missing ${key} data. Please review the subproduct form and save again.`)
+    error.statusCode = 400
+    throw error
+  }
+
+  return value
+}
+
 const readPayload = (body) => ({
   name: body.name?.trim(),
   slug: slugify(body.slug || body.name || ''),
   description: body.description?.trim() || '',
-  sizes: parseJson(body.sizes, []),
-  colors: parseJson(body.colors, []),
-  colorZones: parseJson(body.colorZones, ['Primary Color']),
-  optionGroups: parseJson(body.optionGroups, []),
-  specifications: parseJson(body.specifications, []),
-  defaultOptions: parseJson(body.defaultOptions, {}),
-  basicOptionSlugs: parseJson(body.basicOptionSlugs, []),
-  requiredFields: parseJson(body.requiredFields, []),
+  sizes: parsePayloadJson(body, 'sizes', 'array'),
+  colors: parsePayloadJson(body, 'colors', 'array'),
+  colorZones: parsePayloadJson(body, 'colorZones', 'array'),
+  optionGroups: parsePayloadJson(body, 'optionGroups', 'array'),
+  specifications: parsePayloadJson(body, 'specifications', 'array'),
+  defaultOptions: parsePayloadJson(body, 'defaultOptions', 'object'),
+  basicOptionSlugs: parsePayloadJson(body, 'basicOptionSlugs', 'array'),
+  requiredFields: parsePayloadJson(body, 'requiredFields', 'array'),
   defaultColorMode:
     ['preset', 'custom'].includes(String(body.defaultColorMode || '').trim())
       ? String(body.defaultColorMode).trim()
       : 'custom',
-  presetColors: parseJson(body.presetColors, {}),
+  presetColors: parsePayloadJson(body, 'presetColors', 'object'),
   allowCustomColor: parseBoolean(body.allowCustomColor),
   allowLogoUpload: parseBoolean(body.allowLogoUpload),
   allowPlayerName: parseBoolean(body.allowPlayerName),
   allowPlayerNumber: parseBoolean(body.allowPlayerNumber),
-  allowCustomNotes: parseBoolean(body.allowCustomNotes ?? true),
-  active: parseBoolean(body.active ?? true),
+  allowCustomNotes: parseBoolean(body.allowCustomNotes),
+  active: parseBoolean(body.active),
   order: Number.isFinite(Number(body.order)) ? Number(body.order) : 0,
 })
+
+const validateOptionGroups = (groups, res) => {
+  if (!Array.isArray(groups)) {
+    res.status(400)
+    throw new Error('Customization options must be a valid list.')
+  }
+
+  for (const [index, group] of groups.entries()) {
+    if (
+      !group ||
+      typeof group.name !== 'string' ||
+      !group.name.trim() ||
+      typeof group.slug !== 'string' ||
+      !group.slug.trim() ||
+      !Array.isArray(group.values) ||
+      group.values.length === 0
+    ) {
+      res.status(400)
+      throw new Error(`Customization option ${index + 1} needs a name and at least one choice.`)
+    }
+  }
+}
+
+const verifyPersistedItem = (item, data) => {
+  const fields = [
+    'name', 'slug', 'description', 'sizes', 'colors', 'colorZones',
+    'optionGroups', 'specifications', 'defaultOptions', 'basicOptionSlugs',
+    'requiredFields', 'defaultColorMode', 'presetColors', 'allowCustomColor',
+    'allowLogoUpload', 'allowPlayerName', 'allowPlayerNumber', 'allowCustomNotes',
+    'active', 'order',
+  ]
+  const persistedNames = {
+    sizes: 'sizes',
+    colors: 'colors',
+    colorZones: 'colorZones',
+    optionGroups: 'optionGroups',
+    specifications: 'specifications',
+    defaultOptions: 'defaultOptions',
+    basicOptionSlugs: 'basicOptionSlugs',
+    requiredFields: 'requiredFields',
+    defaultColorMode: 'defaultColorMode',
+    presetColors: 'presetColors',
+    allowCustomColor: 'allowCustomColor',
+    allowLogoUpload: 'allowLogoUpload',
+    allowPlayerName: 'allowPlayerName',
+    allowPlayerNumber: 'allowPlayerNumber',
+    allowCustomNotes: 'allowCustomNotes',
+    active: 'active',
+    order: 'order',
+  }
+  const matches = fields.every((field) => {
+    const persistedField = persistedNames[field] || field
+    return stableSerialize(item[persistedField] ?? null) ===
+      stableSerialize(data[field] ?? null)
+  })
+
+  if (!matches) {
+    const error = new Error('The database did not confirm every subproduct field. The item was not reported as saved; retry and check the server connection.')
+    error.statusCode = 500
+    throw error
+  }
+}
 
 export const createAdminCustomizerItem = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId)
     const data = readPayload(req.body)
+    validateOptionGroups(data.optionGroups, res)
     if (!productId || !data.name || !data.slug) {
       res.status(400)
       throw new Error('Product and item name are required.')
@@ -180,7 +293,9 @@ export const createAdminCustomizerItem = async (req, res, next) => {
     )
 
     const [rows] = await pool.execute(`${baseSelect} WHERE id = ? LIMIT 1`, [result.insertId])
-    res.status(201).json({ success: true, item: formatItem(rows[0], true) })
+    const item = formatItem(rows[0], true)
+    verifyPersistedItem(item, data)
+    res.status(201).json({ success: true, item })
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
       res.status(409)
@@ -195,6 +310,7 @@ export const updateAdminCustomizerItem = async (req, res, next) => {
     const productId = Number(req.params.productId)
     const itemId = Number(req.params.itemId)
     const data = readPayload(req.body)
+    validateOptionGroups(data.optionGroups, res)
     if (!productId || !itemId || !data.name || !data.slug) {
       res.status(400)
       throw new Error('Valid product, item and name are required.')
@@ -231,12 +347,21 @@ export const updateAdminCustomizerItem = async (req, res, next) => {
     )
 
     if (!result.affectedRows) {
-      res.status(404)
-      throw new Error('Customizer item not found.')
+      const [existingRows] = await pool.execute(
+        'SELECT id FROM product_customizer_items WHERE id = ? AND product_id = ? LIMIT 1',
+        [itemId, productId]
+      )
+
+      if (!existingRows.length) {
+        res.status(404)
+        throw new Error('Customizer item not found.')
+      }
     }
 
     const [rows] = await pool.execute(`${baseSelect} WHERE id = ? LIMIT 1`, [itemId])
-    res.json({ success: true, item: formatItem(rows[0], true) })
+    const item = formatItem(rows[0], true)
+    verifyPersistedItem(item, data)
+    res.json({ success: true, item })
   } catch (error) {
     next(error)
   }

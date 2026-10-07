@@ -176,6 +176,18 @@ const createInitialState = (items) =>
     return result
   }, {})
 
+const hasAdvancedCustomization = (item) => {
+  const colorZones = item?.colorZones || []
+  const basicSlugs = new Set(item?.basicOptionSlugs || [])
+
+  return Boolean(
+    colorZones.length > 1 ||
+    (item?.optionGroups || []).some((group) => !basicSlugs.has(group.slug)) ||
+    item?.allowLogoUpload ||
+    item?.allowCustomNotes
+  )
+}
+
 const optionValues = (group) =>
   (group.values || []).map((value) =>
     typeof value === 'string'
@@ -360,7 +372,8 @@ function ProductCustomizer() {
         setError('')
 
         const response = await api.get(
-          `/product-customizer/${categorySlug}/${productSlug}`
+          `/product-customizer/${categorySlug}/${productSlug}`,
+          { params: { updatedAt: Date.now() } }
         )
 
         if (!active) return
@@ -375,7 +388,7 @@ function ProductCustomizer() {
         }
         setConfiguration(nextConfiguration)
         setActiveItemId(items[0]?.id || null)
-        setAdvancedOpen(false)
+        setAdvancedOpen(hasAdvancedCustomization(items[0]))
       } catch (requestError) {
         if (!active) return
 
@@ -429,7 +442,11 @@ function ProductCustomizer() {
 
   const chooseItem = (itemId) => {
     setActiveItemId(itemId)
-    setAdvancedOpen(false)
+    setAdvancedOpen(
+      hasAdvancedCustomization(
+        product?.items?.find((item) => item.id === itemId)
+      )
+    )
 
     setConfiguration((current) => {
       if (productSlug !== 'soccer-uniform') {

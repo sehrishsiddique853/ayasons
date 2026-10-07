@@ -108,13 +108,33 @@
 }
 
 .pcm-editor-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 15px;
   margin-bottom: 18px;
+  padding: 10px 0;
+  background: #fbfbf9;
 }
 
 .pcm-editor-head p { margin: 5px 0 0; }
+
+.pcm-unsaved-badge {
+  display: inline-block;
+  margin-top: 7px;
+  color: #8a5b00;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pcm-editor-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .pcm-grid {
   display: grid;
