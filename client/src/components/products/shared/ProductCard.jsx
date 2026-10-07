@@ -1,6 +1,5 @@
 import '../../../style/products/ProductCard.css'
 import { Link } from 'react-router-dom'
-import { ArrowRight, ShoppingBag } from 'lucide-react'
 import { withImageWidth } from '../../../utils/imageUrl'
 
 function ProductCard({
@@ -9,11 +8,14 @@ function ProductCard({
   image,
   features = [],
   to = '/contact',
-  buttonText = 'Request A Quote',
 }) {
   return (
-    <article className="category-product-card">
-      <Link className="category-product-image" to={to} aria-label={title}>
+    <Link
+      className="category-product-card"
+      to={to}
+      aria-label={`Open ${title}`}
+    >
+      <div className="category-product-image">
         <img
           src={withImageWidth(image, 520)}
           alt={title}
@@ -21,7 +23,7 @@ function ProductCard({
           decoding="async"
           fetchPriority="low"
         />
-      </Link>
+      </div>
 
       <div className="category-product-content">
         <div className="category-product-topline">
@@ -29,9 +31,7 @@ function ProductCard({
           <span>Custom Manufacturing</span>
         </div>
 
-        <h3>
-          <Link to={to}>{title}</Link>
-        </h3>
+        <h3>{title}</h3>
 
         <p>{description}</p>
 
@@ -42,18 +42,8 @@ function ProductCard({
             ))}
           </div>
         )}
-
-        <div className="category-product-footer">
-          <span className="category-product-price">Price on request</span>
-
-          <Link className="category-product-button" to={to}>
-            <ShoppingBag size={16} />
-            {buttonText}
-            <ArrowRight size={15} />
-          </Link>
-        </div>
       </div>
-    </article>
+    </Link>
   )
 }
 
