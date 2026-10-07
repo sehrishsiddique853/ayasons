@@ -5,6 +5,7 @@ import {
   ChevronDown,
   ChevronUp,
   Settings2,
+  ShieldCheck,
   ShoppingBag,
   Trash2,
   Upload,
@@ -461,6 +462,74 @@ function ProductCustomizer() {
                 <span>{product.name}</span>
                 <strong>{activeItem.name}</strong>
               </div>
+
+              {productSlug === 'soccer-uniform' && (
+                <div className="soccer-product-proof">
+                  <div className="soccer-proof-grid">
+                    <div className="soccer-proof-item">
+                      <strong>Custom Design</strong>
+                      <span>Your colours, logo and team identity</span>
+                    </div>
+
+                    <div className="soccer-proof-item">
+                      <strong>Performance Fabrics</strong>
+                      <span>Dry-fit and mesh options for match use</span>
+                    </div>
+
+                    <div className="soccer-proof-item">
+                      <strong>Made for Teams</strong>
+                      <span>Player names, numbers and club branding</span>
+                    </div>
+
+                    <div className="soccer-proof-item">
+                      <strong>Production Options</strong>
+                      <span>Multiple finishes, stitching and decoration methods</span>
+                    </div>
+                  </div>
+
+                  <section className="soccer-product-description">
+                    <h3>Product Description</h3>
+
+                    <p>
+                      {activeItem.description}
+                    </p>
+
+                    <ul>
+                      <li>
+                        <ShieldCheck size={17} />
+                        <span>Complete matching soccer jersey and shorts set</span>
+                      </li>
+                      <li>
+                        <ShieldCheck size={17} />
+                        <span>Custom team colours, crest, player name and number</span>
+                      </li>
+                      <li>
+                        <ShieldCheck size={17} />
+                        <span>Performance fabric and fit options for different levels of play</span>
+                      </li>
+                      <li>
+                        <ShieldCheck size={17} />
+                        <span>Suitable for clubs, academies, schools and team orders</span>
+                      </li>
+                    </ul>
+                  </section>
+
+                  {(activeItem.specifications || []).length > 0 && (
+                    <section className="soccer-product-specs">
+                      <h3>Product Specifications</h3>
+
+                      <dl>
+                        {activeItem.specifications.map((spec) => (
+                          <div key={`${spec.label}-${spec.value}`}>
+                            <dt>{spec.label}</dt>
+                            <dd>{spec.value}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                    </section>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="ecom-product-options">
