@@ -29,7 +29,12 @@ function CustomProductCard({
 
       <div className="ecom-item-copy">
         <h3>{item.name}</h3>
-        {!/^soccer-uniform-[1-4]$/.test(item.slug || '') && (
+        {/^soccer-uniform-[1-4]$/.test(item.slug || '') ? (
+          <p>
+            {item.specifications?.find((spec) => spec.label === 'Uniform Type')?.value ||
+              'Custom Soccer Kit'}
+          </p>
+        ) : (
           <p>{item.description}</p>
         )}
       </div>
