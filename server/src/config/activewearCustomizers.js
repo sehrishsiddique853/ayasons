@@ -14,7 +14,14 @@ const STANDARD_COLORS = [
 ]
 
 const slugify = (value = '') =>
-  value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  value
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/['’]/g, '')
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 
 const group = (name, values) => ({
   name,
@@ -24,6 +31,7 @@ const group = (name, values) => ({
 
 const product = ({
   name,
+  lookupName = name,
   description,
   sizes = STANDARD_SIZES,
   colorZones = ['Main Color', 'Secondary Color', 'Trim / Accent Color'],
@@ -32,6 +40,7 @@ const product = ({
   basic = [],
 }) => ({
   name,
+  lookupName,
   description,
   sizes,
   colors: STANDARD_COLORS,
@@ -136,6 +145,7 @@ const activewearCustomizers = [
 
   product({
     name: "Men's Compression Tops / Bottoms / Shorts",
+    lookupName: 'Compression Wear',
     description: 'Custom men’s compression wear covering tops, bottoms and shorts for high-performance training and fitness collections.',
     colorZones: ['Main Color', 'Panel Color', 'Stitch / Accent Color'],
     optionGroups: [
@@ -229,6 +239,7 @@ const activewearCustomizers = [
 
   product({
     name: "Women's Sports Bra",
+    lookupName: "Women's Sports Bras",
     description: 'Custom women’s sports bra designed for training and fitness collections with selectable support and styling options.',
     colorZones: ['Main Color', 'Band Color', 'Strap / Trim Color'],
     optionGroups: [
@@ -309,7 +320,7 @@ export const ensureActivewearCustomizers = async () => {
   const categoryId = categories[0].id
 
   for (const config of activewearCustomizers) {
-    const productSlug = slugify(config.name)
+    const productSlug = slugify(config.lookupName)
 
     const [products] = await pool.execute(
       `SELECT id FROM products
@@ -326,8 +337,8 @@ export const ensureActivewearCustomizers = async () => {
       `UPDATE product_customizer_items
        SET active = 0
        WHERE product_id = ?
-         AND slug = ?`,
-      [productId, productSlug]
+         AND slug IN (?, ?)`,
+      [productId, productSlug, slugify(config.name)]
     )
 
     for (let variant = 1; variant <= 3; variant += 1) {
@@ -378,6 +389,15 @@ export const ensureActivewearCustomizers = async () => {
           JSON.stringify({}),
           variant,
         ]
+      )
+
+      await pool.execute(
+        `UPDATE product_customizer_items
+         SET active = 1,
+             display_order = ?
+         WHERE product_id = ?
+           AND slug = ?`,
+        [variant, productId, variantSlug]
       )
     }
   }
