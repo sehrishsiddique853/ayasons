@@ -778,12 +778,27 @@ function ProductCustomizer() {
 
   const designSetIncludes =
     activeItem.specifications?.find(
+      (spec) => spec.label === 'Product Detail'
+    )?.value ||
+    activeItem.specifications?.find(
       (spec) => spec.label === 'Set Includes'
     )?.value ||
     activeItem.specifications?.find(
       (spec) => spec.label === 'Product'
     )?.value ||
     product.name
+
+  const designBranding =
+    activeItem.specifications?.find(
+      (spec) => spec.label === 'Branding Detail'
+    )?.value ||
+    'Custom colors, team logo and branding options'
+
+  const designCustomization =
+    activeItem.specifications?.find(
+      (spec) => spec.label === 'Customization Detail'
+    )?.value ||
+    'Sport-specific sizing, fit, fabric and finishing choices'
 
   const designUse =
     activeItem.specifications?.find(
@@ -901,11 +916,11 @@ function ProductCustomizer() {
                       </li>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Custom colors, team logo and branding options</span>
+                        <span>{designBranding}</span>
                       </li>
                       <li>
                         <ShieldCheck size={17} />
-                        <span>Sport-specific sizing, fit, fabric and finishing choices</span>
+                        <span>{designCustomization}</span>
                       </li>
                       <li>
                         <ShieldCheck size={17} />
