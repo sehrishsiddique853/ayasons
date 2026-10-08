@@ -176,13 +176,27 @@ const createInitialState = (items) =>
     return result
   }, {})
 
+const isDuplicateSizeGroup = (item, group) => {
+  if (!(item?.sizes || []).length) return false
+
+  const slug = String(group?.slug || '').trim().toLowerCase()
+  const name = String(group?.name || '').trim().toLowerCase()
+
+  return slug === 'size' || name === 'size'
+}
+
+const visibleOptionGroups = (item) =>
+  (item?.optionGroups || []).filter(
+    (group) => !isDuplicateSizeGroup(item, group)
+  )
+
 const hasAdvancedCustomization = (item) => {
   const colorZones = item?.colorZones || []
   const basicSlugs = new Set(item?.basicOptionSlugs || [])
 
   return Boolean(
     colorZones.length > 1 ||
-    (item?.optionGroups || []).some((group) => !basicSlugs.has(group.slug)) ||
+    visibleOptionGroups(item).some((group) => !basicSlugs.has(group.slug)) ||
     item?.allowLogoUpload ||
     item?.allowCustomNotes
   )
@@ -772,15 +786,17 @@ function ProductCustomizer() {
   const useConfiguredBasic =
     Array.isArray(activeItem.basicOptionSlugs)
 
+  const optionGroups = visibleOptionGroups(activeItem)
+
   const basicOptionGroups =
-    (activeItem.optionGroups || []).filter((group) =>
+    optionGroups.filter((group) =>
       useConfiguredBasic
         ? configuredBasicSlugs.has(group.slug)
         : BASIC_OPTION_SLUGS.has(group.slug)
     )
 
   const advancedOptionGroups =
-    (activeItem.optionGroups || []).filter((group) =>
+    optionGroups.filter((group) =>
       !basicOptionGroups.some(
         (basicGroup) => basicGroup.slug === group.slug
       )
