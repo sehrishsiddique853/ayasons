@@ -130,25 +130,23 @@ function Navbar() {
             <div
               className="nav-products-menu"
               key={link.label}
-              onMouseEnter={() => {
-                setIsProductsOpen(true)
-                prepareProducts().catch(() => {})
-              }}
-              onMouseLeave={() => setIsProductsOpen(false)}
             >
-              <Link
+              <button
                 className="nav-products-trigger"
-                to={link.to}
-                {...getPreloadProps(link.to)}
+                type="button"
                 aria-haspopup="true"
                 aria-expanded={isProductsOpen}
+                onClick={() => {
+                  setIsProductsOpen((open) => !open)
+                  prepareProducts().catch(() => {})
+                }}
               >
                 {link.label}
                 <ChevronDown
                   size={15}
                   className={isProductsOpen ? 'is-open' : ''}
                 />
-              </Link>
+              </button>
 
               {isProductsOpen && (
                 <div className="nav-mega-menu">
