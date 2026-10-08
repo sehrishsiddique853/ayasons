@@ -302,7 +302,7 @@ export const submitCartQuote = async (req, res, next) => {
 
     const customerHtml = `
       <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
-        <h2 style="margin-bottom:6px;">AYOSONS Custom Quote Request</h2>
+        <h2 style="margin-bottom:6px;">New AYOSONS Order</h2>
         <p style="color:#666;margin-top:0;">Reference #${insertResult.insertId}</p>
 
         <div style="padding:14px;background:#f6f6f6;border-radius:8px;margin-bottom:20px;">
@@ -324,7 +324,7 @@ export const submitCartQuote = async (req, res, next) => {
     `
 
     const customerText = [
-      `AYOSONS Custom Quote Request #${insertResult.insertId}`,
+      `AYOSONS Order #${insertResult.insertId}`,
       `Customer: ${customer.name}`,
       `Email: ${customer.email}`,
       customer.phone ? `Phone: ${customer.phone}` : '',
@@ -361,7 +361,7 @@ export const submitCartQuote = async (req, res, next) => {
       from: `AYOSONS Website <${gmailUser}>`,
       to: recipient,
       replyTo: customer.email,
-      subject: `New custom order #${insertResult.insertId} from ${customer.name}`,
+      subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
       html: customerHtml,
       text: customerText,
       attachments: emailAttachments,
@@ -371,17 +371,17 @@ export const submitCartQuote = async (req, res, next) => {
       from: `AYOSONS <${gmailUser}>`,
       to: customer.email,
       replyTo: recipient,
-      subject: `We received your AYOSONS custom order request #${insertResult.insertId}`,
+      subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
-          <h2>Thank you, ${escapeHtml(customer.name)}.</h2>
-          <p>We received your custom product request. Below is a clear copy of the specifications you submitted.</p>
-          <p style="color:#666;">Reference #${insertResult.insertId}</p>
+          <h2>Order Confirmed</h2>
+          <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
+          <p style="color:#666;">Order #${insertResult.insertId}</p>
           ${items.map(itemHtml).join('')}
-          <p>Our team can reply to this email with pricing, production details and next steps.</p>
+          <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
         </div>
       `,
-      text: `Thank you, ${customer.name}.\n\nWe received your AYOSONS custom product request #${insertResult.insertId}.\n\n${items.map(itemText).join('\n\n')}\n\nOur team can reply with pricing and next steps.`,
+      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
       attachments: emailAttachments,
     })
 
@@ -392,8 +392,9 @@ export const submitCartQuote = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Quote request sent successfully.',
+      message: 'Order placed and confirmed successfully.',
       quoteId: insertResult.insertId,
+      orderId: insertResult.insertId,
     })
   } catch (error) {
     next(error)
