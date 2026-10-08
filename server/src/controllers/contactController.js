@@ -163,9 +163,9 @@ export const submitContactInquiry = async (req, res, next) => {
       })
     }
 
-    if (!fields.name || !emailPattern.test(fields.email) || !fields.productCategory || !fields.message) {
+    if (!fields.name || !emailPattern.test(fields.email) || !fields.message) {
       res.status(400)
-      throw new Error('Please complete the required enquiry fields.')
+      throw new Error('Please enter your name, a valid email address and a message.')
     }
 
     const gmailUser = String(
@@ -211,17 +211,49 @@ export const submitContactInquiry = async (req, res, next) => {
       },
     })
 
-    const delivery = await transporter.sendMail({
+    const adminDelivery = await transporter.sendMail({
       from: `AYOSONS Website <${gmailUser}>`,
       to: inquiryRecipient,
       replyTo: fields.email,
-      subject: `New AYOSONS quote request from ${fields.name}`,
-      html: `${htmlDetails}<p><strong>Message:</strong></p><p>${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>`,
+      subject: `New AYOSONS contact message from ${fields.name}`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
+          <h2 style="margin-bottom:6px;">New Contact Message</h2>
+          <p style="color:#666;margin-top:0;">Submitted through the AYOSONS website contact form.</p>
+          <div style="padding:16px;background:#f6f6f6;border-radius:8px;margin:18px 0;">
+            ${htmlDetails}
+          </div>
+          <div>
+            <strong>Message:</strong>
+            <p style="line-height:1.6;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
+          </div>
+        </div>
+      `,
       text: `${textDetails}\n\nMessage:\n${fields.message}`,
     })
 
-    if (!delivery?.messageId) {
-      console.error('Gmail SMTP error: no message ID returned')
+    const customerDelivery = await transporter.sendMail({
+      from: `AYOSONS <${gmailUser}>`,
+      to: fields.email,
+      replyTo: inquiryRecipient,
+      subject: 'Your message has been sent to AYOSONS',
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
+          <h2>Your Message Has Been Sent</h2>
+          <p>Thank you, ${escapeHtml(fields.name)}.</p>
+          <p>Your message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.</p>
+          <div style="margin:22px 0;padding:16px;background:#f6f6f6;border-radius:8px;">
+            <strong>Your message</strong>
+            <p style="line-height:1.6;margin-bottom:0;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
+          </div>
+          <p style="color:#666;">You can reply to this email if you need to add more information.</p>
+        </div>
+      `,
+      text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
+    })
+
+    if (!adminDelivery?.messageId || !customerDelivery?.messageId) {
+      console.error('Gmail SMTP error: one or more contact emails were not confirmed')
       res.status(502)
       throw new Error('Unable to confirm enquiry delivery right now.')
     }
