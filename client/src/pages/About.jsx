@@ -12,6 +12,8 @@ import AboutSection
   from '../components/home/AboutSection'
 import AboutIntroSection
   from '../components/about/AboutIntroSection'
+import AboutTeamValues
+  from '../components/about/AboutTeamValues'
 
 import Footer
   from '../components/home/Footer'
@@ -100,6 +102,7 @@ function About() {
         priority
       />
 
+      <AboutTeamValues />
 
       <Footer />
 
