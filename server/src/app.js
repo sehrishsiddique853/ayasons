@@ -25,11 +25,6 @@ import adminDepartmentRoutes
   from './routes/adminDepartmentRoutes.js'
 import contactRoutes
   from './routes/contactRoutes.js'
-  import standardRoutes
-  from './routes/standardRoutes.js'
-
-import adminStandardRoutes
-  from './routes/adminStandardRoutes.js'
 import cookieParser
   from 'cookie-parser'
 
@@ -304,11 +299,6 @@ app.use(
   contactRoutes
 )
 
-app.use(
-  '/api/standards',
-  standardRoutes
-)
-
 /*
 |--------------------------------------------------------------------------
 | Admin Authentication
@@ -354,11 +344,6 @@ app.use(
 app.use(
   '/api/admin/departments',
   adminDepartmentRoutes
-)
-
-app.use(
-  '/api/admin/standards',
-  adminStandardRoutes
 )
 
 /*

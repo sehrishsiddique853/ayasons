@@ -3,7 +3,7 @@ const MAX_CACHE_BYTES = 64 * 1024 * 1024
 const MAX_CACHE_ENTRIES = 250
 let cachedBytes = 0
 
-const imagePathPattern = /^\/api\/(?:images\/(?:categories\/\d+\/(?:hero|collection)|products\/\d+)|departments\/\d+\/image|home-content\/(?:about-image|process\/\d+\/image)|standards\/\d+\/logo)(?:\?|$)/
+const imagePathPattern = /^\/api\/(?:images\/(?:categories\/\d+\/(?:hero|collection)|products\/\d+)|departments\/\d+\/image|home-content\/(?:about-image|process\/\d+\/image))(?:\?|$)/
 
 const removeOldestEntry = () => {
   const oldestKey = responseCache.keys().next().value

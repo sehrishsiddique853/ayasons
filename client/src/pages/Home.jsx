@@ -18,7 +18,6 @@ import BuyerTypesSection from '../components/home/BuyerTypesSection'
 import BestSellerSection from '../components/home/BestSellersSection'
 import ProcessSection from '../components/home/ProcessSection'
 import FactoryFactsSection from '../components/home/FactoryFactsSection'
-import StandardsSection from '../components/home/StandardsSection'
 import FactoryDirectSection from '../components/home/FactoryDirectSection'
 import RequestQuote from '../components/home/RequestQuote'
 import Footer from '../components/home/Footer'
@@ -194,8 +193,6 @@ function Home() {
 />
 
       <FactoryFactsSection />
-
-      <StandardsSection />
 
       <FactoryDirectSection />
 
