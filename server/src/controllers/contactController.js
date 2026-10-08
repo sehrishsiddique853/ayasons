@@ -5,6 +5,58 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
 
+const firstConfigured = (...values) =>
+  values
+    .map((value) => String(value || '').trim())
+    .find(Boolean) || ''
+
+const getMailConfig = () => {
+  const user = firstConfigured(
+    process.env.SMTP_USER,
+    process.env.EMAIL_USER,
+    process.env.MAIL_USER,
+    process.env.GMAIL_USER
+  )
+
+  const pass = firstConfigured(
+    process.env.SMTP_PASS,
+    process.env.EMAIL_PASS,
+    process.env.MAIL_PASS,
+    process.env.GMAIL_APP_PASSWORD
+  )
+
+  const host = firstConfigured(
+    process.env.SMTP_HOST,
+    process.env.MAIL_HOST,
+    user.endsWith('@gmail.com') ? 'smtp.gmail.com' : ''
+  )
+
+  const port = Number(
+    firstConfigured(
+      process.env.SMTP_PORT,
+      process.env.MAIL_PORT,
+      host === 'smtp.gmail.com' ? '465' : '587'
+    )
+  )
+
+  const secureEnv = firstConfigured(
+    process.env.SMTP_SECURE,
+    process.env.MAIL_SECURE
+  ).toLowerCase()
+
+  const secure = secureEnv
+    ? ['1', 'true', 'yes'].includes(secureEnv)
+    : port === 465
+
+  return {
+    host,
+    port,
+    secure,
+    user,
+    pass,
+  }
+}
+
 const escapeHtml = (value) => String(value)
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -164,16 +216,18 @@ export const submitContactInquiry = async (req, res, next) => {
       throw new Error('Please enter your name, a valid email address and a message.')
     }
 
-    const gmailUser = String(
-      process.env.GMAIL_USER || ''
-    ).trim()
-    const gmailAppPassword = String(
-      process.env.GMAIL_APP_PASSWORD || ''
-    ).trim()
+    const mailConfig = getMailConfig()
 
-    if (!emailPattern.test(gmailUser) || !gmailAppPassword) {
+    if (
+      !mailConfig.host ||
+      !mailConfig.port ||
+      !emailPattern.test(mailConfig.user) ||
+      !mailConfig.pass
+    ) {
       res.status(503)
-      throw new Error('Email delivery is not configured yet.')
+      throw new Error(
+        'Email delivery is not configured. Set SMTP_USER/SMTP_PASS or GMAIL_USER/GMAIL_APP_PASSWORD on the server.'
+      )
     }
 
     const contactSettings = await getContactSettings()
@@ -181,7 +235,9 @@ export const submitContactInquiry = async (req, res, next) => {
     const inquiryRecipient = [
       contactSettings?.recipient_email,
       contactSettings?.public_email,
-      gmailUser,
+      process.env.CONTACT_RECIPIENT,
+      process.env.INQUIRY_RECIPIENT,
+      mailConfig.user,
     ]
       .map(normalizeEmail)
       .find((email) => emailPattern.test(email))
@@ -209,18 +265,41 @@ export const submitContactInquiry = async (req, res, next) => {
       .join('\n')
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      host: mailConfig.host,
+      port: mailConfig.port,
+      secure: mailConfig.secure,
       auth: {
-        user: gmailUser,
-        pass: gmailAppPassword,
+        user: mailConfig.user,
+        pass: mailConfig.pass,
       },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
     })
 
-    const [adminDelivery, customerDelivery] = await Promise.all([
+    try {
+      await transporter.verify()
+    } catch (smtpError) {
+      console.error('Contact SMTP verification failed:', {
+        code: smtpError.code,
+        command: smtpError.command,
+        response: smtpError.response,
+        message: smtpError.message,
+      })
+
+      res.status(503)
+      throw new Error(
+        'Email server connection failed. Check SMTP/Gmail credentials on the server.'
+      )
+    }
+
+    let adminDelivery
+    let customerDelivery
+
+    try {
+      ;[adminDelivery, customerDelivery] = await Promise.all([
       transporter.sendMail({
-      from: `AYOSONS Website <${gmailUser}>`,
+      from: `AYOSONS Website <${mailConfig.user}>`,
       to: inquiryRecipient,
       replyTo: fields.email,
       subject: `New AYOSONS contact message from ${fields.name}`,
@@ -240,7 +319,7 @@ export const submitContactInquiry = async (req, res, next) => {
       text: `${textDetails}\n\nMessage:\n${fields.message}`,
       }),
       transporter.sendMail({
-      from: `AYOSONS <${gmailUser}>`,
+      from: `AYOSONS <${mailConfig.user}>`,
       to: fields.email,
       replyTo: inquiryRecipient,
       subject: 'Your message has been sent to AYOSONS',
@@ -258,7 +337,21 @@ export const submitContactInquiry = async (req, res, next) => {
       `,
       text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
       }),
-    ])
+      ])
+    } catch (smtpError) {
+      console.error('Contact email send failed:', {
+        code: smtpError.code,
+        command: smtpError.command,
+        response: smtpError.response,
+        rejected: smtpError.rejected,
+        message: smtpError.message,
+      })
+
+      res.status(502)
+      throw new Error(
+        'The email server rejected the message. Check the server mail credentials and recipient address.'
+      )
+    }
 
     if (!adminDelivery?.messageId || !customerDelivery?.messageId) {
       console.error('Gmail SMTP error: one or more contact emails were not confirmed')
