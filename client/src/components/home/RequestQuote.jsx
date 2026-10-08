@@ -152,15 +152,6 @@ function RequestQuote() {
                 value="New AYOSONS Website Quote Request"
               />
 
-              {/* Honeypot */}
-              <input
-                className="quote-honeypot"
-                type="text"
-                name="_gotcha"
-                tabIndex="-1"
-                autoComplete="off"
-              />
-
               <div className="quote-field">
                 <label htmlFor="fullName">
                   Your Full Name *

@@ -5,58 +5,6 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
 
-const firstConfigured = (...values) =>
-  values
-    .map((value) => String(value || '').trim())
-    .find(Boolean) || ''
-
-const getMailConfig = () => {
-  const user = firstConfigured(
-    process.env.SMTP_USER,
-    process.env.EMAIL_USER,
-    process.env.MAIL_USER,
-    process.env.GMAIL_USER
-  )
-
-  const pass = firstConfigured(
-    process.env.SMTP_PASS,
-    process.env.EMAIL_PASS,
-    process.env.MAIL_PASS,
-    process.env.GMAIL_APP_PASSWORD
-  )
-
-  const host = firstConfigured(
-    process.env.SMTP_HOST,
-    process.env.MAIL_HOST,
-    user.endsWith('@gmail.com') ? 'smtp.gmail.com' : ''
-  )
-
-  const port = Number(
-    firstConfigured(
-      process.env.SMTP_PORT,
-      process.env.MAIL_PORT,
-      host === 'smtp.gmail.com' ? '465' : '587'
-    )
-  )
-
-  const secureEnv = firstConfigured(
-    process.env.SMTP_SECURE,
-    process.env.MAIL_SECURE
-  ).toLowerCase()
-
-  const secure = secureEnv
-    ? ['1', 'true', 'yes'].includes(secureEnv)
-    : port === 465
-
-  return {
-    host,
-    port,
-    secure,
-    user,
-    pass,
-  }
-}
-
 const escapeHtml = (value) => String(value)
   .replace(/&/g, '&amp;')
   .replace(/</g, '&lt;')
@@ -204,29 +152,22 @@ export const submitContactInquiry = async (req, res, next) => {
       message: String(req.body?.message || '').trim(),
     }
 
-    if (req.body?._gotcha) {
-      return res.status(200).json({
-        success: true,
-        message: 'Your enquiry has been received.',
-      })
-    }
-
     if (!fields.name || !emailPattern.test(fields.email) || !fields.message) {
       res.status(400)
       throw new Error('Please enter your name, a valid email address and a message.')
     }
 
-    const mailConfig = getMailConfig()
+    // Match the Gmail SMTP setup used by working order confirmations.
+    const gmailUser = String(process.env.GMAIL_USER || '').trim()
+    const gmailAppPassword = String(process.env.GMAIL_APP_PASSWORD || '').trim()
 
     if (
-      !mailConfig.host ||
-      !mailConfig.port ||
-      !emailPattern.test(mailConfig.user) ||
-      !mailConfig.pass
+      !emailPattern.test(gmailUser) ||
+      !gmailAppPassword
     ) {
       res.status(503)
       throw new Error(
-        'Email delivery is not configured. Set SMTP_USER/SMTP_PASS or GMAIL_USER/GMAIL_APP_PASSWORD on the server.'
+        'Email delivery is not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD on the server.'
       )
     }
 
@@ -237,7 +178,7 @@ export const submitContactInquiry = async (req, res, next) => {
       contactSettings?.public_email,
       process.env.CONTACT_RECIPIENT,
       process.env.INQUIRY_RECIPIENT,
-      mailConfig.user,
+      gmailUser,
     ]
       .map(normalizeEmail)
       .find((email) => emailPattern.test(email))
@@ -265,79 +206,59 @@ export const submitContactInquiry = async (req, res, next) => {
       .join('\n')
 
     const transporter = nodemailer.createTransport({
-      host: mailConfig.host,
-      port: mailConfig.port,
-      secure: mailConfig.secure,
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
       auth: {
-        user: mailConfig.user,
-        pass: mailConfig.pass,
+        user: gmailUser,
+        pass: gmailAppPassword,
       },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
     })
-
-    try {
-      await transporter.verify()
-    } catch (smtpError) {
-      console.error('Contact SMTP verification failed:', {
-        code: smtpError.code,
-        command: smtpError.command,
-        response: smtpError.response,
-        message: smtpError.message,
-      })
-
-      res.status(503)
-      throw new Error(
-        'Email server connection failed. Check SMTP/Gmail credentials on the server.'
-      )
-    }
 
     let adminDelivery
     let customerDelivery
 
     try {
-      ;[adminDelivery, customerDelivery] = await Promise.all([
-      transporter.sendMail({
-      from: `AYOSONS Website <${mailConfig.user}>`,
-      to: inquiryRecipient,
-      replyTo: fields.email,
-      subject: `New AYOSONS contact message from ${fields.name}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
-          <h2 style="margin-bottom:6px;">New Contact Message</h2>
-          <p style="color:#666;margin-top:0;">Submitted through the AYOSONS website contact form.</p>
-          <div style="padding:16px;background:#f6f6f6;border-radius:8px;margin:18px 0;">
-            ${htmlDetails}
+      adminDelivery = await transporter.sendMail({
+        from: `AYOSONS Website <${gmailUser}>`,
+        to: inquiryRecipient,
+        replyTo: fields.email,
+        subject: `New AYOSONS contact message from ${fields.name}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
+            <h2 style="margin-bottom:6px;">New Contact Message</h2>
+            <p style="color:#666;margin-top:0;">Submitted through the AYOSONS website contact form.</p>
+            <div style="padding:16px;background:#f6f6f6;border-radius:8px;margin:18px 0;">
+              ${htmlDetails}
+            </div>
+            <div>
+              <strong>Message:</strong>
+              <p style="line-height:1.6;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
+            </div>
           </div>
-          <div>
-            <strong>Message:</strong>
-            <p style="line-height:1.6;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
+        `,
+        text: `${textDetails}\n\nMessage:\n${fields.message}`,
+      })
+
+      customerDelivery = await transporter.sendMail({
+        from: `AYOSONS <${gmailUser}>`,
+        to: fields.email,
+        replyTo: inquiryRecipient,
+        subject: 'Your message has been sent to AYOSONS',
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
+            <h2>Your Message Has Been Sent</h2>
+            <p>Thank you, ${escapeHtml(fields.name)}.</p>
+            <p>Your message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.</p>
+            <div style="margin:22px 0;padding:16px;background:#f6f6f6;border-radius:8px;">
+              <strong>Your message</strong>
+              <p style="line-height:1.6;margin-bottom:0;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
+            </div>
+            <p style="color:#666;">You can reply to this email if you need to add more information.</p>
           </div>
-        </div>
-      `,
-      text: `${textDetails}\n\nMessage:\n${fields.message}`,
-      }),
-      transporter.sendMail({
-      from: `AYOSONS <${mailConfig.user}>`,
-      to: fields.email,
-      replyTo: inquiryRecipient,
-      subject: 'Your message has been sent to AYOSONS',
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:680px;margin:auto;color:#111;">
-          <h2>Your Message Has Been Sent</h2>
-          <p>Thank you, ${escapeHtml(fields.name)}.</p>
-          <p>Your message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.</p>
-          <div style="margin:22px 0;padding:16px;background:#f6f6f6;border-radius:8px;">
-            <strong>Your message</strong>
-            <p style="line-height:1.6;margin-bottom:0;">${escapeHtml(fields.message).replace(/\n/g, '<br />')}</p>
-          </div>
-          <p style="color:#666;">You can reply to this email if you need to add more information.</p>
-        </div>
-      `,
-      text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
-      }),
-      ])
+        `,
+        text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
+      })
     } catch (smtpError) {
       console.error('Contact email send failed:', {
         code: smtpError.code,
