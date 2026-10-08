@@ -89,7 +89,7 @@ function Cart() {
 
       setStatus('success')
       setFeedback(
-        `Request #${response.data.quoteId} sent successfully. A copy was also emailed to you.`
+        `Order #${response.data.orderId || response.data.quoteId} has been confirmed. A confirmation email has been sent to you.`
       )
 
       clearCart()
@@ -111,8 +111,8 @@ function Cart() {
               <span>Custom Order</span>
               <h1>Your Cart</h1>
               <p>
-                Review every specification below. When you submit, AYOSONS receives
-                a structured order email and you receive the same specification summary.
+                Review every specification below. When you place the order, AYOSONS receives
+                the complete order details and you receive an order confirmation by email.
               </p>
             </div>
 
@@ -248,7 +248,7 @@ function Cart() {
               </section>
 
               <aside className="cart-summary">
-                <h2>Send Your Request</h2>
+                <h2>Place Your Order</h2>
 
                 <div className="cart-summary-line">
                   <span>Configured items</span>
@@ -333,8 +333,8 @@ function Cart() {
                 </div>
 
                 <p>
-                  Your configuration is saved in the request database and sent in
-                  an easy-to-read email to AYOSONS. A confirmation copy is sent to your email.
+                  Your order details are saved and emailed to AYOSONS. You will also receive
+                  an Order Confirmed email with your submitted specifications.
                 </p>
 
                 <button
@@ -344,8 +344,8 @@ function Cart() {
                 >
                   <Send size={16} />
                   {status === 'submitting'
-                    ? 'Sending Request...'
-                    : 'Send Custom Quote Request'}
+                    ? 'Placing Order...'
+                    : 'Place Order'}
                 </button>
 
                 {feedback && (
