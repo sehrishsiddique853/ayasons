@@ -129,8 +129,8 @@ function RequestQuote() {
               </h2>
 
               <p>
-                Provide as much information as possible so we can
-                better understand your manufacturing requirements.
+                Send us your contact details and tell us about your project.
+                Our team will get back to you with the next steps.
               </p>
             </div>
 
@@ -212,90 +212,6 @@ function RequestQuote() {
 
               </div>
 
-              <div className="quote-form-row">
-
-                <div className="quote-field">
-                  <label htmlFor="company">
-                    Company / Brand
-                  </label>
-
-                  <input
-                    id="company"
-                    name="company"
-                    type="text"
-                    placeholder="Your brand name"
-                  />
-                </div>
-
-                <div className="quote-field">
-                  <label htmlFor="category">
-                    Product Category *
-                  </label>
-
-                  <select
-                    id="category"
-                    name="productCategory"
-                    required
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select category
-                    </option>
-
-                    <option>Sports Wear</option>
-                    <option>Streetwear</option>
-                    <option>
-                      Gym / Fitness / Activewear
-                    </option>
-                    <option>Varsity Jackets</option>
-                    <option>Headwear</option>
-                    <option>Safety and Workwear</option>
-                    <option>Accessories</option>
-                  </select>
-                </div>
-
-              </div>
-
-              <div className="quote-form-row">
-
-                <div className="quote-field">
-                  <label htmlFor="quantity">
-                    Estimated Quantity
-                  </label>
-
-                  <input
-                    id="quantity"
-                    name="quantity"
-                    type="text"
-                    placeholder="e.g. 100 pieces"
-                  />
-                </div>
-
-                <div className="quote-field">
-                  <label htmlFor="service">
-                    Requirement
-                  </label>
-
-                  <select
-                    id="service"
-                    name="requirement"
-                    defaultValue=""
-                  >
-                    <option value="" disabled>
-                      Select requirement
-                    </option>
-
-                    <option>Custom Manufacturing</option>
-                    <option>Private Label</option>
-                    <option>Sampling</option>
-                    <option>Bulk Production</option>
-                    <option>Repeat Order</option>
-                    <option>General Enquiry</option>
-                  </select>
-                </div>
-
-              </div>
-
               <div className="quote-field">
                 <label htmlFor="message">
                   Tell Us About Your Project *
@@ -305,7 +221,7 @@ function RequestQuote() {
                   id="message"
                   name="message"
                   rows="6"
-                  placeholder="Tell us about the product, materials, colors, branding, quantity, sizes and any other requirements..."
+                  placeholder="Tell us about your project, product ideas, materials, colors, branding, sizes or any other requirements..."
                   required
                 />
               </div>
