@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, Send, ShoppingBag, Trash2 } from 'lucide-react'
 import api from '../services/api'
@@ -12,6 +12,7 @@ const labelFromSlug = (value) =>
     .replace(/\b\w/g, (letter) => letter.toUpperCase())
 
 function Cart() {
+  const pageTopRef = useRef(null)
   const {
     cartItems,
     removeFromCart,
@@ -93,6 +94,12 @@ function Cart() {
       )
 
       clearCart()
+
+      window.scrollTo({
+        left: 0,
+        top: 0,
+        behavior: 'smooth',
+      })
     } catch (error) {
       setStatus('error')
       setFeedback(
@@ -104,7 +111,7 @@ function Cart() {
 
   return (
     <>
-      <main className="cart-page">
+      <main className="cart-page" ref={pageTopRef}>
         <div className="cart-shell">
           <div className="cart-page-head">
             <div>
