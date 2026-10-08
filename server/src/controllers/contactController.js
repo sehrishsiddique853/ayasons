@@ -2,7 +2,6 @@ import pool from '../config/mysql.js'
 import nodemailer from 'nodemailer'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const inquiryRecipient = 'sehrishsiddique3602@gmail.com'
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
 
@@ -27,6 +26,7 @@ const isValidPublicUrl = (value) => {
 const getContactSettings = async () => {
   const [rows] = await pool.execute(`
     SELECT
+      recipient_email,
       public_email,
       phone_number,
       whatsapp_number,
@@ -146,13 +146,9 @@ export const submitContactInquiry = async (req, res, next) => {
   try {
     const fields = {
       name: String(req.body?.name || '').trim(),
-      email: String(req.body?.email || '').trim(),
+      email: normalizeEmail(req.body?.email),
       phone: String(req.body?.phone || '').trim(),
       country: String(req.body?.country || '').trim(),
-      company: String(req.body?.company || '').trim(),
-      productCategory: String(req.body?.productCategory || '').trim(),
-      quantity: String(req.body?.quantity || '').trim(),
-      requirement: String(req.body?.requirement || '').trim(),
       message: String(req.body?.message || '').trim(),
     }
 
@@ -180,15 +176,26 @@ export const submitContactInquiry = async (req, res, next) => {
       throw new Error('Email delivery is not configured yet.')
     }
 
+    const contactSettings = await getContactSettings()
+
+    const inquiryRecipient = [
+      contactSettings?.recipient_email,
+      contactSettings?.public_email,
+      gmailUser,
+    ]
+      .map(normalizeEmail)
+      .find((email) => emailPattern.test(email))
+
+    if (!inquiryRecipient) {
+      res.status(503)
+      throw new Error('AYOSONS contact email is not configured yet.')
+    }
+
     const details = [
       ['Name', fields.name],
       ['Email', fields.email],
       ['Phone / WhatsApp', fields.phone],
       ['Country', fields.country],
-      ['Company / Brand', fields.company],
-      ['Product Category', fields.productCategory],
-      ['Estimated Quantity', fields.quantity],
-      ['Requirement', fields.requirement],
     ].filter(([, value]) => value)
 
     const htmlDetails = details
@@ -211,7 +218,8 @@ export const submitContactInquiry = async (req, res, next) => {
       },
     })
 
-    const adminDelivery = await transporter.sendMail({
+    const [adminDelivery, customerDelivery] = await Promise.all([
+      transporter.sendMail({
       from: `AYOSONS Website <${gmailUser}>`,
       to: inquiryRecipient,
       replyTo: fields.email,
@@ -230,9 +238,8 @@ export const submitContactInquiry = async (req, res, next) => {
         </div>
       `,
       text: `${textDetails}\n\nMessage:\n${fields.message}`,
-    })
-
-    const customerDelivery = await transporter.sendMail({
+      }),
+      transporter.sendMail({
       from: `AYOSONS <${gmailUser}>`,
       to: fields.email,
       replyTo: inquiryRecipient,
@@ -250,7 +257,8 @@ export const submitContactInquiry = async (req, res, next) => {
         </div>
       `,
       text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
-    })
+      }),
+    ])
 
     if (!adminDelivery?.messageId || !customerDelivery?.messageId) {
       console.error('Gmail SMTP error: one or more contact emails were not confirmed')
