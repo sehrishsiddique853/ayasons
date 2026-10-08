@@ -52,6 +52,7 @@ const getContactDisplayValue = (field, value) => {
 
 function RequestQuote() {
   const [status, setStatus] = useState('idle')
+  const [feedback, setFeedback] = useState('')
   const contactSettings = useContactSettings()
   const whatsappHref = contactSettings.whatsapp
     ? `https://wa.me/${contactSettings.whatsapp.replace(/\D/g, '')}`
@@ -74,6 +75,7 @@ function RequestQuote() {
     event.preventDefault()
 
     setStatus('submitting')
+    setFeedback('')
 
     const form = event.currentTarget
     try {
@@ -83,9 +85,14 @@ function RequestQuote() {
       )
 
       setStatus('success')
+      setFeedback('Thank you. Your message has been sent successfully.')
       form.reset()
     } catch (error) {
       setStatus('error')
+      setFeedback(
+        error.response?.data?.message ||
+        'Unable to send your message right now. Please try again.'
+      )
     }
   }
 
@@ -238,15 +245,15 @@ function RequestQuote() {
                 <span aria-hidden="true">→</span>
               </button>
 
-              {status === 'success' && (
-                <p className="quote-message quote-success">
-                  Thank you. Your enquiry has been sent successfully.
-                </p>
-              )}
-
-              {status === 'error' && (
-                <p className="quote-message quote-error">
-                  Something went wrong. Please try again or contact us directly.
+              {feedback && (
+                <p
+                  className={
+                    status === 'success'
+                      ? 'quote-message quote-success'
+                      : 'quote-message quote-error'
+                  }
+                >
+                  {feedback}
                 </p>
               )}
 
