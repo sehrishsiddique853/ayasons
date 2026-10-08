@@ -310,6 +310,30 @@ min-height: 44px;
   align-items: stretch;
 }
 
+.nav-products-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 180ms ease;
+}
+
+.nav-products-trigger:hover,
+.nav-products-trigger:focus-visible,
+.nav-products-trigger[aria-expanded="true"] {
+  color: var(--brand-yellow);
+}
+
 .nav-products-trigger svg {
   transition: transform 180ms ease;
 }
