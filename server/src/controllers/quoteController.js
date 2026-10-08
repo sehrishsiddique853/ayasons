@@ -103,7 +103,7 @@ const detailsRowsHtml = (item) => {
     .join('')
 }
 
-const itemHtml = (item, index) => `
+const itemHtml = (item, index, logoPreviewCid = '') => `
   <div style="margin:0 0 22px;border:1px solid #e2e2e2;border-radius:10px;overflow:hidden;">
     <div style="padding:12px 14px;background:#111;color:#fff;">
       <strong>${index + 1}. ${escapeHtml(item.productName || 'Product')} — ${escapeHtml(item.itemName)}</strong>
@@ -111,6 +111,16 @@ const itemHtml = (item, index) => `
     <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:13px;">
       ${detailsRowsHtml(item)}
     </table>
+    ${logoPreviewCid
+      ? `<div style="padding:16px;border-top:1px solid #ececec;background:#fafafa;">
+          <div style="margin-bottom:10px;color:#666;font-family:Arial,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;">Customer Logo Preview</div>
+          <img
+            src="cid:${escapeHtml(logoPreviewCid)}"
+            alt="Customer uploaded logo"
+            style="display:block;max-width:320px;max-height:220px;width:auto;height:auto;object-fit:contain;border:1px solid #e2e2e2;background:#fff;padding:10px;border-radius:8px;"
+          />
+        </div>`
+      : ''}
   </div>
 `
 
@@ -300,6 +310,27 @@ export const submitCartQuote = async (req, res, next) => {
       0
     )
 
+    const getLogoFile = (item) => {
+      if (
+        item.logoUploadIndex === null ||
+        !logoFiles[item.logoUploadIndex]
+      ) {
+        return null
+      }
+
+      return logoFiles[item.logoUploadIndex]
+    }
+
+    const getLogoPreviewCid = (item, index) => {
+      const file = getLogoFile(item)
+
+      if (!file || !String(file.mimetype || '').startsWith('image/')) {
+        return ''
+      }
+
+      return `order-${insertResult.insertId}-logo-${index}@ayosons`
+    }
+
     const customerHtml = `
       <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
         <h2 style="margin-bottom:6px;">New AYOSONS Order</h2>
@@ -315,7 +346,9 @@ export const submitCartQuote = async (req, res, next) => {
 
         <p><strong>Items:</strong> ${items.length} &nbsp; <strong>Total quantity:</strong> ${totalQuantity}</p>
 
-        ${items.map(itemHtml).join('')}
+        ${items.map((item, index) =>
+          itemHtml(item, index, getLogoPreviewCid(item, index))
+        ).join('')}
 
         ${customer.message
           ? `<div style="margin-top:18px;"><strong>Customer Message</strong><p>${escapeHtml(customer.message).replace(/\n/g, '<br/>')}</p></div>`
@@ -339,21 +372,25 @@ export const submitCartQuote = async (req, res, next) => {
     ].filter(Boolean).join('\n')
 
     const emailAttachments = items
-      .map((item) => {
-        if (
-          item.logoUploadIndex === null ||
-          !logoFiles[item.logoUploadIndex]
-        ) {
+      .map((item, index) => {
+        const file = getLogoFile(item)
+
+        if (!file) {
           return null
         }
 
-        const file = logoFiles[item.logoUploadIndex]
-
-        return {
+        const attachment = {
           filename: file.originalname,
           content: file.buffer,
           contentType: file.mimetype,
         }
+
+        if (String(file.mimetype || '').startsWith('image/')) {
+          attachment.cid = getLogoPreviewCid(item, index)
+          attachment.contentDisposition = 'inline'
+        }
+
+        return attachment
       })
       .filter(Boolean)
 
@@ -377,7 +414,9 @@ export const submitCartQuote = async (req, res, next) => {
           <h2>Order Confirmed</h2>
           <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
           <p style="color:#666;">Order #${insertResult.insertId}</p>
-          ${items.map(itemHtml).join('')}
+          ${items.map((item, index) =>
+            itemHtml(item, index, getLogoPreviewCid(item, index))
+          ).join('')}
           <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
         </div>
       `,
