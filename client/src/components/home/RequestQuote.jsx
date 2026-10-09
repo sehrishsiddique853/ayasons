@@ -91,6 +91,10 @@ function RequestQuote() {
       setStatus('error')
       setFeedback(
         error.response?.data?.message ||
+        (error.request
+          ? 'The website could not reach the AYOSONS server. Make sure the backend is running and restart it after changing .env.'
+          : '') ||
+        error.message ||
         'Unable to send your message right now. Please try again.'
       )
     }
