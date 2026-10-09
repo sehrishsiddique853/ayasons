@@ -362,16 +362,33 @@ export const submitCartQuote = async (req, res, next) => {
       })
     }
 
+    const smtpHost = String(
+      process.env.SMTP_HOST || 'smtp.gmail.com'
+    ).trim()
+
+    const smtpPort = Number(
+      process.env.SMTP_PORT || 587
+    )
+
+    const smtpSecure =
+      String(process.env.SMTP_SECURE || '').toLowerCase() === 'true'
+        ? true
+        : smtpPort === 465
+
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
+      requireTLS: !smtpSecure,
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 20000,
       auth: {
         user: gmailUser,
         pass: gmailAppPassword,
+      },
+      tls: {
+        servername: smtpHost,
       },
     })
 
@@ -468,47 +485,69 @@ export const submitCartQuote = async (req, res, next) => {
       })
       .filter(Boolean)
 
-    const adminEmail = transporter.sendMail({
-      from: `AYOSONS Website <${gmailUser}>`,
-      to: recipient,
-      replyTo: customer.email,
-      subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
-      html: customerHtml,
-      text: customerText,
-      attachments: emailAttachments,
-    })
+    try {
+      const adminEmail = transporter.sendMail({
+        from: `AYOSONS Website <${gmailUser}>`,
+        to: recipient,
+        replyTo: customer.email,
+        subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
+        html: customerHtml,
+        text: customerText,
+        attachments: emailAttachments,
+      })
 
-    const confirmationEmail = transporter.sendMail({
-      from: `AYOSONS <${gmailUser}>`,
-      to: customer.email,
-      replyTo: recipient,
-      subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
-      html: `
-        <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
-          <h2>Order Confirmed</h2>
-          <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
-          <p style="color:#666;">Order #${insertResult.insertId}</p>
-          <p><strong>Delivery details</strong><br/>
-            ${[customer.address, customer.postalCode, customer.country].filter(Boolean).map(escapeHtml).join('<br/>') || 'Not provided'}
-          </p>
-          ${items.map((item, index) =>
-            itemHtml(item, index, getLogoPreviewCid(item, index))
-          ).join('')}
-          <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
-        </div>
-      `,
-      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\nDelivery details:\n${[customer.address, customer.postalCode, customer.country].filter(Boolean).join(', ') || 'Not provided'}\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
-      attachments: emailAttachments,
-    })
+      const confirmationEmail = transporter.sendMail({
+        from: `AYOSONS <${gmailUser}>`,
+        to: customer.email,
+        replyTo: recipient,
+        subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
+            <h2>Order Confirmed</h2>
+            <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
+            <p style="color:#666;">Order #${insertResult.insertId}</p>
+            <p><strong>Delivery details</strong><br/>
+              ${[customer.address, customer.postalCode, customer.country].filter(Boolean).map(escapeHtml).join('<br/>') || 'Not provided'}
+            </p>
+            ${items.map((item, index) =>
+              itemHtml(item, index, getLogoPreviewCid(item, index))
+            ).join('')}
+            <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
+          </div>
+        `,
+        text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\nDelivery details:\n${[customer.address, customer.postalCode, customer.country].filter(Boolean).join(', ') || 'Not provided'}\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
+        attachments: emailAttachments,
+      })
 
-    const [adminDelivery, confirmationDelivery] = await Promise.all([
-      adminEmail,
-      confirmationEmail,
-    ])
+      const [adminDelivery, confirmationDelivery] = await Promise.all([
+        adminEmail,
+        confirmationEmail,
+      ])
 
-    if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
-      res.status(502)
-      throw new Error('Unable to confirm email delivery.')
+      if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
+        res.status(502)
+        throw new Error('Unable to confirm email delivery.')
+      }
+
+
+    } catch (emailError) {
+      console.error(
+        `Order #${savedOrderId} saved, but email sending failed:`,
+        {
+          code: emailError.code,
+          command: emailError.command,
+          response: emailError.response,
+          message: emailError.message,
+        }
+      )
+
+      return res.status(201).json({
+        success: true,
+        emailSent: false,
+        message: `Order #${savedOrderId} has been placed successfully. Confirmation email could not be sent right now.`,
+        quoteId: savedOrderId,
+        orderId: savedOrderId,
+      })
     }
 
     res.status(201).json({
