@@ -1,5 +1,6 @@
 import pool from '../config/mysql.js'
 import { getGmailTransport } from '../config/gmailTransporter.js'
+import { randomUUID } from 'node:crypto'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -166,8 +167,6 @@ const itemText = (item, index) => {
 }
 
 export const submitCartQuote = async (req, res, next) => {
-  let savedOrderId = null
-
   try {
     const customer = {
       name: String(req.body?.name || '').trim(),
@@ -185,108 +184,21 @@ export const submitCartQuote = async (req, res, next) => {
       throw new Error('Name, valid email and at least one cart item are required.')
     }
 
-    await pool.execute(`
-      CREATE TABLE IF NOT EXISTS quote_requests (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        customer_name VARCHAR(160) NOT NULL,
-        customer_email VARCHAR(255) NOT NULL,
-        customer_phone VARCHAR(80) NOT NULL DEFAULT '',
-        company VARCHAR(180) NOT NULL DEFAULT '',
-        country VARCHAR(120) NOT NULL DEFAULT '',
-        message TEXT NULL,
-        items_json JSON NOT NULL,
-        status VARCHAR(40) NOT NULL DEFAULT 'new',
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_quote_requests_created_at (created_at),
-        KEY idx_quote_requests_status (status)
-      )
-    `)
-
-    await pool.execute(`
-      CREATE TABLE IF NOT EXISTS quote_request_files (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-        quote_id BIGINT UNSIGNED NOT NULL,
-        item_name VARCHAR(180) NOT NULL DEFAULT '',
-        file_name VARCHAR(255) NOT NULL,
-        file_mime VARCHAR(100) NOT NULL,
-        file_blob LONGBLOB NOT NULL,
-        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (id),
-        KEY idx_quote_request_files_quote (quote_id),
-        CONSTRAINT fk_quote_request_files_quote
-          FOREIGN KEY (quote_id)
-          REFERENCES quote_requests(id)
-          ON DELETE CASCADE
-      )
-    `)
-
-    const [insertResult] = await pool.execute(
-      `
-      INSERT INTO quote_requests (
-        customer_name,
-        customer_email,
-        customer_phone,
-        company,
-        country,
-        message,
-        items_json
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        customer.name,
-        customer.email,
-        customer.phone,
-        customer.company,
-        customer.country,
-        customer.message,
-        JSON.stringify(items),
-      ]
-    )
-    savedOrderId = insertResult.insertId
-
+    const orderReference = `AY-${Date.now()}-${randomUUID().slice(0, 8).toUpperCase()}`
     const logoFiles = Array.isArray(req.files) ? req.files : []
-
-    for (const item of items) {
-      if (
-        item.logoUploadIndex === null ||
-        !logoFiles[item.logoUploadIndex]
-      ) {
-        continue
-      }
-
-      const file = logoFiles[item.logoUploadIndex]
-
-      await pool.execute(
-        `
-        INSERT INTO quote_request_files (
-          quote_id,
-          item_name,
-          file_name,
-          file_mime,
-          file_blob
-        )
-        VALUES (?, ?, ?, ?, ?)
-        `,
-        [
-          insertResult.insertId,
-          item.itemName,
-          file.originalname,
-          file.mimetype,
-          file.buffer,
-        ]
-      )
-    }
-
-    const [settingsRows] = await pool.execute(`
-      SELECT recipient_email
-      FROM contact_settings
-      WHERE id = 1
-      LIMIT 1
-    `)
-
     const { user: gmailUser, transporter } = getGmailTransport()
+
+    let settingsRows = []
+    try {
+      ;[settingsRows] = await pool.execute(`
+        SELECT recipient_email
+        FROM contact_settings
+        WHERE id = 1
+        LIMIT 1
+      `)
+    } catch (error) {
+      console.warn('Could not read the configured order recipient; using GMAIL_USER.', error.message)
+    }
 
     const recipient =
       String(settingsRows[0]?.recipient_email || '').trim() ||
@@ -319,13 +231,13 @@ export const submitCartQuote = async (req, res, next) => {
         return ''
       }
 
-      return `order-${insertResult.insertId}-logo-${index}@ayosons`
+      return `order-${orderReference}-logo-${index}@ayosons`
     }
 
     const customerHtml = `
       <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
         <h2 style="margin-bottom:6px;">New AYOSONS Order</h2>
-        <p style="color:#666;margin-top:0;">Reference #${insertResult.insertId}</p>
+        <p style="color:#666;margin-top:0;">Reference ${orderReference}</p>
 
         <div style="padding:14px;background:#f6f6f6;border-radius:8px;margin-bottom:20px;">
           <strong>${escapeHtml(customer.name)}</strong><br/>
@@ -348,7 +260,7 @@ export const submitCartQuote = async (req, res, next) => {
     `
 
     const customerText = [
-      `AYOSONS Order #${insertResult.insertId}`,
+      `AYOSONS Order ${orderReference}`,
       `Customer: ${customer.name}`,
       `Email: ${customer.email}`,
       customer.phone ? `Phone: ${customer.phone}` : '',
@@ -389,7 +301,7 @@ export const submitCartQuote = async (req, res, next) => {
       from: `AYOSONS Website <${gmailUser}>`,
       to: recipient,
       replyTo: customer.email,
-      subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
+      subject: `New AYOSONS order ${orderReference} from ${customer.name}`,
       html: customerHtml,
       text: customerText,
       attachments: emailAttachments,
@@ -399,69 +311,66 @@ export const submitCartQuote = async (req, res, next) => {
       from: `AYOSONS <${gmailUser}>`,
       to: customer.email,
       replyTo: recipient,
-      subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
+      subject: `Your AYOSONS order ${orderReference} is confirmed`,
       html: `
         <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
           <h2>Order Confirmed</h2>
           <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
-          <p style="color:#666;">Order #${insertResult.insertId}</p>
+          <p style="color:#666;">Reference ${orderReference}</p>
           ${items.map((item, index) =>
             itemHtml(item, index, getLogoPreviewCid(item, index))
           ).join('')}
           <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
         </div>
       `,
-      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
+      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order ${orderReference} has been placed successfully and is confirmed.\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
       attachments: emailAttachments,
     }
 
-    res.status(201).json({
-      success: true,
-      message: `Order #${insertResult.insertId} was placed. Confirmation emails are being sent.`,
-      emailStatus: 'sending',
-      quoteId: insertResult.insertId,
-      orderId: insertResult.insertId,
-    })
-
-    // Email is deliberately sent after acknowledging the saved order. An SMTP
-    // outage must not keep checkout spinning or make a placed order look failed.
-    setImmediate(() => {
-      Promise.all([
+    let deliveries
+    try {
+      deliveries = await Promise.all([
         transporter.sendMail(adminEmail),
         transporter.sendMail(confirmationEmail),
       ])
-        .then(([adminDelivery, confirmationDelivery]) => {
-          if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
-            throw new Error('SMTP did not return message IDs for both order emails.')
-          }
-          console.info(`Order #${insertResult.insertId} notification emails sent.`)
-        })
-        .catch((error) => {
-          console.error(`Order #${insertResult.insertId} was saved, but email delivery failed:`, {
-            code: error.code,
-            command: error.command,
-            responseCode: error.responseCode,
-            message: error.message,
-          })
-        })
-    })
-  } catch (error) {
-    if (savedOrderId) {
-      console.error(`Order #${savedOrderId} was saved, but email delivery failed:`, {
+    } catch (error) {
+      console.error(`Could not send order ${orderReference} by email:`, {
         code: error.code,
         command: error.command,
         responseCode: error.responseCode,
         message: error.message,
       })
-      return res.status(201).json({
-        success: true,
+      return res.status(502).json({
+        success: false,
         emailSent: false,
-        message: `Order #${savedOrderId} was saved, but email delivery failed. Contact AYOSONS with this order number; please do not submit it again.`,
-        quoteId: savedOrderId,
-        orderId: savedOrderId,
+        message: 'Email delivery failed. This order was not saved. Please try again later or contact AYOSONS.',
       })
     }
 
+    const expectedRecipients = [recipient, customer.email]
+    const allRecipientsAccepted = deliveries.every((delivery, index) => {
+      const accepted = (delivery.accepted || []).map((address) =>
+        String(address).toLowerCase()
+      )
+      return Boolean(delivery.messageId) && accepted.includes(expectedRecipients[index].toLowerCase())
+    })
+
+    if (!allRecipientsAccepted) {
+      console.error(`Email server did not accept every recipient for order ${orderReference}.`)
+      return res.status(502).json({
+        success: false,
+        emailSent: false,
+        message: 'The email server did not accept all recipients. This order was not saved; please contact AYOSONS before retrying.',
+      })
+    }
+
+    return res.status(201).json({
+      success: true,
+      emailSent: true,
+      message: `Order ${orderReference} was sent to AYOSONS by email. A confirmation was sent to your email address.`,
+      orderReference,
+    })
+  } catch (error) {
     next(error)
   }
 }
