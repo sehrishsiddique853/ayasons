@@ -214,6 +214,26 @@ export const submitContactInquiry = async (req, res, next) => {
     // Match the Gmail SMTP setup used by working order confirmations.
     const { user: gmailUser, transporter } = getGmailTransport()
 
+    try {
+      await transporter.verify()
+    } catch (smtpVerifyError) {
+      console.error('SMTP verification failed:', {
+        code: smtpVerifyError.code,
+        command: smtpVerifyError.command,
+        response: smtpVerifyError.response,
+        message: smtpVerifyError.message,
+      })
+
+      res.status(502)
+      throw new Error(
+        smtpVerifyError.code === 'EAUTH'
+          ? 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (Google App Password).'
+          : smtpVerifyError.code === 'ETIMEDOUT' || smtpVerifyError.code === 'ESOCKET' || smtpVerifyError.code === 'ECONNECTION'
+            ? 'Cannot connect to the SMTP server. Check SMTP_HOST, SMTP_PORT and your network/firewall.'
+            : 'SMTP connection verification failed. Check the server email configuration.'
+      )
+    }
+
     const contactSettings = await getContactSettings()
 
     const inquiryRecipient = [
