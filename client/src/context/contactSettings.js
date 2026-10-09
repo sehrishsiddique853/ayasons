@@ -7,6 +7,7 @@ export const DEFAULT_CONTACT_SETTINGS = {
   linkedin: '',
   instagram: '',
   facebook: '',
+  teamMembers: [],
 }
 
 export const ContactSettingsContext = createContext(DEFAULT_CONTACT_SETTINGS)

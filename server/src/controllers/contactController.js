@@ -32,7 +32,8 @@ const getContactSettings = async () => {
       whatsapp_number,
       linkedin_url,
       instagram_url,
-      facebook_url
+      facebook_url,
+      team_members_json
     FROM contact_settings
     WHERE id = 1
     LIMIT 1
@@ -48,7 +49,24 @@ const formatPublicSettings = (settings) => ({
   linkedin: settings?.linkedin_url || '',
   instagram: settings?.instagram_url || '',
   facebook: settings?.facebook_url || '',
+  teamMembers: parseTeamMembers(settings?.team_members_json),
 })
+
+const parseTeamMembers = (value) => {
+  try {
+    const members = typeof value === 'string' ? JSON.parse(value) : value
+    if (!Array.isArray(members)) return []
+
+    return members
+      .map((member) => ({
+        name: String(member?.name || '').trim(),
+        designation: String(member?.designation || '').trim(),
+      }))
+      .filter((member) => member.name && member.designation)
+  } catch {
+    return []
+  }
+}
 
 export const getPublicContactSettings = async (req, res, next) => {
   try {
@@ -86,6 +104,38 @@ export const updateAdminContactSettings = async (req, res, next) => {
     const linkedin = String(req.body?.linkedin || '').trim()
     const instagram = String(req.body?.instagram || '').trim()
     const facebook = String(req.body?.facebook || '').trim()
+    const submittedTeamMembers = req.body?.teamMembers
+    const teamMemberRows = Array.isArray(submittedTeamMembers)
+      ? submittedTeamMembers
+      : parseTeamMembers((await getContactSettings())?.team_members_json)
+
+    if (teamMemberRows.length > 12) {
+      res.status(400)
+      throw new Error('You can add up to 12 team members.')
+    }
+
+    if (
+      teamMemberRows.some((member) => {
+        const hasName = Boolean(String(member?.name || '').trim())
+        const hasDesignation = Boolean(String(member?.designation || '').trim())
+        return hasName !== hasDesignation
+      })
+    ) {
+      res.status(400)
+      throw new Error('Complete both fields for each team member, or leave both blank.')
+    }
+
+    const teamMembers = parseTeamMembers(
+      teamMemberRows.filter((member) =>
+        String(member?.name || '').trim() &&
+        String(member?.designation || '').trim()
+      )
+    )
+
+    if (teamMembers.some((member) => member.name.length > 120 || member.designation.length > 120)) {
+      res.status(400)
+      throw new Error('Team member names and designations must be 120 characters or fewer.')
+    }
 
     if (publicEmail && !emailPattern.test(publicEmail)) {
       res.status(400)
@@ -106,16 +156,18 @@ export const updateAdminContactSettings = async (req, res, next) => {
         whatsapp_number,
         linkedin_url,
         instagram_url,
-        facebook_url
+        facebook_url,
+        team_members_json
       )
-      VALUES (1, '', ?, ?, ?, ?, ?, ?)
+      VALUES (1, '', ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         public_email = VALUES(public_email),
         phone_number = VALUES(phone_number),
         whatsapp_number = VALUES(whatsapp_number),
         linkedin_url = VALUES(linkedin_url),
         instagram_url = VALUES(instagram_url),
-        facebook_url = VALUES(facebook_url)
+        facebook_url = VALUES(facebook_url),
+        team_members_json = VALUES(team_members_json)
     `, [
       publicEmail,
       phone,
@@ -123,6 +175,7 @@ export const updateAdminContactSettings = async (req, res, next) => {
       linkedin,
       instagram,
       facebook,
+      JSON.stringify(teamMembers),
     ])
 
     res.status(200).json({
@@ -135,6 +188,7 @@ export const updateAdminContactSettings = async (req, res, next) => {
         linkedin,
         instagram,
         facebook,
+        teamMembers,
       },
     })
   } catch (error) {

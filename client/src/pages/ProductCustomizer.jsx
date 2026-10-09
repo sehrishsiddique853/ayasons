@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -364,6 +364,7 @@ function ProductCustomizer() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const configuratorRef = useRef(null)
 
   useEffect(() => {
     setAdvancedOpen(false)
@@ -447,6 +448,10 @@ function ProductCustomizer() {
 
   const chooseItem = (itemId) => {
     setActiveItemId(itemId)
+    configuratorRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
 
     setConfiguration((current) => {
       if (productSlug !== 'soccer-uniform') {
@@ -885,69 +890,70 @@ function ProductCustomizer() {
             </div>
           </section>
 
-          <section className="ecom-configurator">
-            <div className="ecom-product-visual">
-              <div className="ecom-main-image">
-                <img
-                  src={activeItem.image?.url}
-                  alt={activeItem.name}
-                />
-              </div>
-
-              <div className="ecom-visual-caption">
-                <span>{product.name}</span>
-                <strong>{activeItem.name}</strong>
-              </div>
-
-                              <div className="soccer-product-proof">
-                  <div className="soccer-proof-grid">
-                    <div className="soccer-proof-item">
-                      <strong>Custom Design</strong>
-                      <span>Your colors, logo and team identity</span>
-                    </div>
-
-                    <div className="soccer-proof-item">
-                      <strong>Performance Fabrics</strong>
-                      <span>Sport-specific fabric, fit and construction options</span>
-                    </div>
-
-                    <div className="soccer-proof-item">
-                      <strong>Made for Teams</strong>
-                      <span>Player details, branding and coordinated team presentation</span>
-                    </div>
-
-                    <div className="soccer-proof-item">
-                      <strong>Production Options</strong>
-                      <span>Multiple finishes, decoration and customization methods</span>
-                    </div>
-                  </div>
-
-                  <section className="soccer-product-description">
-                    <h3>Product Description</h3>
-
-                    <p>{activeItem.description}</p>
-
-                    <ul>
-                      <li>
-                        <ShieldCheck size={17} />
-                        <span>{designSetIncludes}</span>
-                      </li>
-                      <li>
-                        <ShieldCheck size={17} />
-                        <span>{designBranding}</span>
-                      </li>
-                      <li>
-                        <ShieldCheck size={17} />
-                        <span>{designCustomization}</span>
-                      </li>
-                      <li>
-                        <ShieldCheck size={17} />
-                        <span>{designUse}</span>
-                      </li>
-                    </ul>
-                  </section>
+          <section className="ecom-configurator" ref={configuratorRef}>
+            <div className="ecom-product-showcase">
+              <div className="ecom-product-visual">
+                <div className="ecom-main-image">
+                  <img
+                    src={activeItem.image?.url}
+                    alt={activeItem.name}
+                  />
                 </div>
 
+                <div className="ecom-visual-caption">
+                  <span>{product.name}</span>
+                  <strong>{activeItem.name}</strong>
+                </div>
+              </div>
+
+              <div className="soccer-product-proof">
+                <div className="soccer-proof-grid">
+                  <div className="soccer-proof-item">
+                    <strong>Custom Design</strong>
+                    <span>Your colors, logo and team identity</span>
+                  </div>
+
+                  <div className="soccer-proof-item">
+                    <strong>Performance Fabrics</strong>
+                    <span>Sport-specific fabric, fit and construction options</span>
+                  </div>
+
+                  <div className="soccer-proof-item">
+                    <strong>Made for Teams</strong>
+                    <span>Player details, branding and coordinated team presentation</span>
+                  </div>
+
+                  <div className="soccer-proof-item">
+                    <strong>Production Options</strong>
+                    <span>Multiple finishes, decoration and customization methods</span>
+                  </div>
+                </div>
+
+                <section className="soccer-product-description">
+                  <h3>Product Description</h3>
+
+                  <p>{activeItem.description}</p>
+
+                  <ul>
+                    <li>
+                      <ShieldCheck size={17} />
+                      <span>{designSetIncludes}</span>
+                    </li>
+                    <li>
+                      <ShieldCheck size={17} />
+                      <span>{designBranding}</span>
+                    </li>
+                    <li>
+                      <ShieldCheck size={17} />
+                      <span>{designCustomization}</span>
+                    </li>
+                    <li>
+                      <ShieldCheck size={17} />
+                      <span>{designUse}</span>
+                    </li>
+                  </ul>
+                </section>
+              </div>
             </div>
 
             <div className="ecom-product-options">
@@ -1239,6 +1245,7 @@ function ProductCustomizer() {
                 </div>
               )}
             </div>
+
           </section>
 
           {cartItems.length > 0 && (

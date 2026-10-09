@@ -21,6 +21,7 @@ try {
       linkedin_url VARCHAR(500) NOT NULL DEFAULT '',
       instagram_url VARCHAR(500) NOT NULL DEFAULT '',
       facebook_url VARCHAR(500) NOT NULL DEFAULT '',
+      team_members_json LONGTEXT NULL,
       updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (id)
@@ -34,6 +35,7 @@ try {
     ['linkedin_url', "VARCHAR(500) NOT NULL DEFAULT ''"],
     ['instagram_url', "VARCHAR(500) NOT NULL DEFAULT ''"],
     ['facebook_url', "VARCHAR(500) NOT NULL DEFAULT ''"],
+    ['team_members_json', 'LONGTEXT NULL'],
   ]
 
   const [existingColumns] = await connection.execute(`

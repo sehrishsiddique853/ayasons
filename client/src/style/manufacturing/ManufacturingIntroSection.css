@@ -1,13 +1,13 @@
 .manufacturing-intro-hero {
   position: relative;
   isolation: isolate;
-  min-height: 82svh;
+  min-height: 100svh;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: clamp(54px, 7vw, 118px);
-  padding: clamp(136px, 15vh, 180px) clamp(24px, 4vw, 68px) clamp(76px, 8vw, 116px);
+  padding: clamp(100px, 12vh, 132px) clamp(24px, 4vw, 68px) clamp(42px, 6vh, 64px);
   border-bottom: 1px solid rgba(255,255,255,.09);
   background:
     radial-gradient(circle at 92% 18%, rgba(240,212,79,.13), transparent 32%),
@@ -26,7 +26,7 @@
 }
 
 .manufacturing-intro-copy {
-  max-width: 900px;
+  max-width: 1200px;
   animation: manufacturingIntroIn 700ms cubic-bezier(.22,1,.36,1) both;
 }
 
@@ -34,7 +34,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  margin: 0 0 26px;
+  margin: 0 0 20px;
   color: var(--brand-yellow);
   font: 900 12px/1 var(--font-display);
   letter-spacing: .27em;
@@ -51,7 +51,7 @@
 .manufacturing-intro-copy h1 {
   display: grid;
   margin: 0;
-  font: 900 clamp(54px,5.7vw,96px)/.88 var(--font-display);
+  font: 900 clamp(48px,4.8vw,82px)/.88 var(--font-display);
   letter-spacing: -.02em;
   text-transform: uppercase;
 }
@@ -61,10 +61,10 @@
 
 .manufacturing-intro-description {
   max-width: 780px;
-  margin: 36px 0 0;
+  margin: 28px 0 0;
   color: rgba(255,255,255,.68);
-  font-size: clamp(16px,1.25vw,20px);
-  line-height: 1.72;
+  font-size: clamp(16px,1.15vw,19px);
+  line-height: 1.6;
   text-wrap: balance;
 }
 
@@ -72,7 +72,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
-  margin-top: 30px;
+  margin-top: 24px;
 }
 
 .manufacturing-intro-stages span {

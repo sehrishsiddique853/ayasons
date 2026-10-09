@@ -80,6 +80,79 @@
   gap: 18px;
 }
 
+.contact-admin-team-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--admin-border);
+}
+
+.contact-admin-team-heading .contact-admin-card-icon {
+  width: 42px;
+  height: 42px;
+}
+
+.contact-admin-team-heading h2 {
+  margin: 0 0 5px;
+  color: var(--admin-text);
+  font-size: 18px;
+}
+
+.contact-admin-team-heading p {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 13px;
+}
+
+.contact-admin-team-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.contact-admin-team-member {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 42px;
+  align-items: end;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+}
+
+.contact-admin-team-member .contact-admin-field label {
+  font-size: 13px;
+}
+
+.contact-admin-team-member .contact-admin-field input {
+  font-size: 14px;
+}
+
+.contact-admin-card .contact-admin-team-member .contact-admin-remove-team-member {
+  width: 42px;
+  min-height: 42px;
+  margin: 0 0 0;
+  padding: 0;
+  justify-content: center;
+  border: 1px solid var(--admin-border);
+  background: transparent;
+  color: var(--admin-muted);
+}
+
+.contact-admin-card .contact-admin-team-member .contact-admin-remove-team-member:hover {
+  border-color: #d88;
+  color: #a51d1d;
+}
+
+.contact-admin-card .contact-admin-add-team-member {
+  margin-top: 14px;
+  border: 1px solid var(--admin-border);
+  background: transparent;
+  color: var(--admin-text);
+}
+
 .contact-admin-card input {
   width: 100%;
   box-sizing: border-box;
@@ -126,5 +199,18 @@
 
   .contact-admin-fields {
     grid-template-columns: 1fr;
+  }
+
+  .contact-admin-team-member {
+    grid-template-columns: minmax(0, 1fr) 42px;
+  }
+
+  .contact-admin-team-member .contact-admin-field:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .contact-admin-team-member .contact-admin-remove-team-member {
+    grid-column: 2;
+    grid-row: 1 / span 2;
   }
 }

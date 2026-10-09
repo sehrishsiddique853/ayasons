@@ -1,27 +1,38 @@
 import '../../style/about/AboutTeamValues.css'
+import { useContactSettings } from '../../context/contactSettings'
 
-const team = [
+const defaultTeam = [
   {
     initials: 'AY',
-    title: 'Leadership',
+    name: 'Leadership',
     role: 'Strategy, direction and long-term growth',
   },
   {
     initials: 'PR',
-    title: 'Production',
+    name: 'Production',
     role: 'Manufacturing, quality and delivery oversight',
   },
   {
     initials: 'BD',
-    title: 'Business Development',
+    name: 'Business Development',
     role: 'Customer relationships and global partnerships',
   },
   {
     initials: 'OP',
-    title: 'Operations',
+    name: 'Operations',
     role: 'Planning, coordination and export execution',
   },
 ]
+
+const getInitials = (name) =>
+  String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
 
 const values = [
   {
@@ -39,6 +50,15 @@ const values = [
 ]
 
 function AboutTeamValues() {
+  const { teamMembers = [] } = useContactSettings()
+  const team = teamMembers.length
+    ? teamMembers.map((member) => ({
+        initials: getInitials(member.name),
+        name: member.name,
+        role: member.designation,
+      }))
+    : defaultTeam
+
   return (
     <div className="about-team-values">
       <section className="about-team-section">
@@ -52,13 +72,13 @@ function AboutTeamValues() {
 
         <div className="about-team-grid">
           {team.map((member) => (
-            <article className="about-team-card" key={member.title}>
+            <article className="about-team-card" key={`${member.name}-${member.role}`}>
               <div className="about-team-avatar" aria-hidden="true">
                 {member.initials}
               </div>
 
               <div className="about-team-card-copy">
-                <h3>{member.title}</h3>
+                <h3>{member.name}</h3>
                 <p>{member.role}</p>
               </div>
             </article>

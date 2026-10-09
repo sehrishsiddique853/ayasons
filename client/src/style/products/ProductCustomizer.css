@@ -182,6 +182,14 @@
   grid-template-columns: minmax(0, 1fr) minmax(420px, .9fr);
   gap: 24px;
   align-items: start;
+  scroll-margin-top: 96px;
+}
+
+.ecom-product-showcase {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 18px;
 }
 
 .ecom-product-visual,
@@ -194,6 +202,10 @@
 
 .ecom-product-visual {
   padding: 18px;
+}
+
+.soccer-product-proof {
+  margin-top: 0;
 }
 
 .ecom-main-image {
@@ -667,6 +679,22 @@
 
   .ecom-configurator {
     grid-template-columns: 1fr;
+  }
+
+  .ecom-product-showcase {
+    display: contents;
+  }
+
+  .ecom-product-showcase > .ecom-product-visual {
+    order: 1;
+  }
+
+  .ecom-configurator > .ecom-product-options {
+    order: 2;
+  }
+
+  .ecom-product-showcase > .soccer-product-proof {
+    order: 3;
   }
 
   .ecom-main-image,
@@ -1329,7 +1357,6 @@
 
 /* Product credibility content below soccer product image */
 .soccer-product-proof {
-  margin-top: 18px;
   display: grid;
   gap: 18px;
 }

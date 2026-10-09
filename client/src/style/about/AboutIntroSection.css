@@ -41,8 +41,10 @@
   .about-intro-hero { min-height: auto; gap: 46px; padding: 112px 18px 70px; }
   .about-intro-copy h1 { font-size: clamp(46px,14vw,66px); }
   .about-intro-description { margin-top: 28px; font-size: 15px; line-height: 1.65; }
-  .about-intro-stats { grid-template-columns: 1fr; gap: 12px; }
-  .about-intro-stat { min-height: 130px; padding: 24px; }
+  .about-intro-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .about-intro-stat { min-height: 112px; padding: 18px 14px; }
+  .about-intro-stat strong { font-size: clamp(32px, 9vw, 44px); }
+  .about-intro-stat span { margin-top: 8px; font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
