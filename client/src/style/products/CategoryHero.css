@@ -22,13 +22,13 @@
   background:
     linear-gradient(
       90deg,
-      rgba(4,5,7,.93) 0%,
-      rgba(4,5,7,.76) 30%,
-      rgba(4,5,7,.38) 54%,
+      rgba(4,5,7,.68) 0%,
+      rgba(4,5,7,.48) 30%,
+      rgba(4,5,7,.26) 54%,
       rgba(4,5,7,.08) 78%,
       transparent 100%
     ),
-    linear-gradient(180deg, rgba(4,5,7,.08), transparent 52%, rgba(4,5,7,.58)),
+    linear-gradient(180deg, rgba(4,5,7,.02), transparent 52%, rgba(4,5,7,.58)),
     radial-gradient(circle at 76% 36%, transparent 0 28%, rgba(4,5,7,.12) 76%, rgba(4,5,7,.24));
 }
 
@@ -108,8 +108,8 @@
   .product-category-description { max-width: 34rem; }
   .product-category-hero-overlay {
     background:
-      linear-gradient(90deg,rgba(4,5,7,.9),rgba(4,5,7,.58) 55%,rgba(4,5,7,.18)),
-      linear-gradient(180deg,rgba(4,5,7,.08) 35%,rgba(4,5,7,.7));
+      linear-gradient(90deg,rgba(4,5,7,.68),rgba(4,5,7,.44) 55%,rgba(4,5,7,.18)),
+      linear-gradient(180deg,rgba(4,5,7,.02) 35%,rgba(4,5,7,.7));
   }
 }
 
@@ -124,8 +124,8 @@
   }
   .product-category-hero-overlay {
     background:
-      linear-gradient(90deg,rgba(4,5,7,.84),rgba(4,5,7,.5)),
-      linear-gradient(180deg,rgba(4,5,7,.12) 22%,rgba(4,5,7,.8));
+      linear-gradient(90deg,rgba(4,5,7,.68),rgba(4,5,7,.44)),
+      linear-gradient(180deg,rgba(4,5,7,.02) 22%,rgba(4,5,7,.8));
   }
   .product-category-eyebrow { margin-bottom: .8rem; padding: .45rem .6rem; font-size: clamp(.5rem, 2.2vw, .58rem); letter-spacing: .12em; }
   .product-category-hero h1 { font-size: clamp(2.45rem, min(13vw, 9.6vh), 4.25rem); }

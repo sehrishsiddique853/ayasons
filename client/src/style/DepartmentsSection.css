@@ -612,11 +612,23 @@
   }
 
   .departments-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .55rem;
   }
 
   .department-stat {
-    min-height: 88px;
+    min-height: 5rem;
+    padding: .75rem;
+  }
+
+  .department-stat strong {
+    font-size: clamp(1.2rem, 7vw, 1.65rem);
+  }
+
+  .department-stat span {
+    margin-top: .4rem;
+    font-size: .48rem;
+    letter-spacing: .04em;
   }
 
   .department-card {

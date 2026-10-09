@@ -8,6 +8,7 @@ function ProductCard({
   image,
   features = [],
   to = '/contact',
+  priority = false,
 }) {
   return (
     <Link
@@ -19,9 +20,9 @@ function ProductCard({
         <img
           src={withImageWidth(image, 520)}
           alt={title}
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
           decoding="async"
-          fetchPriority="low"
+          fetchPriority={priority ? 'high' : 'auto'}
         />
       </div>
 

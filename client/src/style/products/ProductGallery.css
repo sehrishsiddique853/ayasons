@@ -104,6 +104,40 @@
     );
 }
 
+.product-gallery-layout-toggle {
+  display: none;
+}
+
+.product-gallery-layout-toggle button {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  width: 40px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(255,255,255,.62);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.product-gallery-layout-toggle button svg {
+  flex: 0 0 auto;
+}
+
+.product-gallery-layout-toggle button.active {
+  background: var(--brand-yellow);
+  color: #080808;
+}
+
+.product-gallery-layout-toggle button:focus:not(:focus-visible) {
+  outline: none;
+}
+
 
 /* GRID */
 
@@ -122,7 +156,8 @@
 /* TABLET */
 
 @media (max-width: 1000px) {
-  .product-gallery-grid {
+  .product-gallery-grid,
+  .product-gallery-grid--four {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
@@ -132,6 +167,19 @@
 /* MOBILE */
 
 @media (max-width: 650px) {
+  .product-gallery-layout-toggle {
+    position: relative;
+    z-index: 1;
+    width: fit-content;
+    display: flex;
+    gap: 4px;
+    margin: 24px auto 0;
+    padding: 4px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 999px;
+    background: rgba(255,255,255,.035);
+  }
+
   .product-gallery-section {
     padding:
       54px
@@ -149,5 +197,47 @@
     gap: 18px;
 
     margin-top: 30px;
+  }
+
+  .product-gallery-grid--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .product-gallery-grid--single {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+    justify-self: center;
+  }
+
+  .product-gallery-grid--four .category-product-image {
+    height: clamp(130px, 42vw, 190px);
+  }
+
+  .product-gallery-grid--four .category-product-content {
+    padding: 12px;
+  }
+
+  .product-gallery-grid--four .category-product-content h3 {
+    font-size: 15px;
+  }
+
+  .product-gallery-grid--four .category-product-topline {
+    font-size: 7px;
+  }
+
+  .product-gallery-grid--four .category-product-content > p {
+    min-height: 0;
+    font-size: 11px;
+  }
+
+  .product-gallery-grid--four .category-product-features {
+    gap: 4px;
+    margin-top: 10px;
+  }
+
+  .product-gallery-grid--four .category-product-features span {
+    padding: 4px 6px;
+    font-size: 8px;
   }
 }

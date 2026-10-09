@@ -4,6 +4,7 @@ function CustomProductCard({
   item,
   selected,
   active,
+  hideCheck = false,
   onSelect,
 }) {
   const subtitle =
@@ -27,7 +28,7 @@ function CustomProductCard({
     >
       <div className="ecom-item-image">
         <img src={item.image?.url} alt={item.name} loading="lazy" />
-        {selected?.enabled && (
+        {!hideCheck && selected?.enabled && (
           <span className="ecom-item-check">
             <Check size={13} />
           </span>

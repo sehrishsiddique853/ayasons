@@ -1,5 +1,6 @@
 import '../../../style/products/ProductCollectionSection.css'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 function ProductCollectionSection({
   title,
@@ -8,8 +9,12 @@ function ProductCollectionSection({
   groups = [],
   reverse = false,
 }) {
-  const normalizedGroups =
-    groups.map((group) => {
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set())
+
+  const normalizedGroups = groups.length > 0 &&
+    groups.every((group) => typeof group === 'string')
+    ? [{ title: '', items: groups, isFlat: true }]
+    : groups.map((group) => {
       if (
         typeof group === 'string'
       ) {
@@ -69,19 +74,23 @@ function ProductCollectionSection({
 
         <div className="product-groups">
 
-          {normalizedGroups.map((group) => (
+          {normalizedGroups.map((group, groupIndex) => {
+            const groupKey = `${group.title}-${groupIndex}`
+            const isExpanded = expandedGroups.has(groupKey)
+
+            return (
             <div
-              className="product-group"
-              key={group.title}
+              className={`product-group ${group.isFlat ? 'product-group--flat' : ''} ${isExpanded ? 'product-group--expanded' : 'product-group--collapsed'}`}
+              key={groupKey}
             >
-              <h3>{group.title}</h3>
+              {group.title && <h3>{group.title}</h3>}
 
               {group.items.length > 0 && (
                 <div className="product-type-list">
 
-                  {group.items.map((product) => (
+                  {group.items.map((product, itemIndex) => (
                     <div
-                      className="product-type-item"
+                      className={`product-type-item ${itemIndex >= 3 ? 'product-type-item--extra' : ''}`}
                       key={product}
                     >
                       <span />
@@ -94,8 +103,30 @@ function ProductCollectionSection({
 
                 </div>
               )}
+
+              {group.items.length > 3 && (
+                <button
+                  className="product-group-toggle"
+                  type="button"
+                  aria-expanded={isExpanded}
+                  onClick={() => {
+                    setExpandedGroups((current) => {
+                      const next = new Set(current)
+                      if (next.has(groupKey)) {
+                        next.delete(groupKey)
+                      } else {
+                        next.add(groupKey)
+                      }
+                      return next
+                    })
+                  }}
+                >
+                  {isExpanded ? 'Read less' : `Read more (${group.items.length - 3})`}
+                </button>
+              )}
             </div>
-          ))}
+            )
+          })}
 
         </div>
 

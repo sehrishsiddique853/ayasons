@@ -190,18 +190,6 @@ const visibleOptionGroups = (item) =>
     (group) => !isDuplicateSizeGroup(item, group)
   )
 
-const hasAdvancedCustomization = (item) => {
-  const colorZones = item?.colorZones || []
-  const basicSlugs = new Set(item?.basicOptionSlugs || [])
-
-  return Boolean(
-    colorZones.length > 1 ||
-    visibleOptionGroups(item).some((group) => !basicSlugs.has(group.slug)) ||
-    item?.allowLogoUpload ||
-    item?.allowCustomNotes
-  )
-}
-
 const optionValues = (group) =>
   (group.values || []).map((value) =>
     typeof value === 'string'
@@ -378,6 +366,10 @@ function ProductCustomizer() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    setAdvancedOpen(false)
+  }, [categorySlug, productSlug])
+
+  useEffect(() => {
     let active = true
 
     const load = async () => {
@@ -402,7 +394,6 @@ function ProductCustomizer() {
         }
         setConfiguration(nextConfiguration)
         setActiveItemId(items[0]?.id || null)
-        setAdvancedOpen(hasAdvancedCustomization(items[0]))
       } catch (requestError) {
         if (!active) return
 
@@ -456,11 +447,6 @@ function ProductCustomizer() {
 
   const chooseItem = (itemId) => {
     setActiveItemId(itemId)
-    setAdvancedOpen(
-      hasAdvancedCustomization(
-        product?.items?.find((item) => item.id === itemId)
-      )
-    )
 
     setConfiguration((current) => {
       if (productSlug !== 'soccer-uniform') {
@@ -714,7 +700,6 @@ function ProductCustomizer() {
         !selected.logoFile
       ) {
         setActiveItemId(item.id)
-        setAdvancedOpen(true)
         setMessage(`Please upload a logo for ${item.name}.`)
         return
       }
@@ -891,8 +876,9 @@ function ProductCustomizer() {
                 <CustomProductCard
                   key={item.id}
                   item={item}
-                  selected={configuration[item.id]}
+                  selected={isDesignCollection ? null : configuration[item.id]}
                   active={activeItem.id === item.id}
+                  hideCheck={isDesignCollection}
                   onSelect={chooseItem}
                 />
               ))}

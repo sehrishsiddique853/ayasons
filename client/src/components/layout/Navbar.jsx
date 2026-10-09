@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronDown, Menu, ShoppingBag, X } from 'lucide-react'
 import ayosonsLogo from '../../assets/logo/ayosons-logo-navbar-removebg-preview.png'
 import { loadProductCategories } from '../../services/productCategoriesCache'
-import { loadProductCategory } from '../../services/productCategoryCache'
+import { loadProductList } from '../../services/productListCache'
 import { loadHomepageContent } from '../../services/homepageContentCache'
 import { useCart } from '../../context/CartContext'
 
@@ -22,39 +22,72 @@ function Navbar() {
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false)
   const [megaCategories, setMegaCategories] = useState([])
   const [megaLoading, setMegaLoading] = useState(false)
+  const productsLoadRef = useRef(null)
   const { totalQuantity } = useCart()
 
-  const prepareProducts = async () => {
-    const categories = await loadProductCategories()
+  const prepareProducts = () => {
+    if (productsLoadRef.current) {
+      return productsLoadRef.current
+    }
 
-    if (!megaCategories.length && !megaLoading) {
+    if (
+      megaCategories.length > 0 &&
+      megaCategories.every((category) => category.productsLoaded)
+    ) {
+      return Promise.resolve(megaCategories)
+    }
+
+    productsLoadRef.current = (async () => {
       setMegaLoading(true)
 
       try {
-        const detailed = await Promise.all(
-          categories.map(async (category) => {
-            try {
-              const data = await loadProductCategory(category.slug)
-              return {
-                ...category,
-                products: data.products || [],
-              }
-            } catch {
-              return {
-                ...category,
-                products: [],
-              }
-            }
-          })
+        const categories = await loadProductCategories()
+
+        setMegaCategories(
+          categories.map((category) => ({
+            ...category,
+            products: [],
+            productsLoaded: false,
+          }))
         )
 
-        setMegaCategories(detailed)
+        const products = await loadProductList()
+        const productsByCategory = new Map(
+          categories.map((category) => [category.slug, []])
+        )
+
+        for (const product of products) {
+          const categorySlug = product.category?.slug
+          if (productsByCategory.has(categorySlug)) {
+            productsByCategory.get(categorySlug).push(product)
+          }
+        }
+
+        const detailedCategories = categories.map((category) => ({
+          ...category,
+          products: productsByCategory.get(category.slug) || [],
+          productsLoaded: true,
+        }))
+
+        setMegaCategories(detailedCategories)
+
+        return detailedCategories
+      } catch (error) {
+        // Leave category links available if product details fail to load.
+        setMegaCategories((current) =>
+          current.map((category) => ({
+            ...category,
+            productsLoaded: true,
+          }))
+        )
+        throw error
       } finally {
         setMegaLoading(false)
+        productsLoadRef.current = null
       }
-    }
+    })()
 
-    return categories
+    return productsLoadRef.current
   }
 
   const openProducts = (event) => {
@@ -136,6 +169,8 @@ function Navbar() {
                 type="button"
                 aria-haspopup="true"
                 aria-expanded={isProductsOpen}
+                onPointerEnter={() => prepareProducts().catch(() => {})}
+                onFocus={() => prepareProducts().catch(() => {})}
                 onClick={() => {
                   setIsProductsOpen((open) => !open)
                   prepareProducts().catch(() => {})
@@ -170,6 +205,11 @@ function Navbar() {
                           </Link>
 
                           <div className="nav-mega-products">
+                            {!category.productsLoaded && (
+                              <span className="nav-mega-products-loading">
+                                Loading products...
+                              </span>
+                            )}
                             {(category.products || []).map((product) => (
                               <Link
                                 key={product.id || product.slug}
@@ -240,6 +280,7 @@ function Navbar() {
                   className="mobile-products-toggle"
                   type="button"
                   aria-expanded={isMobileProductsOpen}
+                  onFocus={() => prepareProducts().catch(() => {})}
                   onClick={() => {
                     setIsMobileProductsOpen((open) => !open)
                     prepareProducts().catch(() => {})
@@ -275,6 +316,11 @@ function Navbar() {
                         </Link>
 
                         <div>
+                          {!category.productsLoaded && (
+                            <span className="nav-mega-products-loading">
+                              Loading products...
+                            </span>
+                          )}
                           {(category.products || []).map((product) => (
                             <Link
                               key={product.id || product.slug}

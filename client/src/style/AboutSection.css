@@ -224,6 +224,20 @@ aspect-ratio: 1 / 1;
 }
 
 .trust-points {
-grid-template-columns: 1fr;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.trust-points span {
+min-height: 2.4rem;
+padding-inline: .45rem;
+font-size: .62rem;
+letter-spacing: .02em;
+}
+
+.trust-points span::before {
+flex: 0 0 .32rem;
+width: .32rem;
+height: .32rem;
+margin-right: .4rem;
 }
 }

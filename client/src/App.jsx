@@ -17,6 +17,7 @@ import Navbar from './components/layout/Navbar'
 import ImagePreloader from './components/common/ImagePreloader'
 import { ContactSettingsProvider } from './context/ContactSettingsContext'
 import { loadProductCategories } from './services/productCategoriesCache'
+import { loadProductList } from './services/productListCache'
 import { loadHomepageContent } from './services/homepageContentCache'
 
 import Home from './pages/Home'
@@ -181,6 +182,7 @@ function App() {
   useEffect(() => {
     const warmProductsPage = () => {
       loadProductCategories().catch(() => {})
+      loadProductList().catch(() => {})
       loadHomepageContent().catch(() => {})
     }
 
