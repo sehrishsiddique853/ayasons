@@ -1,5 +1,5 @@
 import pool from '../config/mysql.js'
-import nodemailer from 'nodemailer'
+import { getGmailTransport } from '../config/gmailTransporter.js'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -166,6 +166,8 @@ const itemText = (item, index) => {
 }
 
 export const submitCartQuote = async (req, res, next) => {
+  let savedOrderId = null
+
   try {
     const customer = {
       name: String(req.body?.name || '').trim(),
@@ -242,6 +244,7 @@ export const submitCartQuote = async (req, res, next) => {
         JSON.stringify(items),
       ]
     )
+    savedOrderId = insertResult.insertId
 
     const logoFiles = Array.isArray(req.files) ? req.files : []
 
@@ -283,27 +286,15 @@ export const submitCartQuote = async (req, res, next) => {
       LIMIT 1
     `)
 
-    const gmailUser = String(process.env.GMAIL_USER || '').trim()
-    const gmailAppPassword = String(process.env.GMAIL_APP_PASSWORD || '').trim()
+    const { user: gmailUser, transporter } = getGmailTransport()
 
     const recipient =
       String(settingsRows[0]?.recipient_email || '').trim() ||
       gmailUser
 
-    if (!emailPattern.test(gmailUser) || !gmailAppPassword || !emailPattern.test(recipient)) {
-      res.status(503)
+    if (!emailPattern.test(gmailUser) || !emailPattern.test(recipient)) {
       throw new Error('Email delivery is not configured yet.')
     }
-
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: gmailUser,
-        pass: gmailAppPassword,
-      },
-    })
 
     const totalQuantity = items.reduce(
       (total, item) => total + Number(item.quantity || 0),
@@ -394,7 +385,7 @@ export const submitCartQuote = async (req, res, next) => {
       })
       .filter(Boolean)
 
-    const adminDelivery = await transporter.sendMail({
+    const adminEmail = {
       from: `AYOSONS Website <${gmailUser}>`,
       to: recipient,
       replyTo: customer.email,
@@ -402,9 +393,9 @@ export const submitCartQuote = async (req, res, next) => {
       html: customerHtml,
       text: customerText,
       attachments: emailAttachments,
-    })
+    }
 
-    const confirmationDelivery = await transporter.sendMail({
+    const confirmationEmail = {
       from: `AYOSONS <${gmailUser}>`,
       to: customer.email,
       replyTo: recipient,
@@ -422,20 +413,55 @@ export const submitCartQuote = async (req, res, next) => {
       `,
       text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
       attachments: emailAttachments,
-    })
-
-    if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
-      res.status(502)
-      throw new Error('Unable to confirm email delivery.')
     }
 
     res.status(201).json({
       success: true,
-      message: 'Order placed and confirmed successfully.',
+      message: `Order #${insertResult.insertId} was placed. Confirmation emails are being sent.`,
+      emailStatus: 'sending',
       quoteId: insertResult.insertId,
       orderId: insertResult.insertId,
     })
+
+    // Email is deliberately sent after acknowledging the saved order. An SMTP
+    // outage must not keep checkout spinning or make a placed order look failed.
+    setImmediate(() => {
+      Promise.all([
+        transporter.sendMail(adminEmail),
+        transporter.sendMail(confirmationEmail),
+      ])
+        .then(([adminDelivery, confirmationDelivery]) => {
+          if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
+            throw new Error('SMTP did not return message IDs for both order emails.')
+          }
+          console.info(`Order #${insertResult.insertId} notification emails sent.`)
+        })
+        .catch((error) => {
+          console.error(`Order #${insertResult.insertId} was saved, but email delivery failed:`, {
+            code: error.code,
+            command: error.command,
+            responseCode: error.responseCode,
+            message: error.message,
+          })
+        })
+    })
   } catch (error) {
+    if (savedOrderId) {
+      console.error(`Order #${savedOrderId} was saved, but email delivery failed:`, {
+        code: error.code,
+        command: error.command,
+        responseCode: error.responseCode,
+        message: error.message,
+      })
+      return res.status(201).json({
+        success: true,
+        emailSent: false,
+        message: `Order #${savedOrderId} was saved, but email delivery failed. Contact AYOSONS with this order number; please do not submit it again.`,
+        quoteId: savedOrderId,
+        orderId: savedOrderId,
+      })
+    }
+
     next(error)
   }
 }

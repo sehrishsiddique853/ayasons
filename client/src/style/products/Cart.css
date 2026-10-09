@@ -428,6 +428,11 @@
   color: #efa2a2;
 }
 
+.cart-feedback.warning {
+  background: rgba(240,196,72,.12);
+  color: #f0d47a;
+}
+
 .cart-empty a {
   background: var(--brand-yellow);
   color: #080808;

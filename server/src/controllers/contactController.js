@@ -1,5 +1,5 @@
 import pool from '../config/mysql.js'
-import nodemailer from 'nodemailer'
+import { getGmailTransport } from '../config/gmailTransporter.js'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -212,18 +212,7 @@ export const submitContactInquiry = async (req, res, next) => {
     }
 
     // Match the Gmail SMTP setup used by working order confirmations.
-    const gmailUser = String(process.env.GMAIL_USER || '').trim()
-    const gmailAppPassword = String(process.env.GMAIL_APP_PASSWORD || '').trim()
-
-    if (
-      !emailPattern.test(gmailUser) ||
-      !gmailAppPassword
-    ) {
-      res.status(503)
-      throw new Error(
-        'Email delivery is not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD on the server.'
-      )
-    }
+    const { user: gmailUser, transporter } = getGmailTransport()
 
     const contactSettings = await getContactSettings()
 
@@ -259,21 +248,12 @@ export const submitContactInquiry = async (req, res, next) => {
       .map(([label, value]) => `${label}: ${value}`)
       .join('\n')
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-        user: gmailUser,
-        pass: gmailAppPassword,
-      },
-    })
-
     let adminDelivery
     let customerDelivery
 
     try {
-      adminDelivery = await transporter.sendMail({
+      [adminDelivery, customerDelivery] = await Promise.all([
+        transporter.sendMail({
         from: `AYOSONS Website <${gmailUser}>`,
         to: inquiryRecipient,
         replyTo: fields.email,
@@ -291,10 +271,9 @@ export const submitContactInquiry = async (req, res, next) => {
             </div>
           </div>
         `,
-        text: `${textDetails}\n\nMessage:\n${fields.message}`,
-      })
-
-      customerDelivery = await transporter.sendMail({
+          text: `${textDetails}\n\nMessage:\n${fields.message}`,
+        }),
+        transporter.sendMail({
         from: `AYOSONS <${gmailUser}>`,
         to: fields.email,
         replyTo: inquiryRecipient,
@@ -311,8 +290,9 @@ export const submitContactInquiry = async (req, res, next) => {
             <p style="color:#666;">You can reply to this email if you need to add more information.</p>
           </div>
         `,
-        text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
-      })
+          text: `Thank you, ${fields.name}.\n\nYour message has been sent successfully to AYOSONS. Our team has received your enquiry and will get back to you as soon as possible.\n\nYour message:\n${fields.message}`,
+        }),
+      ])
     } catch (smtpError) {
       console.error('Contact email send failed:', {
         code: smtpError.code,

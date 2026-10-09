@@ -88,10 +88,9 @@ function Cart() {
 
       const response = await api.post('/quotes', formData)
 
-      setStatus('success')
-      setFeedback(
-        `Order #${response.data.orderId || response.data.quoteId} has been confirmed. A confirmation email has been sent to you.`
-      )
+      setStatus(response.data.emailSent === false ? 'saved' : 'success')
+      setFeedback(response.data.message ||
+        `Order #${response.data.orderId || response.data.quoteId} has been placed.`)
 
       clearCart()
 
@@ -340,8 +339,8 @@ function Cart() {
                 </div>
 
                 <p>
-                  Your order details are saved and emailed to AYOSONS. You will also receive
-                  an Order Confirmed email with your submitted specifications.
+                  After you place your order, AYOSONS will receive your details and
+                  a confirmation email will be sent to you.
                 </p>
 
                 <button
@@ -357,11 +356,7 @@ function Cart() {
 
                 {feedback && (
                   <div
-                    className={
-                      status === 'success'
-                        ? 'cart-feedback success'
-                        : 'cart-feedback error'
-                    }
+                    className={`cart-feedback ${status === 'success' ? 'success' : status === 'saved' ? 'warning' : 'error'}`}
                   >
                     {feedback}
                   </div>
