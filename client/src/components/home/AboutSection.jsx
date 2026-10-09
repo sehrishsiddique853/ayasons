@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import aboutFallbackImage from '../../assets/images/optimized/ayosons-industries-factory.webp'
 
 
 const trustPoints = [
@@ -15,7 +16,7 @@ function AboutSection({
 }) {
   const aboutImage = homepageContent?.aboutImage?.available
     ? homepageContent.aboutImage.url
-    : '/assets/images/optimized/ayosons-industries-factory.webp'
+    : aboutFallbackImage
 
   return (
     <section

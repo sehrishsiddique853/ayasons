@@ -1,4 +1,5 @@
 import pool from '../config/mysql.js'
+import { validSeedRecords } from '../utils/seedValidation.js'
 
 /**
  * Non-destructive catalog migration. Idempotent and safe on restarts:
@@ -31,6 +32,12 @@ const gloves = [
 ]
 
 export const ensureGlovesCategory = async () => {
+  const validGloves = validSeedRecords(gloves, 'gloves catalog', (item) =>
+    typeof item.slug === 'string' &&
+    Boolean(item.slug.trim()) &&
+    Array.isArray(item.features) &&
+    item.features.every((feature) => typeof feature === 'string')
+  )
   const connection = await pool.getConnection()
 
   try {
@@ -49,7 +56,7 @@ export const ensureGlovesCategory = async () => {
         'Custom Gloves For Work And Sport',
         'Custom safety, goalkeeper and golf gloves manufactured for performance and protection.',
         'Explore safety gloves, goalkeeper gloves and golf gloves with custom materials, sizing and branding.',
-        JSON.stringify([{ title: 'Gloves Collection', items: gloves.map((item) => item.name) }]),
+        JSON.stringify([{ title: 'Gloves Collection', items: validGloves.map((item) => item.name) }]),
         8,
       ]
     )
@@ -58,7 +65,7 @@ export const ensureGlovesCategory = async () => {
       "SELECT id FROM categories WHERE slug = 'gloves' LIMIT 1"
     )
 
-    for (const [index, item] of gloves.entries()) {
+    for (const [index, item] of validGloves.entries()) {
       const [existing] = await connection.execute(
         'SELECT id, category_id FROM products WHERE slug = ? ORDER BY CASE WHEN category_id = ? THEN 0 ELSE 1 END, id ASC',
         [item.slug, category.id]

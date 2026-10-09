@@ -1,4 +1,5 @@
 import pool from './mysql.js'
+import { validSeedRecords } from '../utils/seedValidation.js'
 
 const STANDARD_SIZES = ['XS','S','M','L','XL','2XL','3XL','4XL']
 const COLORS = [
@@ -162,7 +163,7 @@ export const ensureVarsityJacketCustomizers = async () => {
   if (!cats.length) return
   const categoryId = cats[0].id
 
-  for (const config of products) {
+  for (const config of validSeedRecords(products, 'varsity jacket customizer')) {
     const productSlug = slugify(config.name)
     const [rows] = await pool.execute(
       'SELECT id FROM products WHERE category_id=? AND slug=? LIMIT 1',

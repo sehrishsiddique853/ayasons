@@ -4,6 +4,12 @@ import {
   optimizeImage,
   IMAGE_PRESETS,
 } from '../utils/imageOptimizer.js'
+import {
+  readArray,
+  readBoolean,
+  readNonNegativeInteger,
+  readText,
+} from '../utils/inputValidation.js'
 
 const getBaseUrl = (req) => {
   const configured = process.env.SERVER_URL
@@ -42,28 +48,32 @@ const parseJson = (value, fallback = []) => {
   }
 }
 
-const parseBoolean = (value) =>
-  value === true ||
-  value === 'true' ||
-  value === '1' ||
-  value === 1
-
 const parseGroups = (value) => {
-  if (!value) {
-    return []
+  const groups = readArray(value ?? '[]', 'Groups')
+
+  if (groups.length > 100) {
+    const error = new Error('Groups cannot contain more than 100 entries.')
+    error.statusCode = 400
+    throw error
   }
 
-  if (Array.isArray(value)) {
-    return value
-  }
+  return groups.map((group, index) => {
+    if (!group || typeof group !== 'object' || Array.isArray(group)) {
+      const error = new Error(`Group ${index + 1} must be an object.`)
+      error.statusCode = 400
+      throw error
+    }
 
-  const parsed = JSON.parse(value)
+    const title = readText(group.title, `Group ${index + 1} title`, { maxLength: 150 })
+    const items = readArray(group.items, `Group ${index + 1} items`)
+    if (items.length > 300 || items.some((item) => typeof item !== 'string' || item.trim().length > 150)) {
+      const error = new Error(`Group ${index + 1} has invalid items.`)
+      error.statusCode = 400
+      throw error
+    }
 
-  if (!Array.isArray(parsed)) {
-    throw new Error('Groups must be an array.')
-  }
-
-  return parsed
+    return { title, items: items.map((item) => item.trim()) }
+  })
 }
 
 const formatCategory = (row, req) => ({
@@ -284,6 +294,7 @@ export const createAdminCategory = async (
   let connection
 
   try {
+    const body = req.body || {}
     const {
       name,
       slug,
@@ -295,23 +306,18 @@ export const createAdminCategory = async (
       groups = '[]',
       order = 0,
       active = 'true',
-    } = req.body
+    } = body
 
-    if (
-      !name?.trim() ||
-      !slug?.trim() ||
-      !heroTitle?.trim() ||
-      !description?.trim()
-    ) {
-      res.status(400)
-
-      throw new Error(
-        'Name, slug, hero title and description are required.'
-      )
-    }
+    const safeName = readText(name, 'Name', { maxLength: 100 })
+    const safeSlug = readText(slug, 'Slug', { maxLength: 120 })
+    const safeHeroTitle = readText(heroTitle, 'Hero title', { maxLength: 180 })
+    const safeDescription = readText(description, 'Description', { maxLength: 20000 })
+    const safeEyebrow = readText(eyebrow, 'Eyebrow', { required: false, maxLength: 100 })
+    const safeShowcaseLabel = readText(showcaseLabel, 'Showcase label', { required: false, maxLength: 100 })
+    const safeCollectionDescription = readText(collectionDescription, 'Collection description', { required: false, maxLength: 20000 })
 
     const normalizedSlug =
-      normalizeSlug(slug)
+      normalizeSlug(safeSlug)
 
     if (!normalizedSlug) {
       res.status(400)
@@ -355,10 +361,8 @@ export const createAdminCategory = async (
     const parsedGroups =
       parseGroups(groups)
 
-    const displayOrder =
-      Number.isFinite(Number(order))
-        ? Number(order)
-        : 0
+    const displayOrder = readNonNegativeInteger(order, 'Display order')
+    const isActive = readBoolean(active, 'Active status', true)
 
     connection =
       await pool.getConnection()
@@ -396,13 +400,13 @@ export const createAdminCategory = async (
           )
         `,
         [
-          name.trim(),
+          safeName,
           normalizedSlug,
-          eyebrow.trim(),
-          showcaseLabel.trim(),
-          heroTitle.trim(),
-          description.trim(),
-          collectionDescription.trim(),
+          safeEyebrow,
+          safeShowcaseLabel,
+          safeHeroTitle,
+          safeDescription,
+          safeCollectionDescription,
 
           optimizedHeroImage.buffer,
           optimizedHeroImage.mimeType,
@@ -413,7 +417,7 @@ export const createAdminCategory = async (
           optimizedCollectionImage.fileName,
 
           JSON.stringify(parsedGroups),
-          parseBoolean(active) ? 1 : 0,
+          isActive ? 1 : 0,
           displayOrder,
         ]
       )
@@ -475,6 +479,7 @@ export const updateAdminCategory = async (
       )
     }
 
+    const body = req.body || {}
     const {
       name,
       slug,
@@ -486,31 +491,30 @@ export const updateAdminCategory = async (
       groups = '[]',
       order = 0,
       active = 'true',
-    } = req.body
+    } = body
 
-    if (
-      !name?.trim() ||
-      !slug?.trim() ||
-      !heroTitle?.trim() ||
-      !description?.trim()
-    ) {
-      res.status(400)
-
-      throw new Error(
-        'Name, slug, hero title and description are required.'
-      )
-    }
+    const safeName = readText(name, 'Name', { maxLength: 100 })
+    const safeSlug = readText(slug, 'Slug', { maxLength: 120 })
+    const safeHeroTitle = readText(heroTitle, 'Hero title', { maxLength: 180 })
+    const safeDescription = readText(description, 'Description', { maxLength: 20000 })
+    const safeEyebrow = readText(eyebrow, 'Eyebrow', { required: false, maxLength: 100 })
+    const safeShowcaseLabel = readText(showcaseLabel, 'Showcase label', { required: false, maxLength: 100 })
+    const safeCollectionDescription = readText(collectionDescription, 'Collection description', { required: false, maxLength: 20000 })
 
     const normalizedSlug =
-      normalizeSlug(slug)
+      normalizeSlug(safeSlug)
+
+    if (!normalizedSlug) {
+      const error = new Error('Slug must include at least one letter or number.')
+      error.statusCode = 400
+      throw error
+    }
 
     const parsedGroups =
       parseGroups(groups)
 
-    const displayOrder =
-      Number.isFinite(Number(order))
-        ? Number(order)
-        : 0
+    const displayOrder = readNonNegativeInteger(order, 'Display order')
+    const isActive = readBoolean(active, 'Active status', true)
 
     const heroImage =
       req.files?.heroImage?.[0]
@@ -553,15 +557,15 @@ export const updateAdminCategory = async (
     ]
 
     const params = [
-      name.trim(),
+      safeName,
       normalizedSlug,
-      eyebrow.trim(),
-      showcaseLabel.trim(),
-      heroTitle.trim(),
-      description.trim(),
-      collectionDescription.trim(),
+      safeEyebrow,
+      safeShowcaseLabel,
+      safeHeroTitle,
+      safeDescription,
+      safeCollectionDescription,
       JSON.stringify(parsedGroups),
-      parseBoolean(active) ? 1 : 0,
+      isActive ? 1 : 0,
       displayOrder,
     ]
 

@@ -21,6 +21,16 @@ import { ensureVarsityJacketCustomizers } from './config/varsityJacketCustomizer
 const PORT =
   process.env.PORT || 5000
 
+const runBootstrapTask = async (label, task) => {
+  try {
+    await task()
+  } catch (error) {
+    console.error(
+      `[startup] ${label} was skipped; the API will continue running: ${error.message}`
+    )
+  }
+}
+
 
 const startServer = async () => {
   try {
@@ -31,17 +41,23 @@ const startServer = async () => {
     */
 
     await testMySQLConnection()
-    await ensureProductCustomizerSchema()
-    await ensureGlovesCategory()
-    await ensureSportsCustomizers()
-    await ensureStreetwearCustomizers()
-    await ensureActivewearCustomizers()
-    await ensureWorkwearSafetyProducts()
-    await ensureWorkwearCustomizers()
-    await ensureHeadwearCustomizers()
-    await ensureAccessoriesCustomizers()
-    await ensureGloveCustomizers()
-    await ensureVarsityJacketCustomizers()
+    const startupTasks = [
+      ['product customizer schema', ensureProductCustomizerSchema],
+      ['gloves catalog', ensureGlovesCategory],
+      ['sports customizers', ensureSportsCustomizers],
+      ['streetwear customizers', ensureStreetwearCustomizers],
+      ['activewear customizers', ensureActivewearCustomizers],
+      ['workwear safety catalog', ensureWorkwearSafetyProducts],
+      ['workwear customizers', ensureWorkwearCustomizers],
+      ['headwear customizers', ensureHeadwearCustomizers],
+      ['accessories customizers', ensureAccessoriesCustomizers],
+      ['glove customizers', ensureGloveCustomizers],
+      ['varsity jacket customizers', ensureVarsityJacketCustomizers],
+    ]
+
+    for (const [label, task] of startupTasks) {
+      await runBootstrapTask(label, task)
+    }
 
 
     /*

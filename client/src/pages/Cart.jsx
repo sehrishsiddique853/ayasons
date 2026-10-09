@@ -26,6 +26,8 @@ function Cart() {
     phone: '',
     company: '',
     country: '',
+    address: '',
+    postalCode: '',
     message: '',
   })
 
@@ -57,6 +59,8 @@ function Cart() {
       formData.append('phone', customer.phone)
       formData.append('company', customer.company)
       formData.append('country', customer.country)
+      formData.append('address', customer.address)
+      formData.append('postalCode', customer.postalCode)
       formData.append('message', customer.message)
 
       const itemsForRequest = cartItems.map((item) => {
@@ -323,6 +327,30 @@ function Cart() {
                         updateCustomer('country', event.target.value)
                       }
                       placeholder="Country"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Address</span>
+                    <input
+                      autoComplete="street-address"
+                      value={customer.address}
+                      onChange={(event) =>
+                        updateCustomer('address', event.target.value)
+                      }
+                      placeholder="Street address, city, state"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Postal code</span>
+                    <input
+                      autoComplete="postal-code"
+                      value={customer.postalCode}
+                      onChange={(event) =>
+                        updateCustomer('postalCode', event.target.value)
+                      }
+                      placeholder="Postal / ZIP code"
                     />
                   </label>
 

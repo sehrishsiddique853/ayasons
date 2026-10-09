@@ -4,6 +4,12 @@ import {
   optimizeImage,
   IMAGE_PRESETS,
 } from '../utils/imageOptimizer.js'
+import {
+  readArray,
+  readBoolean,
+  readNonNegativeInteger,
+  readText,
+} from '../utils/inputValidation.js'
 
 const getBaseUrl = (req) => {
   const configured = process.env.SERVER_URL?.trim()?.replace(/\/+$/, '')
@@ -34,21 +40,15 @@ const parseJson = (value, fallback = []) => {
 }
 
 const parseArray = (value, label) => {
-  if (!value) {
-    return []
+  const parsed = readArray(value ?? '[]', label)
+
+  if (parsed.length > 300 || parsed.some((entry) => typeof entry !== 'string' || entry.trim().length > 300)) {
+    const error = new Error(`${label} must contain no more than 300 text values.`)
+    error.statusCode = 400
+    throw error
   }
 
-  if (Array.isArray(value)) {
-    return value
-  }
-
-  const parsed = JSON.parse(value)
-
-  if (!Array.isArray(parsed)) {
-    throw new Error(`${label} must be an array.`)
-  }
-
-  return parsed
+  return parsed.map((entry) => entry.trim()).filter(Boolean)
 }
 
 const parseBoolean = (value) =>
@@ -337,6 +337,7 @@ export const createAdminProduct = async (req, res, next) => {
   let connection
 
   try {
+    const body = req.body || {}
     const {
       categoryId,
       name,
@@ -348,20 +349,22 @@ export const createAdminProduct = async (req, res, next) => {
       featuredOrder = '',
       active = 'true',
       order = 0,
-    } = req.body
+    } = body
 
     const parsedCategoryId = Number(categoryId)
 
-    if (
-      !Number.isInteger(parsedCategoryId) ||
-      parsedCategoryId <= 0 ||
-      !name?.trim() ||
-      !slug?.trim() ||
-      !description?.trim()
-    ) {
+    if (!Number.isSafeInteger(parsedCategoryId) || parsedCategoryId <= 0) {
       res.status(400)
       throw new Error('Category, name, slug and description are required.')
     }
+
+    const safeName = readText(name, 'Name', { maxLength: 150 })
+    const safeSlug = readText(slug, 'Slug', { maxLength: 180 })
+    const safeGroup = readText(group, 'Group', { required: false, maxLength: 150 })
+    const safeDescription = readText(description, 'Description', { maxLength: 20000 })
+    const safeFeatured = readBoolean(featured, 'Featured status', false)
+    const safeActive = readBoolean(active, 'Active status', true)
+    const displayOrder = readNonNegativeInteger(order, 'Display order')
 
     if (!req.file) {
   res.status(400)
@@ -400,7 +403,13 @@ console.log(
 
 
 const normalizedSlug =
-  normalizeSlug(slug)
+  normalizeSlug(safeSlug)
+
+if (!normalizedSlug) {
+  const error = new Error('Slug must include at least one letter or number.')
+  error.statusCode = 400
+  throw error
+}
 
 
 const parsedFeatures =
@@ -408,14 +417,6 @@ const parsedFeatures =
     features,
     'Features'
   )
-
-
-const displayOrder =
-  Number.isFinite(
-    Number(order)
-  )
-    ? Number(order)
-    : 0
 
 
 connection =
@@ -444,16 +445,16 @@ connection =
       `,
       [
         parsedCategoryId,
-        name.trim(),
+        safeName,
         normalizedSlug,
-        group.trim(),
-        description.trim(),
+        safeGroup,
+        safeDescription,
         optimizedImage.buffer,
 optimizedImage.mimeType,
 versionImageName(optimizedImage.fileName),
         JSON.stringify(parsedFeatures),
-        parseBoolean(featured) ? 1 : 0,
-        parseBoolean(active) ? 1 : 0,
+        safeFeatured ? 1 : 0,
+        safeActive ? 1 : 0,
         displayOrder,
       ]
     )
@@ -461,7 +462,7 @@ versionImageName(optimizedImage.fileName),
     await updateHotSellingSlot(
       connection,
       result.insertId,
-      featured,
+      safeFeatured,
       featuredOrder
     )
 
@@ -506,6 +507,7 @@ export const updateAdminProduct = async (req, res, next) => {
 
   try {
     const id = Number(req.params.id)
+    const body = req.body || {}
     const {
       categoryId,
       name,
@@ -517,25 +519,31 @@ export const updateAdminProduct = async (req, res, next) => {
       featuredOrder = '',
       active = 'true',
       order = 0,
-    } = req.body
+    } = body
 
     const parsedCategoryId = Number(categoryId)
 
-    if (
-      !Number.isInteger(id) ||
-      id <= 0 ||
-      !Number.isInteger(parsedCategoryId) ||
-      parsedCategoryId <= 0 ||
-      !name?.trim() ||
-      !slug?.trim() ||
-      !description?.trim()
-    ) {
+    if (!Number.isSafeInteger(id) || id <= 0 || !Number.isSafeInteger(parsedCategoryId) || parsedCategoryId <= 0) {
       res.status(400)
       throw new Error('Valid product ID, category, name, slug and description are required.')
     }
 
-    const normalizedSlug =
-  normalizeSlug(slug)
+    const safeName = readText(name, 'Name', { maxLength: 150 })
+    const safeSlug = readText(slug, 'Slug', { maxLength: 180 })
+    const safeGroup = readText(group, 'Group', { required: false, maxLength: 150 })
+    const safeDescription = readText(description, 'Description', { maxLength: 20000 })
+    const safeFeatured = readBoolean(featured, 'Featured status', false)
+    const safeActive = readBoolean(active, 'Active status', true)
+    const displayOrder = readNonNegativeInteger(order, 'Display order')
+
+const normalizedSlug =
+  normalizeSlug(safeSlug)
+
+if (!normalizedSlug) {
+  const error = new Error('Slug must include at least one letter or number.')
+  error.statusCode = 400
+  throw error
+}
 
 
 const parsedFeatures =
@@ -543,14 +551,6 @@ const parsedFeatures =
     features,
     'Features'
   )
-
-
-const displayOrder =
-  Number.isFinite(
-    Number(order)
-  )
-    ? Number(order)
-    : 0
 
 
 /*
@@ -606,13 +606,13 @@ const fields = [
 
     const params = [
       parsedCategoryId,
-      name.trim(),
+      safeName,
       normalizedSlug,
-      group.trim(),
-      description.trim(),
+      safeGroup,
+      safeDescription,
       JSON.stringify(parsedFeatures),
-      parseBoolean(featured) ? 1 : 0,
-      parseBoolean(active) ? 1 : 0,
+      safeFeatured ? 1 : 0,
+      safeActive ? 1 : 0,
       displayOrder,
     ]
 
@@ -655,7 +655,7 @@ const fields = [
     await updateHotSellingSlot(
       connection,
       id,
-      featured,
+      safeFeatured,
       featuredOrder
     )
 
