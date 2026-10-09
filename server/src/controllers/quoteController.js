@@ -491,80 +491,81 @@ export const submitCartQuote = async (req, res, next) => {
       })
       .filter(Boolean)
 
-    try {
-      const adminEmail = transporter.sendMail({
-        from: `AYOSONS Website <${gmailUser}>`,
-        to: recipient,
-        replyTo: customer.email,
-        subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
-        html: customerHtml,
-        text: customerText,
-        attachments: emailAttachments,
-      })
-
-      const confirmationEmail = transporter.sendMail({
-        from: `AYOSONS <${gmailUser}>`,
-        to: customer.email,
-        replyTo: recipient,
-        subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
-        html: `
-          <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
-            <h2>Order Confirmed</h2>
-            <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
-            <p style="color:#666;">Order #${insertResult.insertId}</p>
-            <p><strong>Delivery details</strong><br/>
-              ${[customer.address, customer.postalCode, customer.country].filter(Boolean).map(escapeHtml).join('<br/>') || 'Not provided'}
-            </p>
-            ${items.map((item, index) =>
-              itemHtml(item, index, getLogoPreviewCid(item, index))
-            ).join('')}
-            <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
-          </div>
-        `,
-        text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\nDelivery details:\n${[customer.address, customer.postalCode, customer.country].filter(Boolean).join(', ') || 'Not provided'}\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
-        attachments: emailAttachments,
-      })
-
-      const [adminDelivery, confirmationDelivery] = await Promise.all([
-        adminEmail,
-        confirmationEmail,
-      ])
-
-      if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
-        res.status(502)
-        throw new Error('Unable to confirm email delivery.')
-      }
-
-
-    } catch (emailError) {
-      console.error(
-        `Order #${savedOrderId} saved, but email sending failed:`,
-        {
-          code: emailError.code,
-          command: emailError.command,
-          response: emailError.response,
-          message: emailError.message,
-        }
-      )
-
-      return res.status(201).json({
-        success: true,
-        emailSent: false,
-        message: `Order #${savedOrderId} has been placed successfully. Confirmation email could not be sent right now.`,
-        quoteId: savedOrderId,
-        orderId: savedOrderId,
-        backendVersion: ORDER_FLOW_VERSION,
-      })
+    const adminMailOptions = {
+      from: `AYOSONS Website <${gmailUser}>`,
+      to: recipient,
+      replyTo: customer.email,
+      subject: `New AYOSONS order #${insertResult.insertId} from ${customer.name}`,
+      html: customerHtml,
+      text: customerText,
+      attachments: emailAttachments,
     }
 
+    const confirmationMailOptions = {
+      from: `AYOSONS <${gmailUser}>`,
+      to: customer.email,
+      replyTo: recipient,
+      subject: `Your AYOSONS order #${insertResult.insertId} is confirmed`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:760px;margin:auto;color:#111;">
+          <h2>Order Confirmed</h2>
+          <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
+          <p style="color:#666;">Order #${insertResult.insertId}</p>
+          <p><strong>Delivery details</strong><br/>
+            ${[customer.address, customer.postalCode, customer.country].filter(Boolean).map(escapeHtml).join('<br/>') || 'Not provided'}
+          </p>
+          ${items.map((item, index) =>
+            itemHtml(item, index, getLogoPreviewCid(item, index))
+          ).join('')}
+          <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
+        </div>
+      `,
+      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order #${insertResult.insertId} has been placed successfully and is confirmed.\n\nDelivery details:\n${[customer.address, customer.postalCode, customer.country].filter(Boolean).join(', ') || 'Not provided'}\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
+      attachments: emailAttachments,
+    }
+
+    // Order placement must never wait for SMTP. The database row is already
+    // committed at this point, so acknowledge the customer immediately and
+    // let email delivery continue independently.
     res.status(201).json({
       success: true,
-      message: 'Order placed and confirmed successfully.',
-      emailSent: true,
-      quoteId: insertResult.insertId,
-      orderId: insertResult.insertId,
+      message: `Order #${savedOrderId} has been placed successfully.`,
+      emailSent: null,
+      emailStatus: 'queued',
+      quoteId: savedOrderId,
+      orderId: savedOrderId,
       backendVersion: ORDER_FLOW_VERSION,
     })
+
+    Promise.all([
+      transporter.sendMail(adminMailOptions),
+      transporter.sendMail(confirmationMailOptions),
+    ])
+      .then(([adminDelivery, confirmationDelivery]) => {
+        if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
+          console.error(
+            `Order #${savedOrderId} email delivery returned without message IDs.`
+          )
+          return
+        }
+
+        console.log(
+          `Order #${savedOrderId} confirmation emails sent successfully.`
+        )
+      })
+      .catch((emailError) => {
+        console.error(
+          `Order #${savedOrderId} saved, but background email sending failed:`,
+          {
+            code: emailError.code,
+            command: emailError.command,
+            response: emailError.response,
+            message: emailError.message,
+          }
+        )
+      })
+
+    return
   } catch (error) {
     if (savedOrderId) {
       console.error(`Order #${savedOrderId} was saved, but follow-up processing failed:`, error)
