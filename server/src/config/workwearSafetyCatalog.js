@@ -68,17 +68,35 @@ export const ensureWorkwearSafetyProducts = async () => {
     let nextOrder = Number(orderRow?.max_order || 0) + 1
 
     for (const item of safetyProducts) {
-      const [existing] = await connection.execute(
-        'SELECT id FROM products WHERE category_id = ? AND slug = ? LIMIT 1',
-        [category.id, item.slug]
+      const [sameNameProducts] = await connection.execute(
+        `SELECT id, slug
+         FROM products
+         WHERE category_id = ? AND LOWER(name) = LOWER(?)
+         ORDER BY id`,
+        [category.id, item.name]
       )
 
-      if (existing.length) {
+      const canonicalProduct = sameNameProducts.find(
+        (product) => product.slug === item.slug
+      )
+
+      if (canonicalProduct) {
         await connection.execute(
-          'UPDATE products SET active = 1 WHERE id = ?',
-          [existing[0].id]
+          `UPDATE products
+           SET active = (id = ?)
+           WHERE category_id = ? AND LOWER(name) = LOWER(?)`,
+          [canonicalProduct.id, category.id, item.name]
         )
         continue
+      }
+
+      if (sameNameProducts.length) {
+        await connection.execute(
+          `UPDATE products
+           SET active = 0
+           WHERE category_id = ? AND LOWER(name) = LOWER(?)`,
+          [category.id, item.name]
+        )
       }
 
       await connection.execute(
