@@ -1,6 +1,5 @@
 import pool from '../config/mysql.js'
 import { optimizeImage, IMAGE_PRESETS } from '../utils/imageOptimizer.js'
-import { readNonNegativeInteger, readText } from '../utils/inputValidation.js'
 
 const slugify = (value = '') =>
   value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -168,46 +167,31 @@ const parsePayloadJson = (body, key, expectedType) => {
   return value
 }
 
-const readPayload = (body = {}) => {
-  const name = readText(body.name, 'Item name', { maxLength: 150 })
-  const rawSlug = readText(body.slug || name, 'Item slug', { maxLength: 180 })
-  const slug = slugify(rawSlug)
-  if (!slug) {
-    const error = new Error('Item slug must include a letter or number.')
-    error.statusCode = 400
-    throw error
-  }
-
-  const defaultColorMode = String(body.defaultColorMode || 'custom').trim()
-  if (!['preset', 'custom'].includes(defaultColorMode)) {
-    const error = new Error('Color mode must be preset or custom.')
-    error.statusCode = 400
-    throw error
-  }
-
-  return {
-    name,
-    slug,
-    description: readText(body.description ?? '', 'Description', { required: false, maxLength: 20000 }),
-    sizes: parsePayloadJson(body, 'sizes', 'array'),
-    colors: parsePayloadJson(body, 'colors', 'array'),
-    colorZones: parsePayloadJson(body, 'colorZones', 'array'),
-    optionGroups: parsePayloadJson(body, 'optionGroups', 'array'),
-    specifications: parsePayloadJson(body, 'specifications', 'array'),
-    defaultOptions: parsePayloadJson(body, 'defaultOptions', 'object'),
-    basicOptionSlugs: parsePayloadJson(body, 'basicOptionSlugs', 'array'),
-    requiredFields: parsePayloadJson(body, 'requiredFields', 'array'),
-    defaultColorMode,
-    presetColors: parsePayloadJson(body, 'presetColors', 'object'),
-    allowCustomColor: parseBoolean(body.allowCustomColor),
-    allowLogoUpload: parseBoolean(body.allowLogoUpload),
-    allowPlayerName: parseBoolean(body.allowPlayerName),
-    allowPlayerNumber: parseBoolean(body.allowPlayerNumber),
-    allowCustomNotes: parseBoolean(body.allowCustomNotes),
-    active: parseBoolean(body.active),
-    order: readNonNegativeInteger(body.order, 'Display order'),
-  }
-}
+const readPayload = (body) => ({
+  name: body.name?.trim(),
+  slug: slugify(body.slug || body.name || ''),
+  description: body.description?.trim() || '',
+  sizes: parsePayloadJson(body, 'sizes', 'array'),
+  colors: parsePayloadJson(body, 'colors', 'array'),
+  colorZones: parsePayloadJson(body, 'colorZones', 'array'),
+  optionGroups: parsePayloadJson(body, 'optionGroups', 'array'),
+  specifications: parsePayloadJson(body, 'specifications', 'array'),
+  defaultOptions: parsePayloadJson(body, 'defaultOptions', 'object'),
+  basicOptionSlugs: parsePayloadJson(body, 'basicOptionSlugs', 'array'),
+  requiredFields: parsePayloadJson(body, 'requiredFields', 'array'),
+  defaultColorMode:
+    ['preset', 'custom'].includes(String(body.defaultColorMode || '').trim())
+      ? String(body.defaultColorMode).trim()
+      : 'custom',
+  presetColors: parsePayloadJson(body, 'presetColors', 'object'),
+  allowCustomColor: parseBoolean(body.allowCustomColor),
+  allowLogoUpload: parseBoolean(body.allowLogoUpload),
+  allowPlayerName: parseBoolean(body.allowPlayerName),
+  allowPlayerNumber: parseBoolean(body.allowPlayerNumber),
+  allowCustomNotes: parseBoolean(body.allowCustomNotes),
+  active: parseBoolean(body.active),
+  order: Number.isFinite(Number(body.order)) ? Number(body.order) : 0,
+})
 
 const validateOptionGroups = (groups, res) => {
   if (!Array.isArray(groups)) {
@@ -227,20 +211,6 @@ const validateOptionGroups = (groups, res) => {
     ) {
       res.status(400)
       throw new Error(`Customization option ${index + 1} needs a name and at least one choice.`)
-    }
-
-    if (
-      group.values.length > 100 ||
-      group.values.some((value) =>
-        typeof value === 'string'
-          ? !value.trim() || value.length > 150
-          : !value || typeof value !== 'object' ||
-            typeof value.label !== 'string' || !value.label.trim() ||
-            typeof value.value !== 'string' || !value.value.trim()
-      )
-    ) {
-      res.status(400)
-      throw new Error(`Customization option ${index + 1} has an invalid choice.`)
     }
   }
 }
@@ -288,9 +258,9 @@ const verifyPersistedItem = (item, data) => {
 export const createAdminCustomizerItem = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId)
-    const data = readPayload(req.body || {})
+    const data = readPayload(req.body)
     validateOptionGroups(data.optionGroups, res)
-    if (!Number.isSafeInteger(productId) || productId <= 0) {
+    if (!productId || !data.name || !data.slug) {
       res.status(400)
       throw new Error('Product and item name are required.')
     }
@@ -339,9 +309,9 @@ export const updateAdminCustomizerItem = async (req, res, next) => {
   try {
     const productId = Number(req.params.productId)
     const itemId = Number(req.params.itemId)
-    const data = readPayload(req.body || {})
+    const data = readPayload(req.body)
     validateOptionGroups(data.optionGroups, res)
-    if (!Number.isSafeInteger(productId) || productId <= 0 || !Number.isSafeInteger(itemId) || itemId <= 0) {
+    if (!productId || !itemId || !data.name || !data.slug) {
       res.status(400)
       throw new Error('Valid product, item and name are required.')
     }

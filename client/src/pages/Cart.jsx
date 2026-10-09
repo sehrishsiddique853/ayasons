@@ -90,12 +90,11 @@ function Cart() {
 
       formData.append('items', JSON.stringify(itemsForRequest))
 
-      const response = await api.post('/quotes', formData)
+      const response = await api.post('/quotes', formData, { timeout: 30000 })
 
       setStatus('success')
-      setFeedback(
-        `Order #${response.data.orderId || response.data.quoteId} has been confirmed. A confirmation email has been sent to you.`
-      )
+      setFeedback(response.data.message ||
+        `Order #${response.data.orderId || response.data.quoteId} has been placed.`)
 
       clearCart()
 
@@ -108,6 +107,9 @@ function Cart() {
       setStatus('error')
       setFeedback(
         error.response?.data?.message ||
+        (error.code === 'ECONNABORTED'
+          ? 'The request timed out and the order may already be saved. Please contact AYOSONS before submitting again.'
+          : '') ||
         'Unable to send your request right now.'
       )
     }

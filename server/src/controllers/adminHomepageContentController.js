@@ -4,7 +4,6 @@ import {
   optimizeImage,
   IMAGE_PRESETS,
 } from '../utils/imageOptimizer.js'
-import { invalidInput } from '../utils/inputValidation.js'
 
 
 const getBaseUrl = (
@@ -42,7 +41,10 @@ const parseStats = (
         : value
 
   } catch {
-    throw invalidInput(`${label} are invalid.`)
+
+    throw new Error(
+      `${label} are invalid.`
+    )
 
   }
 
@@ -55,7 +57,9 @@ const parseStats = (
       expectedLength
   ) {
 
-    throw invalidInput(`${label} must contain exactly ${expectedLength} items.`)
+    throw new Error(
+      `${label} must contain exactly ${expectedLength} items.`
+    )
 
   }
 
@@ -66,18 +70,18 @@ const parseStats = (
       index
     ) => {
 
-      const rawValue = item?.value
-      const rawLabel = item?.label
-      const validText = (value) =>
-        typeof value === 'string' ||
-        (typeof value === 'number' && Number.isFinite(value))
+      const statValue =
+        String(
+          item?.value ??
+          ''
+        ).trim()
 
-      if (!item || typeof item !== 'object' || !validText(rawValue) || !validText(rawLabel)) {
-        throw invalidInput(`${label} item ${index + 1} requires text values.`)
-      }
 
-      const statValue = String(rawValue).trim()
-      const statLabel = String(rawLabel).trim()
+      const statLabel =
+        String(
+          item?.label ??
+          ''
+        ).trim()
 
 
       if (
@@ -85,11 +89,9 @@ const parseStats = (
         !statLabel
       ) {
 
-        throw invalidInput(`${label} item ${index + 1} requires a value and label.`)
-      }
-
-      if (statValue.length > 80 || statLabel.length > 120) {
-        throw invalidInput(`${label} item ${index + 1} is too long.`)
+        throw new Error(
+          `${label} item ${index + 1} requires a value and label.`
+        )
 
       }
 

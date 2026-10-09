@@ -1,5 +1,4 @@
 import pool from './mysql.js'
-import { validSeedRecords } from '../utils/seedValidation.js'
 
 const safetyProducts = [
   {
@@ -17,12 +16,6 @@ const safetyProducts = [
 ]
 
 export const ensureWorkwearSafetyProducts = async () => {
-  const validProducts = validSeedRecords(safetyProducts, 'workwear safety product', (item) =>
-    typeof item.slug === 'string' &&
-    Boolean(item.slug.trim()) &&
-    Array.isArray(item.features) &&
-    item.features.every((feature) => typeof feature === 'string')
-  )
   const connection = await pool.getConnection()
 
   try {
@@ -48,7 +41,7 @@ export const ensureWorkwearSafetyProducts = async () => {
     }
 
     const targetGroupTitle = 'Safety and Workwear Collection'
-    const productNames = validProducts.map((item) => item.name)
+    const productNames = safetyProducts.map((item) => item.name)
     const existingGroup = groups.find((group) => group.title === targetGroupTitle)
 
     if (existingGroup) {
@@ -74,7 +67,7 @@ export const ensureWorkwearSafetyProducts = async () => {
 
     let nextOrder = Number(orderRow?.max_order || 0) + 1
 
-    for (const item of validProducts) {
+    for (const item of safetyProducts) {
       const [existing] = await connection.execute(
         'SELECT id FROM products WHERE category_id = ? AND slug = ? LIMIT 1',
         [category.id, item.slug]

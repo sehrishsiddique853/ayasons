@@ -7,7 +7,6 @@ import {
   categoryImageFiles,
   slugify,
 } from './seedData.js'
-import { validSeedRecords } from '../utils/seedValidation.js'
 
 
 /*
@@ -75,42 +74,14 @@ const seedMySQL = async () => {
     |--------------------------------------------------------------------------
     */
 
-    const categories = validSeedRecords(
-      categoryData,
-      'category seed',
-      (category) =>
-        typeof category.slug === 'string' &&
-        Boolean(category.slug.trim()) &&
-        typeof category.description === 'string' &&
-        Boolean(category.description.trim()) &&
-        typeof category.heroTitle === 'string' &&
-        Boolean(category.heroTitle.trim()) &&
-        Array.isArray(category.products)
-    )
-
-    for (const categoryInput of categories) {
+    for (
+      const categoryInput
+      of categoryData
+    ) {
       const {
-        products: rawProducts,
+        products,
         ...category
       } = categoryInput
-
-      const products = validSeedRecords(
-        rawProducts,
-        `${category.slug} product seed`,
-        (product) => {
-          const featuredIsValid =
-            typeof product.featured === 'undefined' ||
-            typeof product.featured === 'boolean' ||
-            [0, 1].includes(product.featured)
-
-          return (
-            (typeof product.group === 'undefined' || typeof product.group === 'string') &&
-            (typeof product.features === 'undefined' ||
-              (Array.isArray(product.features) && product.features.every((feature) => typeof feature === 'string'))) &&
-            featuredIsValid
-          )
-        }
-      )
 
 
       const imageUrl =

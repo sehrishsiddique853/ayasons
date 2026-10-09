@@ -1,5 +1,4 @@
 import pool from './mysql.js'
-import { validSeedRecords } from '../utils/seedValidation.js'
 
 const STANDARD_SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL']
 
@@ -320,7 +319,7 @@ export const ensureActivewearCustomizers = async () => {
 
   const categoryId = categories[0].id
 
-  for (const config of validSeedRecords(activewearCustomizers, 'activewear customizer')) {
+  for (const config of activewearCustomizers) {
     const productSlug = slugify(config.lookupName)
 
     const [products] = await pool.execute(

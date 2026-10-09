@@ -149,22 +149,6 @@ app.use(
     limit: '1mb',
   })
 )
-
-app.use((req, res, next) => {
-  if (
-    ['POST', 'PUT', 'PATCH'].includes(req.method) &&
-    req.is('application/json') &&
-    (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: 'Send request data as a JSON object.',
-    })
-  }
-
-  next()
-})
-
 app.use(cookieParser())
 
 /*

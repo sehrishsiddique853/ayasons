@@ -1,6 +1,5 @@
 import pool from '../config/mysql.js'
 import nodemailer from 'nodemailer'
-import { invalidInput, readText } from '../utils/inputValidation.js'
 
 let quoteAddressColumnsPromise
 
@@ -9,12 +8,20 @@ const ensureQuoteAddressColumns = async () => {
     quoteAddressColumnsPromise = (async () => {
       const [addressColumns] = await pool.execute("SHOW COLUMNS FROM quote_requests LIKE 'address'")
       if (!addressColumns.length) {
-        await pool.execute("ALTER TABLE quote_requests ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT '' AFTER country")
+        try {
+          await pool.execute("ALTER TABLE quote_requests ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT '' AFTER country")
+        } catch (error) {
+          if (error.code !== 'ER_DUP_FIELDNAME') throw error
+        }
       }
 
       const [postalCodeColumns] = await pool.execute("SHOW COLUMNS FROM quote_requests LIKE 'postal_code'")
       if (!postalCodeColumns.length) {
-        await pool.execute("ALTER TABLE quote_requests ADD COLUMN postal_code VARCHAR(40) NOT NULL DEFAULT '' AFTER address")
+        try {
+          await pool.execute("ALTER TABLE quote_requests ADD COLUMN postal_code VARCHAR(40) NOT NULL DEFAULT '' AFTER address")
+        } catch (error) {
+          if (error.code !== 'ER_DUP_FIELDNAME') throw error
+        }
       }
     })().catch((error) => {
       quoteAddressColumnsPromise = null
@@ -46,44 +53,33 @@ const normalizeItems = (items) => {
 
   if (!Array.isArray(items)) return []
 
-  if (items.some((item) => !item || typeof item !== 'object' || Array.isArray(item))) {
-    throw invalidInput('Each cart item must be a valid object.')
-  }
-
   return items
     .slice(0, 100)
-    .map((item, index) => {
-      const itemName = readText(item.itemName, `Cart item ${index + 1} name`, { maxLength: 180 })
-      const rawQuantity = Number(item.quantity ?? 1)
-      if (!Number.isSafeInteger(rawQuantity) || rawQuantity < 1 || rawQuantity > 10000) {
-        throw invalidInput(`Cart item ${index + 1} quantity must be a whole number from 1 to 10,000.`)
-      }
-
-      const readOptional = (key, maxLength = 500) =>
-        readText(item[key] ?? '', `Cart item ${index + 1} ${key}`, { required: false, maxLength })
-
-      return {
-        productName: readOptional('productName', 180),
-        itemName,
-        size: readOptional('size', 80),
-        color: readOptional('color', 80),
-        colorMode: readOptional('colorMode', 40),
-        colorSelections: item.colorSelections && typeof item.colorSelections === 'object' && !Array.isArray(item.colorSelections)
+    .map((item) => ({
+        productName: String(item.productName || '').trim(),
+        itemName: String(item.itemName || '').trim(),
+        size: String(item.size || '').trim(),
+        color: String(item.color || '').trim(),
+        colorMode: String(item.colorMode || '').trim(),
+        colorSelections:
+          item.colorSelections && typeof item.colorSelections === 'object'
           ? item.colorSelections
           : {},
-        quantity: rawQuantity,
-        playerName: readOptional('playerName', 120),
-        playerNumber: readOptional('playerNumber', 20),
-        logoName: readOptional('logoName', 255),
-        notes: readOptional('notes', 5000),
-        options: item.options && typeof item.options === 'object' && !Array.isArray(item.options)
+      quantity: Math.max(1, Number(item.quantity) || 1),
+        playerName: String(item.playerName || '').trim(),
+        playerNumber: String(item.playerNumber || '').trim(),
+        logoName: String(item.logoName || '').trim(),
+        notes: String(item.notes || '').trim(),
+        options:
+          item.options && typeof item.options === 'object'
           ? item.options
           : {},
-        logoUploadIndex: Number.isInteger(Number(item.logoUploadIndex))
+      logoUploadIndex:
+        Number.isInteger(Number(item.logoUploadIndex))
           ? Number(item.logoUploadIndex)
           : null,
-      }
-    })
+    }))
+    .filter((item) => item.itemName)
 }
 
 const detailsRowsHtml = (item) => {
@@ -201,20 +197,21 @@ const itemText = (item, index) => {
 }
 
 export const submitCartQuote = async (req, res, next) => {
+  let savedOrderId = null
+
   try {
-    const body = req.body || {}
     const customer = {
-      name: readText(body.name, 'Name', { maxLength: 160 }),
-      email: readText(body.email, 'Email', { maxLength: 255 }).toLowerCase(),
-      phone: readText(body.phone ?? '', 'Phone number', { required: false, maxLength: 80 }),
-      company: readText(body.company ?? '', 'Company', { required: false, maxLength: 180 }),
-      country: readText(body.country ?? '', 'Country', { required: false, maxLength: 120 }),
-      address: readText(body.address ?? '', 'Address', { required: false, maxLength: 500 }),
-      postalCode: readText(body.postalCode ?? '', 'Postal code', { required: false, maxLength: 40 }),
-      message: readText(body.message ?? '', 'Message', { required: false, maxLength: 20000 }),
+      name: String(req.body?.name || '').trim(),
+      email: String(req.body?.email || '').trim().toLowerCase(),
+      phone: String(req.body?.phone || '').trim(),
+      company: String(req.body?.company || '').trim(),
+      country: String(req.body?.country || '').trim(),
+      address: String(req.body?.address || '').trim(),
+      postalCode: String(req.body?.postalCode || '').trim(),
+      message: String(req.body?.message || '').trim(),
     }
 
-    const items = normalizeItems(body.items)
+    const items = normalizeItems(req.body?.items)
 
     if (!customer.name || !emailPattern.test(customer.email) || !items.length) {
       res.status(400)
@@ -288,6 +285,7 @@ export const submitCartQuote = async (req, res, next) => {
         JSON.stringify(items),
       ]
     )
+    savedOrderId = insertResult.insertId
 
     const logoFiles = Array.isArray(req.files) ? req.files : []
 
@@ -345,6 +343,9 @@ export const submitCartQuote = async (req, res, next) => {
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 20000,
       auth: {
         user: gmailUser,
         pass: gmailAppPassword,
@@ -444,7 +445,7 @@ export const submitCartQuote = async (req, res, next) => {
       })
       .filter(Boolean)
 
-    const adminDelivery = await transporter.sendMail({
+    const adminEmail = transporter.sendMail({
       from: `AYOSONS Website <${gmailUser}>`,
       to: recipient,
       replyTo: customer.email,
@@ -454,7 +455,7 @@ export const submitCartQuote = async (req, res, next) => {
       attachments: emailAttachments,
     })
 
-    const confirmationDelivery = await transporter.sendMail({
+    const confirmationEmail = transporter.sendMail({
       from: `AYOSONS <${gmailUser}>`,
       to: customer.email,
       replyTo: recipient,
@@ -477,6 +478,11 @@ export const submitCartQuote = async (req, res, next) => {
       attachments: emailAttachments,
     })
 
+    const [adminDelivery, confirmationDelivery] = await Promise.all([
+      adminEmail,
+      confirmationEmail,
+    ])
+
     if (!adminDelivery?.messageId || !confirmationDelivery?.messageId) {
       res.status(502)
       throw new Error('Unable to confirm email delivery.')
@@ -485,10 +491,22 @@ export const submitCartQuote = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Order placed and confirmed successfully.',
+      emailSent: true,
       quoteId: insertResult.insertId,
       orderId: insertResult.insertId,
     })
   } catch (error) {
+    if (savedOrderId) {
+      console.error(`Order #${savedOrderId} was saved, but follow-up processing failed:`, error)
+      return res.status(201).json({
+        success: true,
+        emailSent: false,
+        message: `Order #${savedOrderId} was saved, but confirmation email delivery could not be confirmed. Please contact AYOSONS with this reference before submitting again.`,
+        quoteId: savedOrderId,
+        orderId: savedOrderId,
+      })
+    }
+
     next(error)
   }
 }

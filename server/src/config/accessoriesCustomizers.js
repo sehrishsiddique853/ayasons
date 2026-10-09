@@ -1,5 +1,4 @@
 import pool from './mysql.js'
-import { validSeedRecords } from '../utils/seedValidation.js'
 
 const STANDARD_COLORS = [
   { name:'Black', value:'#080808' },
@@ -112,7 +111,7 @@ export const ensureAccessoriesCustomizers = async () => {
   if (!cats.length) return
   const categoryId = cats[0].id
 
-  for (const config of validSeedRecords(products, 'accessories customizer')) {
+  for (const config of products) {
     const productSlug = slugify(config.name)
     const [rows] = await pool.execute(
       'SELECT id FROM products WHERE category_id=? AND slug=? LIMIT 1',

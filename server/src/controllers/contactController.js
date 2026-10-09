@@ -1,6 +1,5 @@
 import pool from '../config/mysql.js'
 import nodemailer from 'nodemailer'
-import { readText } from '../utils/inputValidation.js'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -99,19 +98,13 @@ export const getAdminContactSettings = async (req, res, next) => {
 
 export const updateAdminContactSettings = async (req, res, next) => {
   try {
-    const body = req.body || {}
-    const publicEmail = normalizeEmail(readText(body.email ?? '', 'Public email', { required: false, maxLength: 255 }))
-    const phone = readText(body.phone ?? '', 'Phone number', { required: false, maxLength: 50 })
-    const whatsapp = readText(body.whatsapp ?? '', 'WhatsApp number', { required: false, maxLength: 50 })
-    const linkedin = readText(body.linkedin ?? '', 'LinkedIn URL', { required: false, maxLength: 500 })
-    const instagram = readText(body.instagram ?? '', 'Instagram URL', { required: false, maxLength: 500 })
-    const facebook = readText(body.facebook ?? '', 'Facebook URL', { required: false, maxLength: 500 })
-    const submittedTeamMembers = body.teamMembers
-    if (submittedTeamMembers !== undefined && !Array.isArray(submittedTeamMembers)) {
-      res.status(400)
-      throw new Error('Team members must be a list.')
-    }
-
+    const publicEmail = normalizeEmail(req.body?.email)
+    const phone = String(req.body?.phone || '').trim()
+    const whatsapp = String(req.body?.whatsapp || '').trim()
+    const linkedin = String(req.body?.linkedin || '').trim()
+    const instagram = String(req.body?.instagram || '').trim()
+    const facebook = String(req.body?.facebook || '').trim()
+    const submittedTeamMembers = req.body?.teamMembers
     const teamMemberRows = Array.isArray(submittedTeamMembers)
       ? submittedTeamMembers
       : parseTeamMembers((await getContactSettings())?.team_members_json)
@@ -123,15 +116,8 @@ export const updateAdminContactSettings = async (req, res, next) => {
 
     if (
       teamMemberRows.some((member) => {
-        if (
-          !member ||
-          typeof member !== 'object' ||
-          typeof member.name !== 'string' ||
-          typeof member.designation !== 'string'
-        ) return true
-
-        const hasName = Boolean(member.name.trim())
-        const hasDesignation = Boolean(member.designation.trim())
+        const hasName = Boolean(String(member?.name || '').trim())
+        const hasDesignation = Boolean(String(member?.designation || '').trim())
         return hasName !== hasDesignation
       })
     ) {
@@ -141,8 +127,8 @@ export const updateAdminContactSettings = async (req, res, next) => {
 
     const teamMembers = parseTeamMembers(
       teamMemberRows.filter((member) =>
-        member.name.trim() &&
-        member.designation.trim()
+        String(member?.name || '').trim() &&
+        String(member?.designation || '').trim()
       )
     )
 
@@ -212,13 +198,12 @@ export const updateAdminContactSettings = async (req, res, next) => {
 
 export const submitContactInquiry = async (req, res, next) => {
   try {
-    const body = req.body || {}
     const fields = {
-      name: readText(body.name, 'Name', { maxLength: 160 }),
-      email: normalizeEmail(readText(body.email, 'Email', { maxLength: 255 })),
-      phone: readText(body.phone ?? '', 'Phone number', { required: false, maxLength: 80 }),
-      country: readText(body.country ?? '', 'Country', { required: false, maxLength: 120 }),
-      message: readText(body.message, 'Message', { maxLength: 20000 }),
+      name: String(req.body?.name || '').trim(),
+      email: normalizeEmail(req.body?.email),
+      phone: String(req.body?.phone || '').trim(),
+      country: String(req.body?.country || '').trim(),
+      message: String(req.body?.message || '').trim(),
     }
 
     if (!fields.name || !emailPattern.test(fields.email) || !fields.message) {
