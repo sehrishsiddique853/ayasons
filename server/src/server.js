@@ -10,6 +10,7 @@ import { ensureGlovesCategory } from './config/glovesCatalog.js'
 import { ensureSportsCustomizers } from './config/sportsCustomizers.js'
 import { ensureStreetwearCustomizers } from './config/streetwearCustomizers.js'
 import { ensureActivewearCustomizers } from './config/activewearCustomizers.js'
+import { ensureWorkwearSafetyProducts } from './config/workwearSafetyCatalog.js'
 import { ensureWorkwearCustomizers } from './config/workwearCustomizers.js'
 import { ensureHeadwearCustomizers } from './config/headwearCustomizers.js'
 import { ensureAccessoriesCustomizers } from './config/accessoriesCustomizers.js'
@@ -35,6 +36,7 @@ const startServer = async () => {
     await ensureSportsCustomizers()
     await ensureStreetwearCustomizers()
     await ensureActivewearCustomizers()
+    await ensureWorkwearSafetyProducts()
     await ensureWorkwearCustomizers()
     await ensureHeadwearCustomizers()
     await ensureAccessoriesCustomizers()
