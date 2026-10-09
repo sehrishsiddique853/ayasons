@@ -2,6 +2,7 @@ import pool from '../config/mysql.js'
 import nodemailer from 'nodemailer'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const ORDER_FLOW_VERSION = '2026-10-09-order-v3'
 
 const escapeHtml = (value) =>
   String(value ?? '')
@@ -166,6 +167,12 @@ const itemText = (item, index) => {
 }
 
 export const submitCartQuote = async (req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  })
+
   let savedOrderId = null
 
   try {
@@ -359,6 +366,7 @@ export const submitCartQuote = async (req, res, next) => {
         message: `Order #${savedOrderId} has been placed successfully. Email confirmation is temporarily unavailable.`,
         quoteId: savedOrderId,
         orderId: savedOrderId,
+        backendVersion: ORDER_FLOW_VERSION,
       })
     }
 
@@ -372,8 +380,6 @@ export const submitCartQuote = async (req, res, next) => {
 
     const smtpSecure =
       String(process.env.SMTP_SECURE || '').toLowerCase() === 'true'
-        ? true
-        : smtpPort === 465
 
     const transporter = nodemailer.createTransport({
       host: smtpHost,
@@ -547,6 +553,7 @@ export const submitCartQuote = async (req, res, next) => {
         message: `Order #${savedOrderId} has been placed successfully. Confirmation email could not be sent right now.`,
         quoteId: savedOrderId,
         orderId: savedOrderId,
+        backendVersion: ORDER_FLOW_VERSION,
       })
     }
 
@@ -556,6 +563,7 @@ export const submitCartQuote = async (req, res, next) => {
       emailSent: true,
       quoteId: insertResult.insertId,
       orderId: insertResult.insertId,
+      backendVersion: ORDER_FLOW_VERSION,
     })
   } catch (error) {
     if (savedOrderId) {
@@ -566,6 +574,7 @@ export const submitCartQuote = async (req, res, next) => {
         message: `Order #${savedOrderId} was saved, but confirmation email delivery could not be confirmed. Please contact AYOSONS with this reference before submitting again.`,
         quoteId: savedOrderId,
         orderId: savedOrderId,
+        backendVersion: ORDER_FLOW_VERSION,
       })
     }
 
