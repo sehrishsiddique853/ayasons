@@ -419,6 +419,10 @@ CREATE TABLE IF NOT EXISTS quote_requests (
 
     country VARCHAR(120) NOT NULL DEFAULT '',
 
+    address VARCHAR(500) NOT NULL DEFAULT '',
+
+    postal_code VARCHAR(40) NOT NULL DEFAULT '',
+
     message TEXT NULL,
 
     items_json JSON NOT NULL,

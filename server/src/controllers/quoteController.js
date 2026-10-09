@@ -167,6 +167,12 @@ const itemText = (item, index) => {
 }
 
 export const submitCartQuote = async (req, res, next) => {
+  res.set({
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    Pragma: 'no-cache',
+    Expires: '0',
+  })
+
   try {
     const customer = {
       name: String(req.body?.name || '').trim(),
@@ -174,6 +180,8 @@ export const submitCartQuote = async (req, res, next) => {
       phone: String(req.body?.phone || '').trim(),
       company: String(req.body?.company || '').trim(),
       country: String(req.body?.country || '').trim(),
+      address: String(req.body?.address || '').trim(),
+      postalCode: String(req.body?.postalCode || '').trim(),
       message: String(req.body?.message || '').trim(),
     }
 
@@ -245,6 +253,8 @@ export const submitCartQuote = async (req, res, next) => {
           ${customer.phone ? `<br/>${escapeHtml(customer.phone)}` : ''}
           ${customer.company ? `<br/>${escapeHtml(customer.company)}` : ''}
           ${customer.country ? `<br/>${escapeHtml(customer.country)}` : ''}
+          ${customer.address ? `<br/>${escapeHtml(customer.address)}` : ''}
+          ${customer.postalCode ? `<br/>${escapeHtml(customer.postalCode)}` : ''}
         </div>
 
         <p><strong>Items:</strong> ${items.length} &nbsp; <strong>Total quantity:</strong> ${totalQuantity}</p>
@@ -266,6 +276,8 @@ export const submitCartQuote = async (req, res, next) => {
       customer.phone ? `Phone: ${customer.phone}` : '',
       customer.company ? `Company: ${customer.company}` : '',
       customer.country ? `Country: ${customer.country}` : '',
+      customer.address ? `Address: ${customer.address}` : '',
+      customer.postalCode ? `Postal code: ${customer.postalCode}` : '',
       '',
       `Items: ${items.length}`,
       `Total quantity: ${totalQuantity}`,
@@ -317,13 +329,16 @@ export const submitCartQuote = async (req, res, next) => {
           <h2>Order Confirmed</h2>
           <p>Thank you, ${escapeHtml(customer.name)}. Your AYOSONS order has been placed successfully and is now confirmed.</p>
           <p style="color:#666;">Reference ${orderReference}</p>
+          <p><strong>Delivery details</strong><br/>
+            ${[customer.address, customer.postalCode, customer.country].filter(Boolean).map(escapeHtml).join('<br/>') || 'Not provided'}
+          </p>
           ${items.map((item, index) =>
             itemHtml(item, index, getLogoPreviewCid(item, index))
           ).join('')}
           <p>Our team will review your order details and contact you if any additional production, payment or shipping information is required.</p>
         </div>
       `,
-      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order ${orderReference} has been placed successfully and is confirmed.\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
+      text: `Order Confirmed\n\nThank you, ${customer.name}. Your AYOSONS order ${orderReference} has been placed successfully and is confirmed.\n\nDelivery details:\n${[customer.address, customer.postalCode, customer.country].filter(Boolean).join(', ') || 'Not provided'}\n\n${items.map(itemText).join('\n\n')}\n\nOur team will review your order and contact you if any additional production, payment or shipping information is required.`,
       attachments: emailAttachments,
     }
 

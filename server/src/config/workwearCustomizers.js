@@ -85,6 +85,55 @@ const products = [
       {label:'Use',value:'Daily workwear, staff uniforms and company apparel programs'},
     ],
   },
+  {
+    name:'Safety Jacket',
+    variantCount:1,
+    description:'Custom high-visibility safety jacket built for professional work crews, industrial use and branded PPE programs.',
+    zones:['Main High-Visibility Color','Contrast Panel Color','Reflective Trim / Accent Color'],
+    groups:[
+      group('Size', STANDARD_SIZES),
+      group('Fit',['Regular','Relaxed']),
+      group('Shell Material',['Polyester Oxford','PU Coated Polyester','Softshell']),
+      group('Visibility Color',['Safety Yellow','Safety Orange']),
+      group('Reflective Tape',['Standard Silver','Segmented Reflective','High-Visibility Reflective']),
+      group('Closure',['Full Zip','Zip + Storm Flap']),
+      group('Sleeve Style',['Long Sleeve','Detachable Sleeve']),
+      group('Pocket Style',['Side Pockets','Chest + Side Pockets','Utility Pockets']),
+      group('Lining',['Unlined','Mesh Lined','Quilted']),
+      group('Branding',['Embroidery','Heat Transfer','Screen Print']),
+    ],
+    basic:['size','fit'],
+    specs:[
+      {label:'Product Detail',value:'Custom high-visibility safety jacket'},
+      {label:'Branding Detail',value:'Custom company logo, colors and branded safety detailing'},
+      {label:'Customization Detail',value:'Selectable shell, reflective tape, closure, pockets and lining'},
+      {label:'Use',value:'Construction, logistics, industrial teams and professional workwear'},
+    ],
+  },
+  {
+    name:'Safety Vest',
+    variantCount:1,
+    description:'Custom high-visibility safety vest designed for work crews, logistics, events and branded safety programs.',
+    zones:['Main High-Visibility Color','Reflective Trim Color','Binding / Accent Color'],
+    groups:[
+      group('Size', STANDARD_SIZES),
+      group('Fit',['Regular','Relaxed']),
+      group('Vest Style',['Basic Safety Vest','Executive Safety Vest','Utility Safety Vest']),
+      group('Visibility Color',['Safety Yellow','Safety Orange']),
+      group('Reflective Tape',['Standard Silver','Segmented Reflective','High-Visibility Reflective']),
+      group('Closure',['Zip Front','Velcro Front']),
+      group('Pocket Style',['No Pocket','Chest Pocket','Multi Pocket']),
+      group('Fabric',['Mesh Polyester','Solid Polyester','Oxford Polyester']),
+      group('Branding',['Heat Transfer','Screen Print','Embroidery']),
+    ],
+    basic:['size','vest-style'],
+    specs:[
+      {label:'Product Detail',value:'Custom high-visibility safety vest'},
+      {label:'Branding Detail',value:'Custom company logo, colors and branded reflective detailing'},
+      {label:'Customization Detail',value:'Selectable vest style, reflective tape, closure, pockets and fabric'},
+      {label:'Use',value:'Construction, logistics, events and professional safety programs'},
+    ],
+  }
 ]
 
 export const ensureWorkwearCustomizers = async () => {
@@ -106,7 +155,9 @@ export const ensureWorkwearCustomizers = async () => {
       [productId, productSlug]
     )
 
-    for (let variant=1; variant<=3; variant+=1) {
+    const variantCount = Number(config.variantCount || 3)
+
+    for (let variant=1; variant<=variantCount; variant+=1) {
       const variantName = `${config.name} ${variant}`
       const variantSlug = slugify(variantName)
 

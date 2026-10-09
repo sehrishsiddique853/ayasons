@@ -26,6 +26,8 @@ function Cart() {
     phone: '',
     company: '',
     country: '',
+    address: '',
+    postalCode: '',
     message: '',
   })
 
@@ -57,6 +59,8 @@ function Cart() {
       formData.append('phone', customer.phone)
       formData.append('company', customer.company)
       formData.append('country', customer.country)
+      formData.append('address', customer.address)
+      formData.append('postalCode', customer.postalCode)
       formData.append('message', customer.message)
 
       const itemsForRequest = cartItems.map((item) => {
@@ -86,7 +90,7 @@ function Cart() {
 
       formData.append('items', JSON.stringify(itemsForRequest))
 
-      const response = await api.post('/quotes', formData)
+      const response = await api.post('/quotes', formData, { timeout: 30000 })
 
       setStatus('success')
       setFeedback(response.data.message ||
@@ -103,6 +107,9 @@ function Cart() {
       setStatus('error')
       setFeedback(
         error.response?.data?.message ||
+        (error.code === 'ECONNABORTED'
+          ? 'Email delivery could not be confirmed. No order is stored in the website database; check your inbox or contact AYOSONS before retrying.'
+          : '') ||
         'Unable to send your request right now.'
       )
     }
@@ -322,6 +329,30 @@ function Cart() {
                         updateCustomer('country', event.target.value)
                       }
                       placeholder="Country"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Address</span>
+                    <input
+                      autoComplete="street-address"
+                      value={customer.address}
+                      onChange={(event) =>
+                        updateCustomer('address', event.target.value)
+                      }
+                      placeholder="Street address, city, state"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Postal code</span>
+                    <input
+                      autoComplete="postal-code"
+                      value={customer.postalCode}
+                      onChange={(event) =>
+                        updateCustomer('postalCode', event.target.value)
+                      }
+                      placeholder="Postal / ZIP code"
                     />
                   </label>
 
