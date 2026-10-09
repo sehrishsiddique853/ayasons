@@ -1,37 +1,6 @@
 import pool from '../config/mysql.js'
 import nodemailer from 'nodemailer'
 
-let quoteAddressColumnsPromise
-
-const ensureQuoteAddressColumns = async () => {
-  if (!quoteAddressColumnsPromise) {
-    quoteAddressColumnsPromise = (async () => {
-      const [addressColumns] = await pool.execute("SHOW COLUMNS FROM quote_requests LIKE 'address'")
-      if (!addressColumns.length) {
-        try {
-          await pool.execute("ALTER TABLE quote_requests ADD COLUMN address VARCHAR(500) NOT NULL DEFAULT '' AFTER country")
-        } catch (error) {
-          if (error.code !== 'ER_DUP_FIELDNAME') throw error
-        }
-      }
-
-      const [postalCodeColumns] = await pool.execute("SHOW COLUMNS FROM quote_requests LIKE 'postal_code'")
-      if (!postalCodeColumns.length) {
-        try {
-          await pool.execute("ALTER TABLE quote_requests ADD COLUMN postal_code VARCHAR(40) NOT NULL DEFAULT '' AFTER address")
-        } catch (error) {
-          if (error.code !== 'ER_DUP_FIELDNAME') throw error
-        }
-      }
-    })().catch((error) => {
-      quoteAddressColumnsPromise = null
-      throw error
-    })
-  }
-
-  return quoteAddressColumnsPromise
-}
-
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const escapeHtml = (value) =>
@@ -238,8 +207,6 @@ export const submitCartQuote = async (req, res, next) => {
       )
     `)
 
-    await ensureQuoteAddressColumns()
-
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS quote_request_files (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -258,33 +225,51 @@ export const submitCartQuote = async (req, res, next) => {
       )
     `)
 
-    const [insertResult] = await pool.execute(
-      `
-      INSERT INTO quote_requests (
-        customer_name,
-        customer_email,
-        customer_phone,
-        company,
-        country,
-        address,
-        postal_code,
-        message,
-        items_json
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        customer.name,
-        customer.email,
-        customer.phone,
-        customer.company,
-        customer.country,
-        customer.address,
-        customer.postalCode,
-        customer.message,
-        JSON.stringify(items),
-      ]
+    const [quoteColumns] = await pool.execute(
+      'SHOW COLUMNS FROM quote_requests'
     )
+
+    const quoteColumnNames = new Set(
+      quoteColumns.map((column) => String(column.Field || ''))
+    )
+
+    const insertColumns = [
+      'customer_name',
+      'customer_email',
+      'customer_phone',
+      'company',
+      'country',
+    ]
+
+    const insertValues = [
+      customer.name,
+      customer.email,
+      customer.phone,
+      customer.company,
+      customer.country,
+    ]
+
+    if (quoteColumnNames.has('address')) {
+      insertColumns.push('address')
+      insertValues.push(customer.address)
+    }
+
+    if (quoteColumnNames.has('postal_code')) {
+      insertColumns.push('postal_code')
+      insertValues.push(customer.postalCode)
+    }
+
+    insertColumns.push('message', 'items_json')
+    insertValues.push(customer.message, JSON.stringify(items))
+
+    const placeholders = insertColumns.map(() => '?').join(', ')
+
+    const [insertResult] = await pool.execute(
+      `INSERT INTO quote_requests (${insertColumns.join(', ')})
+       VALUES (${placeholders})`,
+      insertValues
+    )
+
     savedOrderId = insertResult.insertId
 
     const logoFiles = Array.isArray(req.files) ? req.files : []
@@ -320,23 +305,61 @@ export const submitCartQuote = async (req, res, next) => {
       )
     }
 
-    const [settingsRows] = await pool.execute(`
-      SELECT recipient_email
-      FROM contact_settings
-      WHERE id = 1
-      LIMIT 1
-    `)
+    let settingsRows = []
 
-    const gmailUser = String(process.env.GMAIL_USER || '').trim()
-    const gmailAppPassword = String(process.env.GMAIL_APP_PASSWORD || '').trim()
+    try {
+      const [rows] = await pool.execute(`
+        SELECT recipient_email, public_email
+        FROM contact_settings
+        WHERE id = 1
+        LIMIT 1
+      `)
+      settingsRows = rows
+    } catch (settingsError) {
+      console.error(
+        'Order email settings lookup failed, using mail account fallback:',
+        settingsError.message
+      )
+    }
+
+    const gmailUser = String(
+      process.env.GMAIL_USER ||
+      process.env.SMTP_USER ||
+      process.env.EMAIL_USER ||
+      ''
+    ).trim()
+
+    const gmailAppPassword = String(
+      process.env.GMAIL_APP_PASSWORD ||
+      process.env.SMTP_PASS ||
+      process.env.EMAIL_PASS ||
+      ''
+    ).trim()
 
     const recipient =
-      String(settingsRows[0]?.recipient_email || '').trim() ||
-      gmailUser
+      String(
+        settingsRows[0]?.recipient_email ||
+        settingsRows[0]?.public_email ||
+        process.env.CONTACT_RECIPIENT ||
+        gmailUser
+      ).trim()
 
-    if (!emailPattern.test(gmailUser) || !gmailAppPassword || !emailPattern.test(recipient)) {
-      res.status(503)
-      throw new Error('Email delivery is not configured yet.')
+    if (
+      !emailPattern.test(gmailUser) ||
+      !gmailAppPassword ||
+      !emailPattern.test(recipient)
+    ) {
+      console.error(
+        `Order #${savedOrderId} saved, but email delivery is not configured.`
+      )
+
+      return res.status(201).json({
+        success: true,
+        emailSent: false,
+        message: `Order #${savedOrderId} has been placed successfully. Email confirmation is temporarily unavailable.`,
+        quoteId: savedOrderId,
+        orderId: savedOrderId,
+      })
     }
 
     const transporter = nodemailer.createTransport({
